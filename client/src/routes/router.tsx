@@ -30,9 +30,9 @@ export const router = createBrowserRouter([
       {
         element: <ChildRoute />,
         children: [
-          { path: '/dashboard', element: <ChildDashboard /> },
-          { path: '/adventure', element: <AdventureSelectionPage /> },
-          { path: '/story/:adventureId', element: <StoryChat /> },
+          { path: '/child/dashboard', element: <ChildDashboard /> },
+          { path: '/child/adventure', element: <AdventureSelectionPage /> },
+          { path: '/child/story/:adventureId', element: <StoryChat /> },
         ],
       },
     ],

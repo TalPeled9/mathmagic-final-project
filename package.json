@@ -4,7 +4,8 @@
   "workspaces": ["client", "server"],
   "scripts": {
     "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w server && npm run build -w client"
+    "build": "npm run build -w server && npm run build -w client",
+    "lint": "npm run lint -w client && npm run lint -w server"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
