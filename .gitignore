@@ -3,7 +3,10 @@ node_modules/
 
 # Environment variables
 .env
+.env.local
+client/.env
 client/.env.local
+server/.env
 
 # Build output
 dist/
