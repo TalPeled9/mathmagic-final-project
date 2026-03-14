@@ -1,14 +1,23 @@
 {
   "name": "mathmagic",
   "private": true,
-  "workspaces": ["client", "server", "shared/*"],
+  "workspaces": [
+    "client",
+    "server",
+    "shared/*"
+  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w server && npm run build -w client",
-    "lint": "npm run lint -w client && npm run lint -w server",
+    "dev": "concurrently --names 'server,client' --prefix-colors 'blue,green' \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w shared/types && npm run build -w server && npm run build -w client",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "prettier": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

@@ -22,6 +22,7 @@ mathmagic-final-project/
 ## Setup
 
 **1. Install dependencies**
+
 ```bash
 npm install
 ```
@@ -64,9 +65,9 @@ npm run dev
 
 ## Available Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start client + server in watch mode |
-| `npm run build` | Build both workspaces for production |
-| `npm run lint` | Run ESLint across client and server |
-| `npm run format` | Format all files with Prettier |
+| Command          | Description                          |
+| ---------------- | ------------------------------------ |
+| `npm run dev`    | Start client + server in watch mode  |
+| `npm run build`  | Build both workspaces for production |
+| `npm run lint`   | Run ESLint across client and server  |
+| `npm run format` | Format all files with Prettier       |
