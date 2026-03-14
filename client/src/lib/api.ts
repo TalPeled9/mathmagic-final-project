@@ -1,14 +1,25 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
-if (!BASE_URL) throw new Error('VITE_API_URL environment variable is not set');
+function getBaseUrl(): string {
+  const url = import.meta.env.VITE_API_URL;
+  if (!url) throw new Error('VITE_API_URL is not set');
+  return url;
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     ...options,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...options.headers },
   });
 
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+
+  const contentType = res.headers.get('content-type') ?? '';
+  if (res.status === 204 || !contentType.includes('application/json')) {
+    return undefined as T;
+  }
   return res.json() as Promise<T>;
 }
 

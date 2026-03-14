@@ -14,7 +14,7 @@ mathmagic-final-project/
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - MongoDB (local instance or Atlas connection string)
 - Google OAuth credentials (Client ID + Secret)
 - Google Gemini API key
@@ -49,6 +49,7 @@ cp client/.env.example client/.env
 `client/.env` — required fields:
 | Variable | Description |
 |---|---|
+| `VITE_API_URL` | Base URL for the API server (e.g. `http://localhost:3000/api`) |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID (same as server) |
 
 ## Development

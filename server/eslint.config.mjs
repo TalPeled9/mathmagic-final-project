@@ -1,14 +1,12 @@
-import js from '@eslint/js';
+import { ignores, tsBase, prettier } from '@mathmagic/eslint-config';
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import { defineConfig, globalIgnores } from 'eslint/config';
+import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  ignores,
   {
     files: ['**/*.ts'],
-    extends: [js.configs.recommended, tseslint.configs.recommended],
+    extends: tsBase,
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,
@@ -20,5 +18,5 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
-  eslintConfigPrettier,
+  prettier,
 ]);
