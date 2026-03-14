@@ -11,6 +11,7 @@ server/.env
 # Build output
 dist/
 build/
+.turbo/
 
 # OS files
 .DS_Store

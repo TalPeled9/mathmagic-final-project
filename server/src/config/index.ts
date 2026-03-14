@@ -15,9 +15,9 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   google: {
-    clientId: requireEnv('GOOGLE_CLIENT_ID'),
-    clientSecret: requireEnv('GOOGLE_CLIENT_SECRET'),
+    clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
   },
-  gemini: { apiKey: requireEnv('GEMINI_API_KEY') },
+  gemini: { apiKey: process.env.GEMINI_API_KEY ?? '' },
   isProduction: process.env.NODE_ENV === 'production',
 } as const;
