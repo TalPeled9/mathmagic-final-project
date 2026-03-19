@@ -1,12 +1,24 @@
 {
   "name": "mathmagic",
   "private": true,
-  "workspaces": ["client", "server"],
+  "workspaces": [
+    "client",
+    "server",
+    "shared/*"
+  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w server && npm run build -w client"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write ."
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "prettier": "^3.3.0",
+    "turbo": "^2.8.17"
+  },
+  "packageManager": "npm@11.6.2",
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
