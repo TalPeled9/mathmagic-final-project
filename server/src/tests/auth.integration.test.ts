@@ -1,0 +1,172 @@
+import jwt, { SignOptions } from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import request from 'supertest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import app from '../app';
+import { googleOAuthClient } from '../config/auth';
+import User from '../model/User';
+import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../utils/cookieOptions';
+import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../utils/jwt';
+
+function extractCookieValue(
+  setCookieHeader: string | string[] | undefined,
+  cookieName: string
+): string {
+  const setCookie = Array.isArray(setCookieHeader)
+    ? setCookieHeader
+    : setCookieHeader
+      ? [setCookieHeader]
+      : [];
+
+  const cookie = setCookie.find((value) => value.startsWith(`${cookieName}=`));
+
+  if (!cookie) {
+    throw new Error(`Cookie ${cookieName} was not set`);
+  }
+
+  return cookie.split(';')[0];
+}
+
+describe('auth routes integration', () => {
+  let mongoServer: MongoMemoryServer;
+
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer.getUri(), { dbName: 'mathmagic-auth-tests' });
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
+  });
+
+  beforeEach(async () => {
+    vi.restoreAllMocks();
+    await User.deleteMany({});
+  });
+
+  it('POST /api/auth/google creates a user in Mongo on first login', async () => {
+    vi.spyOn(googleOAuthClient, 'verifyIdToken').mockResolvedValue({
+      getPayload: () => ({
+        sub: 'google-parent-1',
+        email: 'parent@example.com',
+        name: 'Parent One',
+      }),
+    } as never);
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'valid-google-id-token' })
+      .expect(200);
+
+    const user = await User.findOne({ googleId: 'google-parent-1' }).lean();
+
+    expect(user).not.toBeNull();
+    expect(user?.email).toBe('parent@example.com');
+    expect(user?.name).toBe('Parent One');
+    expect(response.body.user.email).toBe('parent@example.com');
+    expect(response.headers['set-cookie']).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`${ACCESS_TOKEN_COOKIE}=`),
+        expect.stringContaining(`${REFRESH_TOKEN_COOKIE}=`),
+        expect.stringContaining(`${CSRF_COOKIE}=`),
+      ])
+    );
+  });
+
+  it('POST /api/auth/google reuses the existing Mongo user on repeat login', async () => {
+    await User.create({
+      googleId: 'google-parent-1',
+      email: 'parent@example.com',
+      name: 'Original Parent',
+    });
+
+    vi.spyOn(googleOAuthClient, 'verifyIdToken').mockResolvedValue({
+      getPayload: () => ({
+        sub: 'google-parent-1',
+        email: 'parent@example.com',
+        name: 'Updated Name From Google',
+      }),
+    } as never);
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'valid-google-id-token' })
+      .expect(200);
+
+    const userCount = await User.countDocuments({ googleId: 'google-parent-1' });
+    const persistedUser = await User.findOne({ googleId: 'google-parent-1' }).lean();
+
+    expect(userCount).toBe(1);
+    expect(response.body.user.name).toBe('Original Parent');
+    expect(persistedUser?.name).toBe('Original Parent');
+  });
+
+  it('GET /api/parent/profile reads the authenticated user from Mongo', async () => {
+    const user = await User.create({
+      googleId: 'google-parent-1',
+      email: 'parent@example.com',
+      name: 'Parent One',
+    });
+    const accessToken = generateAccessToken(String(user._id));
+
+    const response = await request(app)
+      .get('/api/parent/profile')
+      .set('Cookie', [`${ACCESS_TOKEN_COOKIE}=${accessToken}`])
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      id: String(user._id),
+      email: 'parent@example.com',
+      name: 'Parent One',
+    });
+  });
+
+  it('GET /api/parent/profile refreshes an expired access token using a real Mongo user', async () => {
+    const user = await User.create({
+      googleId: 'google-parent-2',
+      email: 'refresh@example.com',
+      name: 'Refresh Parent',
+    });
+
+    const expiredAccessToken = jwt.sign({ userId: String(user._id) }, process.env.JWT_SECRET!, {
+      expiresIn: -1 as SignOptions['expiresIn'],
+    });
+    const refreshToken = generateRefreshToken(String(user._id));
+
+    const response = await request(app)
+      .get('/api/parent/profile')
+      .set('Cookie', [
+        `${ACCESS_TOKEN_COOKIE}=${expiredAccessToken}`,
+        `${REFRESH_TOKEN_COOKIE}=${refreshToken}`,
+      ])
+      .expect(200);
+
+    const newAccessCookie = extractCookieValue(response.headers['set-cookie'], ACCESS_TOKEN_COOKIE);
+
+    expect(verifyAccessToken(newAccessCookie.split('=')[1]).userId).toBe(String(user._id));
+    expect(response.body.email).toBe('refresh@example.com');
+  });
+
+  it('POST /api/auth/refresh issues a new access token from a valid refresh cookie', async () => {
+    const user = await User.create({
+      googleId: 'google-parent-3',
+      email: 'cookie@example.com',
+      name: 'Cookie Parent',
+    });
+    const refreshToken = generateRefreshToken(String(user._id));
+
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', [`${REFRESH_TOKEN_COOKIE}=${refreshToken}`, `${CSRF_COOKIE}=csrf-token`])
+      .set('x-csrf-token', 'csrf-token')
+      .expect(200);
+
+    const newAccessCookie = extractCookieValue(response.headers['set-cookie'], ACCESS_TOKEN_COOKIE);
+
+    expect(verifyAccessToken(newAccessCookie.split('=')[1]).userId).toBe(String(user._id));
+    expect(response.body.ok).toBe(true);
+  });
+});

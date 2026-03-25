@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema<IUser>({
   googleId: { type: String, required: true, unique: true, sparse: true },
   name:     { type: String, required: true, trim: true, maxlength: 100 },
 }, { timestamps: true });
-userSchema.index({ email: 1 });
 
 const User = mongoose.model<IUser>("User", userSchema);
 

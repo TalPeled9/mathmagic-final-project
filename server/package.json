@@ -40,6 +40,7 @@
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^17.4.0",
+    "mongodb-memory-server": "^10.1.4",
     "supertest": "^7.1.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
