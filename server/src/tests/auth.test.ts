@@ -26,7 +26,10 @@ type MockUser = {
   createdAt?: Date;
 };
 
-function extractCookieValue(setCookieHeader: string | string[] | undefined, cookieName: string): string {
+function extractCookieValue(
+  setCookieHeader: string | string[] | undefined,
+  cookieName: string
+): string {
   const setCookie = Array.isArray(setCookieHeader)
     ? setCookieHeader
     : setCookieHeader
@@ -158,6 +161,33 @@ describe('auth routes', () => {
       ])
     );
     expect(response.body.ok).toBe(true);
+  });
+
+  it('POST /api/auth/logout revokes the refresh token on the server', async () => {
+    const refreshToken = generateRefreshToken('user-logout');
+
+    await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', [`${REFRESH_TOKEN_COOKIE}=${refreshToken}`, `${CSRF_COOKIE}=csrf-token`])
+      .set('x-csrf-token', 'csrf-token')
+      .expect(200);
+
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', [`${REFRESH_TOKEN_COOKIE}=${refreshToken}`, `${CSRF_COOKIE}=csrf-token`])
+      .set('x-csrf-token', 'csrf-token')
+      .expect(401);
+
+    expect(response.body.error.message).toBe('Session revoked');
+  });
+
+  it('POST /api/auth/logout rejects request when CSRF token is missing', async () => {
+    const response = await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', [`${CSRF_COOKIE}=csrf-token`])
+      .expect(403);
+
+    expect(response.body.error.message).toBe('Invalid CSRF token');
   });
 
   it('GET /api/parent/profile rejects requests without an access token', async () => {

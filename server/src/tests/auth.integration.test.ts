@@ -169,4 +169,37 @@ describe('auth routes integration', () => {
     expect(verifyAccessToken(newAccessCookie.split('=')[1]).userId).toBe(String(user._id));
     expect(response.body.ok).toBe(true);
   });
+
+  it('POST /api/auth/logout revokes refresh tokens server-side', async () => {
+    const user = await User.create({
+      googleId: 'google-parent-logout',
+      email: 'logout@example.com',
+      name: 'Logout Parent',
+    });
+    const refreshToken = generateRefreshToken(String(user._id));
+
+    await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', [`${REFRESH_TOKEN_COOKIE}=${refreshToken}`, `${CSRF_COOKIE}=csrf-token`])
+      .set('x-csrf-token', 'csrf-token')
+      .expect(200);
+
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', [`${REFRESH_TOKEN_COOKIE}=${refreshToken}`, `${CSRF_COOKIE}=csrf-token`])
+      .set('x-csrf-token', 'csrf-token')
+      .expect(401);
+
+    expect(response.body.error.message).toBe('Session revoked');
+  });
+
+  it('POST /api/auth/logout rejects request when CSRF token is invalid', async () => {
+    const response = await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', [`${CSRF_COOKIE}=cookie-csrf`])
+      .set('x-csrf-token', 'header-csrf-mismatch')
+      .expect(403);
+
+    expect(response.body.error.message).toBe('Invalid CSRF token');
+  });
 });
