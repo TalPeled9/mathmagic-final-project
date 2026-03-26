@@ -11,6 +11,7 @@ import {
   csrfCookieOptions,
 } from '../utils/cookieOptions';
 import { ApiError } from '../utils/ApiError';
+import { isTokenRevoked, revokeToken } from '../services/tokenDenylist';
 
 function issueCsrfCookie(res: Response): string {
   const token = crypto.randomBytes(32).toString('hex');
@@ -41,6 +42,7 @@ export async function googleAuth(req: Request, res: Response): Promise<void> {
 export async function refreshToken(req: Request, res: Response): Promise<void> {
   const token = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
   if (!token) throw ApiError.unauthorized('No refresh token provided');
+  if (isTokenRevoked(token)) throw ApiError.unauthorized('Session revoked');
 
   const payload = verifyRefreshToken(token);
   const newAccessToken = generateAccessToken(payload.userId);
@@ -51,7 +53,13 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
   res.json({ ok: true, csrfToken });
 }
 
-export async function logout(_req: Request, res: Response): Promise<void> {
+export async function logout(req: Request, res: Response): Promise<void> {
+  const accessToken = req.cookies[ACCESS_TOKEN_COOKIE] as string | undefined;
+  const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
+
+  if (accessToken) revokeToken(accessToken);
+  if (refreshToken) revokeToken(refreshToken);
+
   const clearOpts = { path: '/' };
   res.clearCookie(ACCESS_TOKEN_COOKIE, clearOpts);
   res.clearCookie(REFRESH_TOKEN_COOKIE, clearOpts);

@@ -10,6 +10,7 @@ import {
   csrfCookieOptions,
 } from '../utils/cookieOptions';
 import { ApiError } from '../utils/ApiError';
+import { isTokenRevoked } from '../services/tokenDenylist';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -63,6 +64,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   if (!accessToken) {
     return next(ApiError.unauthorized());
   }
+  if (isTokenRevoked(accessToken)) {
+    return next(ApiError.unauthorized('Session revoked'));
+  }
 
   try {
     const payload = verifyAccessToken(accessToken);
@@ -78,6 +82,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
     if (!refreshToken) {
       return next(ApiError.unauthorized('Session expired'));
+    }
+    if (isTokenRevoked(refreshToken)) {
+      return next(ApiError.unauthorized('Session revoked'));
     }
 
     try {
