@@ -1,6 +1,11 @@
 ﻿import { Request, Response } from 'express';
 import crypto from 'crypto';
-import { verifyGoogleToken, findOrCreateUser } from '../services/authService';
+import {
+  verifyGoogleToken,
+  findOrCreateUser,
+  registerLocalUser,
+  loginLocalUser,
+} from '../services/authService';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import {
   accessCookieOptions,
@@ -12,6 +17,7 @@ import {
 } from '../utils/cookieOptions';
 import { ApiError } from '../utils/ApiError';
 import { isTokenRevoked, revokeToken } from '../services/tokenDenylist';
+import { IUser } from '../model/User';
 
 function issueCsrfCookie(res: Response): string {
   const token = crypto.randomBytes(32).toString('hex');
@@ -19,12 +25,7 @@ function issueCsrfCookie(res: Response): string {
   return token;
 }
 
-export async function googleAuth(req: Request, res: Response): Promise<void> {
-  const { credential } = req.body as { credential: string };
-
-  const googleData = await verifyGoogleToken(credential);
-  const user = await findOrCreateUser(googleData);
-
+function issueAuthResponse(user: IUser, res: Response): void {
   const userId = String(user._id);
   const accessToken = generateAccessToken(userId);
   const refreshToken = generateRefreshToken(userId);
@@ -34,9 +35,32 @@ export async function googleAuth(req: Request, res: Response): Promise<void> {
   const csrfToken = issueCsrfCookie(res);
 
   res.json({
-    user: { id: userId, email: user.email, name: user.name },
+    user: {
+      id: userId,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+    },
     csrfToken,
   });
+}
+
+export async function register(req: Request, res: Response): Promise<void> {
+  const user = await registerLocalUser(req.body as { username: string; email: string; password: string });
+  issueAuthResponse(user, res);
+}
+
+export async function login(req: Request, res: Response): Promise<void> {
+  const user = await loginLocalUser(req.body as { email: string; password: string });
+  issueAuthResponse(user, res);
+}
+
+export async function googleAuth(req: Request, res: Response): Promise<void> {
+  const { credential } = req.body as { credential: string };
+
+  const googleData = await verifyGoogleToken(credential);
+  const user = await findOrCreateUser(googleData);
+  issueAuthResponse(user, res);
 }
 
 export async function refreshToken(req: Request, res: Response): Promise<void> {

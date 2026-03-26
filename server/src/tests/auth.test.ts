@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../services/authService', () => ({
   verifyGoogleToken: vi.fn(),
   findOrCreateUser: vi.fn(),
+  registerLocalUser: vi.fn(),
+  loginLocalUser: vi.fn(),
 }));
 
 vi.mock('../model/User', () => ({
@@ -23,6 +25,7 @@ type MockUser = {
   _id: string;
   email: string;
   name: string;
+  username?: string;
   createdAt?: Date;
 };
 
@@ -48,6 +51,8 @@ function extractCookieValue(
 describe('auth routes', () => {
   const mockedVerifyGoogleToken = vi.mocked(authService.verifyGoogleToken);
   const mockedFindOrCreateUser = vi.mocked(authService.findOrCreateUser);
+  const mockedRegisterLocalUser = vi.mocked(authService.registerLocalUser);
+  const mockedLoginLocalUser = vi.mocked(authService.loginLocalUser);
   const mockedFindById = vi.mocked(User.findById);
 
   beforeEach(() => {
@@ -107,6 +112,79 @@ describe('auth routes', () => {
 
     expect(response.body.error.message).toContain('Google credential is required');
     expect(mockedVerifyGoogleToken).not.toHaveBeenCalled();
+  });
+
+  it('POST /api/auth/register creates a local account and returns auth cookies', async () => {
+    const user: MockUser = {
+      _id: '507f1f77bcf86cd799439012',
+      username: 'parent_one',
+      email: 'local@example.com',
+      name: 'parent_one',
+    };
+
+    mockedRegisterLocalUser.mockResolvedValue(user as never);
+
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ username: 'parent_one', email: 'local@example.com', password: 'password123' })
+      .expect(200);
+
+    expect(mockedRegisterLocalUser).toHaveBeenCalledWith({
+      username: 'parent_one',
+      email: 'local@example.com',
+      password: 'password123',
+    });
+    expect(response.body).toMatchObject({
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+      },
+    });
+    expect(response.headers['set-cookie']).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(`${ACCESS_TOKEN_COOKIE}=`),
+        expect.stringContaining(`${REFRESH_TOKEN_COOKIE}=`),
+        expect.stringContaining(`${CSRF_COOKIE}=`),
+      ])
+    );
+  });
+
+  it('POST /api/auth/register rejects invalid username', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ username: 'a', email: 'bad@example.com', password: 'password123' })
+      .expect(400);
+
+    expect(response.body.error.message).toContain('Username must be at least 3 characters');
+    expect(mockedRegisterLocalUser).not.toHaveBeenCalled();
+  });
+
+  it('POST /api/auth/login authenticates with email and password', async () => {
+    const user: MockUser = {
+      _id: '507f1f77bcf86cd799439013',
+      username: 'local_parent',
+      email: 'login@example.com',
+      name: 'local_parent',
+    };
+
+    mockedLoginLocalUser.mockResolvedValue(user as never);
+
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'login@example.com', password: 'password123' })
+      .expect(200);
+
+    expect(mockedLoginLocalUser).toHaveBeenCalledWith({
+      email: 'login@example.com',
+      password: 'password123',
+    });
+    expect(response.body.user).toMatchObject({
+      id: user._id,
+      email: user.email,
+      username: user.username,
+    });
   });
 
   it('POST /api/auth/refresh requires a CSRF token', async () => {

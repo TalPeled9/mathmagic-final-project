@@ -1,4 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
@@ -102,6 +103,66 @@ describe('auth routes integration', () => {
     expect(userCount).toBe(1);
     expect(response.body.user.name).toBe('Original Parent');
     expect(persistedUser?.name).toBe('Original Parent');
+  });
+
+  it('POST /api/auth/register creates a local user with a hashed password', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ username: 'local_parent', email: 'local@example.com', password: 'password123' })
+      .expect(200);
+
+    const user = await User.findOne({ email: 'local@example.com' }).lean();
+
+    expect(user).not.toBeNull();
+    expect(user?.username).toBe('local_parent');
+    expect(user?.name).toBe('local_parent');
+    expect(user?.passwordHash).toBeDefined();
+    expect(user?.passwordHash).not.toBe('password123');
+    expect(await bcrypt.compare('password123', user!.passwordHash!)).toBe(true);
+    expect(response.body.user).toMatchObject({
+      email: 'local@example.com',
+      username: 'local_parent',
+    });
+  });
+
+  it('POST /api/auth/login authenticates a local user with email and password', async () => {
+    const passwordHash = await bcrypt.hash('password123', 12);
+    const user = await User.create({
+      username: 'login_parent',
+      email: 'login@example.com',
+      passwordHash,
+      name: 'login_parent',
+    });
+
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'login@example.com', password: 'password123' })
+      .expect(200);
+
+    const accessCookie = extractCookieValue(response.headers['set-cookie'], ACCESS_TOKEN_COOKIE);
+
+    expect(verifyAccessToken(accessCookie.split('=')[1]).userId).toBe(String(user._id));
+    expect(response.body.user).toMatchObject({
+      email: 'login@example.com',
+      username: 'login_parent',
+    });
+  });
+
+  it('POST /api/auth/login rejects an invalid password', async () => {
+    const passwordHash = await bcrypt.hash('password123', 12);
+    await User.create({
+      username: 'wrong_password_parent',
+      email: 'wrongpass@example.com',
+      passwordHash,
+      name: 'wrong_password_parent',
+    });
+
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'wrongpass@example.com', password: 'bad-password' })
+      .expect(401);
+
+    expect(response.body.error.message).toBe('Invalid email or password');
   });
 
   it('GET /api/parent/profile reads the authenticated user from Mongo', async () => {
