@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [name, setUsername] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await register({ name, email, password });
+      await register({ username, email, password });
       await childService.create({
         name: childName,
         gradeLevel,
@@ -42,7 +42,6 @@ export default function RegisterPage() {
     }
   };
 
-  // TODO: need to also add username, maybe not I don't know
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center p-4 py-8">
       <div className="w-full max-w-lg">
@@ -81,14 +80,14 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1.5">Your Name</label>
+                <label className="block text-sm text-gray-600 mb-1.5">Username</label>
                 <div className="relative">
                   <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    value={name}
+                    value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder="letters, numbers, underscores"
                     minLength={3}
                     maxLength={50}
                     required
@@ -216,9 +215,9 @@ export default function RegisterPage() {
 
           <p className="text-center text-xs text-gray-400 mt-3">
             By creating an account, you agree to our{' '}
-            <button type="button" className="underline hover:text-gray-600">Terms of Service</button>
+            <button type="button" className="text-purple-wizzy underline hover:text-purple-wizzy/80">Terms of Service</button>
             {' '}and{' '}
-            <button type="button" className="underline hover:text-gray-600">Privacy Policy</button>
+            <button type="button" className="text-purple-wizzy underline hover:text-purple-wizzy/80">Privacy Policy</button>
           </p>
 
           <p className="text-center text-sm text-gray-500 mt-3">

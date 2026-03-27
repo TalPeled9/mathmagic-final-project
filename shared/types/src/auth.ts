@@ -1,8 +1,6 @@
-// TODO: rename this and stuff
-export interface IUser {
+export interface IAuthUser {
   id: string;
   email: string;
   name: string;
   username?: string;
 }
-
