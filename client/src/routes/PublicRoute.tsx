@@ -1,6 +1,11 @@
-import { Outlet } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
+import { useAuth } from '@/hooks/useAuth';
 
-// TODO (step 1.4): redirect to /profiles if user is already authenticated
 export default function PublicRoute() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) return null;
+  if (user) return <Navigate to="/profiles" replace />;
+
   return <Outlet />;
 }

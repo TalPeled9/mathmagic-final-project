@@ -19,9 +19,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@mathmagic/types": "*",
     "@google/genai": "^1.0.0",
-    "bcryptjs": "^3.0.2",
+    "@mathmagic/types": "*",
+    "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -33,8 +33,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@mathmagic/eslint-config": "*",
     "@eslint/js": "^9.39.4",
+    "@mathmagic/eslint-config": "*",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

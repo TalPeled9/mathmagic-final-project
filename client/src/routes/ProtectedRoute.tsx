@@ -1,6 +1,11 @@
-import { Outlet } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
+import { useAuth } from '@/hooks/useAuth';
 
-// TODO (step 1.4): redirect to /login if user is not authenticated
 export default function ProtectedRoute() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+
   return <Outlet />;
 }
