@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, User, Users, Sparkles, Lightbulb } from 'lucide-react';
@@ -9,7 +10,7 @@ import type { GradeLevel } from '@mathmagic/types';
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, googleAuth } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
@@ -42,6 +43,24 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogleRegister = async (credential: string) => {
+    setIsLoading(true);
+    try {
+      await googleAuth(credential);
+      await childService.create({
+        name: childName,
+        gradeLevel,
+        avatarDescription: avatarDescription.trim() || undefined,
+      });
+      toast.success('Account created with Google! Welcome to MathMagic ✨');
+      navigate('/profiles');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Google registration failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center p-4 py-8">
       <div className="w-full max-w-lg">
@@ -69,7 +88,6 @@ export default function RegisterPage() {
         {/* Single unified card */}
         <form onSubmit={handleSubmit}>
           <div className="bg-violet-50 rounded-2xl p-6 space-y-6">
-
             {/* ── Section 1: Your Details ── */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -82,7 +100,10 @@ export default function RegisterPage() {
               <div>
                 <label className="block text-sm text-gray-600 mb-1.5">Username</label>
                 <div className="relative">
-                  <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <User
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
                   <input
                     type="text"
                     value={username}
@@ -99,7 +120,10 @@ export default function RegisterPage() {
               <div>
                 <label className="block text-sm text-gray-600 mb-1.5">Email Address</label>
                 <div className="relative">
-                  <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Mail
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
                   <input
                     type="email"
                     value={email}
@@ -114,7 +138,10 @@ export default function RegisterPage() {
               <div>
                 <label className="block text-sm text-gray-600 mb-1.5">Password</label>
                 <div className="relative">
-                  <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Lock
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
@@ -152,7 +179,10 @@ export default function RegisterPage() {
               <div>
                 <label className="block text-sm text-gray-600 mb-1.5">Child's Name</label>
                 <div className="relative">
-                  <Users size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Users
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
                   <input
                     type="text"
                     value={childName}
@@ -182,8 +212,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-sm text-gray-600 mb-1.5">
-                  Describe Your Child's Avatar{' '}
-                  <span className="text-gray-400">(Optional)</span>
+                  Describe Your Child's Avatar <span className="text-gray-400">(Optional)</span>
                 </label>
                 <textarea
                   value={avatarDescription}
@@ -208,16 +237,51 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="w-full mt-4 flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3.5 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
           >
-            <Sparkles size={18} className='text-gold-magic' />
+            <Sparkles size={18} className="text-gold-magic" />
             {isLoading ? 'Creating account...' : 'Create Account & Add Child'}
-            <Sparkles size={18} className='text-gold-magic' />
+            <Sparkles size={18} className="text-gold-magic" />
           </button>
+
+          <div className="relative py-3">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200" />
+            </div>
+            <span className="relative bg-parchment px-2 text-xs text-gray-400">or</span>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              locale="en_US"
+              text="signup_with"
+              onSuccess={async (credentialResponse) => {
+                if (!credentialResponse.credential) {
+                  toast.error('Google sign up did not return a credential');
+                  return;
+                }
+
+                await handleGoogleRegister(credentialResponse.credential);
+              }}
+              onError={() => {
+                toast.error('Google sign up failed');
+              }}
+            />
+          </div>
 
           <p className="text-center text-xs text-gray-400 mt-3">
             By creating an account, you agree to our{' '}
-            <button type="button" className="text-purple-wizzy underline hover:text-purple-wizzy/80">Terms of Service</button>
-            {' '}and{' '}
-            <button type="button" className="text-purple-wizzy underline hover:text-purple-wizzy/80">Privacy Policy</button>
+            <button
+              type="button"
+              className="text-purple-wizzy underline hover:text-purple-wizzy/80"
+            >
+              Terms of Service
+            </button>{' '}
+            and{' '}
+            <button
+              type="button"
+              className="text-purple-wizzy underline hover:text-purple-wizzy/80"
+            >
+              Privacy Policy
+            </button>
           </p>
 
           <p className="text-center text-sm text-gray-500 mt-3">
