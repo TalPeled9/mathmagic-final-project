@@ -1,10 +1,9 @@
-import {   useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type {  IChild } from '@mathmagic/types';
+import type { IChild } from '@mathmagic/types';
 import { api } from '../lib/api';
 import type { AuthState, AuthResponse, RegisterState } from './AuthState';
 import { AuthContext } from './AuthContext';
-
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
@@ -32,6 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, user }));
   }, []);
 
+  const googleAuth = useCallback(async (credential: string) => {
+    const { user } = await api.post<AuthResponse>('/auth/google', { credential });
+    setState((s) => ({ ...s, user }));
+  }, []);
+
   const register = useCallback(async (registerState: RegisterState) => {
     const { user } = await api.post<AuthResponse>('/auth/register', registerState);
     setState((s) => ({ ...s, user }));
@@ -47,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, setActiveChild }}>
+    <AuthContext.Provider value={{ ...state, login, googleAuth, register, logout, setActiveChild }}>
       {children}
     </AuthContext.Provider>
   );
