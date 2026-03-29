@@ -18,6 +18,7 @@ export default function ChildDetailsPage() {
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(1);
   const [isSaving, setIsSaving] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [avatarDescription, setAvatarDescription] = useState('');
 
   useEffect(() => {
     if (!childId) return;
@@ -54,7 +55,7 @@ export default function ChildDetailsPage() {
     if (!child) return;
     setIsRegenerating(true);
     try {
-      const updated = await childService.regenerateAvatar(child._id);
+      const updated = await childService.regenerateAvatar(child._id, avatarDescription.trim() || undefined);
       setChild(updated);
       toast.success('Avatar regenerated!');
     } catch {
@@ -105,14 +106,24 @@ export default function ChildDetailsPage() {
                 </div>
               )}
             </div>
-            <button
-              onClick={handleRegenerate}
-              disabled={isRegenerating}
-              className="flex items-center gap-1.5 text-sm text-purple-wizzy hover:text-purple-wizzy/80 disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw size={13} className={isRegenerating ? 'animate-spin' : ''} />
-              {isRegenerating ? 'Regenerating...' : 'Regenerate Avatar'}
-            </button>
+            <div className="w-full space-y-2">
+              <textarea
+                value={avatarDescription}
+                onChange={(e) => setAvatarDescription(e.target.value)}
+                placeholder="Describe the avatar (e.g. 'a brave knight with a blue cape')…"
+                maxLength={200}
+                rows={2}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
+              />
+              <button
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+                className="flex items-center justify-center gap-1.5 w-full text-sm text-purple-wizzy hover:text-purple-wizzy/80 disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw size={13} className={isRegenerating ? 'animate-spin' : ''} />
+                {isRegenerating ? 'Regenerating...' : 'Regenerate Avatar'}
+              </button>
+            </div>
           </div>
 
           {/* Stats */}

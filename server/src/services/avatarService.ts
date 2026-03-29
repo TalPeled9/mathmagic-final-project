@@ -1,11 +1,20 @@
 import { config } from '../config/index';
 
 function buildPrompt(name: string, gradeLevel: number, description?: string): string {
-  const base =
+  if (description) {
+    return (
+      `A cartoon wizard avatar for a child named ${name}. ` +
+      `MOST IMPORTANT: ${description}. ` +
+      `Style: friendly expression, magical pointy hat, holding a glowing star wand, ` +
+      `bright cheerful colors, simple clean illustration, white background, square composition.`
+    );
+  }
+
+  return (
     `A cute, colorful cartoon wizard avatar for a child named ${name} in grade ${gradeLevel}. ` +
     `Friendly expression, magical pointy hat, holding a glowing star wand. ` +
-    `Bright cheerful colors, simple clean illustration, white background, square composition.`;
-  return description ? `${base} ${description}.` : base;
+    `Bright cheerful colors, simple clean illustration, white background, square composition.`
+  );
 }
 
 export async function generateAvatar(
@@ -21,18 +30,19 @@ export async function generateAvatar(
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
 
-    const response = await ai.models.generateImages({
-      model: 'imagen-3.0-generate-002',
-      prompt: buildPrompt(name, gradeLevel, description),
-      config: { numberOfImages: 1 },
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: buildPrompt(name, gradeLevel, description),
+      config: { responseModalities: ['TEXT', 'IMAGE'] },
     });
 
-    const image = response.generatedImages?.[0]?.image;
-    if (image?.imageBytes && image.mimeType) {
-      return `data:${image.mimeType};base64,${image.imageBytes}`;
+    const parts = response.candidates?.[0]?.content?.parts;
+    const imagePart = parts?.find((p) => p.inlineData);
+    if (imagePart?.inlineData?.data && imagePart.inlineData.mimeType) {
+      return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
     }
   } catch (err) {
-    console.error('[avatarService] Imagen generation failed, using fallback:', err);
+    console.error('[avatarService] Gemini image generation failed, using fallback:', err);
   }
 
   return generateFallbackAvatar(name);
