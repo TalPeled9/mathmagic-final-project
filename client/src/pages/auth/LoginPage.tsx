@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, googleAuth } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +28,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center justify-center p-4">
-      <Link to="/" className="absolute top-4 left-4 flex items-center gap-1 text-sm text-purple-wizzy hover:text-purple-wizzy/80 transition-colors font-medium">
+      <Link
+        to="/"
+        className="absolute top-4 left-4 flex items-center gap-1 text-sm text-purple-wizzy hover:text-purple-wizzy/80 transition-colors font-medium"
+      >
         <ArrowLeft size={16} />
         Back to Home
       </Link>
@@ -52,7 +56,10 @@ export default function LoginPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Mail
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="email"
                   value={email}
@@ -66,11 +73,12 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Lock
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -104,6 +112,39 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign In'}
               <Sparkles size={18} />
             </button>
+
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-200" />
+              </div>
+              <span className="relative bg-white px-2 text-xs text-gray-400">or</span>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                locale="en_US"
+                text="signin_with"
+                onSuccess={async (credentialResponse) => {
+                  if (!credentialResponse.credential) {
+                    toast.error('Google sign in did not return a credential');
+                    return;
+                  }
+
+                  setIsLoading(true);
+                  try {
+                    await googleAuth(credentialResponse.credential);
+                    navigate('/profiles');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'Google sign in failed');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                onError={() => {
+                  toast.error('Google sign in failed');
+                }}
+              />
+            </div>
           </form>
         </div>
 
