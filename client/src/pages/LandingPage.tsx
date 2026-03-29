@@ -7,5 +7,5 @@ export default function LandingPage() {
   if (isLoading) return null;
   if (user) return <Navigate to="/profiles" replace />;
 
-  return <Navigate to="/register" replace />;
+  return <Navigate to="/login" replace />;
 }
