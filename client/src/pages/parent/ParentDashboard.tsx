@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import {
-  Sparkles, Plus, ArrowLeft, Star, Zap, Trophy, Edit2, RefreshCw, X, Users,
-} from 'lucide-react';
+import { Sparkles, Plus, ArrowLeft, Star, Zap, Trophy, Edit2, X, Users } from 'lucide-react';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,9 +20,6 @@ export default function ParentDashboard() {
   const [newGrade, setNewGrade] = useState<GradeLevel>(1);
   const [newAvatarDesc, setNewAvatarDesc] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-
-  // Regenerating state per child
-  const [regenerating, setRegenerating] = useState<string | null>(null);
 
   useEffect(() => {
     childService
@@ -53,19 +48,6 @@ export default function ParentDashboard() {
       toast.error(err instanceof Error ? err.message : 'Failed to create profile');
     } finally {
       setIsCreating(false);
-    }
-  };
-
-  const handleRegenerate = async (child: IChild) => {
-    setRegenerating(child._id);
-    try {
-      const updated = await childService.regenerateAvatar(child._id);
-      setChildren((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
-      toast.success(`${child.name}'s avatar updated!`);
-    } catch {
-      toast.error('Failed to regenerate avatar');
-    } finally {
-      setRegenerating(null);
     }
   };
 
@@ -107,7 +89,9 @@ export default function ParentDashboard() {
               <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
                 <Users size={40} className="text-gray-200 mx-auto mb-3" />
                 <p className="text-gray-500 font-medium">No profiles yet</p>
-                <p className="text-sm text-gray-400 mt-1">Add your first child profile to get started</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Add your first child profile to get started
+                </p>
               </div>
             )}
 
@@ -119,7 +103,11 @@ export default function ParentDashboard() {
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-wizzy/20 shrink-0">
                   {child.avatarUrl ? (
-                    <img src={child.avatarUrl} alt={child.name} className="w-full h-full object-cover" />
+                    <img
+                      src={child.avatarUrl}
+                      alt={child.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
                       <span className="text-xl font-bold text-purple-wizzy">
@@ -151,14 +139,6 @@ export default function ParentDashboard() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => handleRegenerate(child)}
-                    disabled={regenerating === child._id}
-                    title="Regenerate avatar"
-                    className="p-2 rounded-lg text-gray-400 hover:text-purple-wizzy hover:bg-purple-wizzy/10 transition-colors disabled:opacity-40"
-                  >
-                    <RefreshCw size={15} className={regenerating === child._id ? 'animate-spin' : ''} />
-                  </button>
                   <button
                     onClick={() => navigate(`/parent/child/${child._id}`)}
                     title="Edit profile"
@@ -207,7 +187,9 @@ export default function ParentDashboard() {
                   className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
                 >
                   {GRADES.map((g) => (
-                    <option key={g} value={g}>Grade {g}</option>
+                    <option key={g} value={g}>
+                      Grade {g}
+                    </option>
                   ))}
                 </select>
               </div>
