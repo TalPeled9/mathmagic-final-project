@@ -1,14 +1,11 @@
-import { useNavigate } from 'react-router';
+import { Navigate } from 'react-router';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
 
-  return (
-    <div>
-      <h1>Landing Page</h1>
-      <button type="button" onClick={() => navigate('/register')}>
-        Go to Register
-      </button>
-    </div>
-  );
+  if (isLoading) return null;
+  if (user) return <Navigate to="/profiles" replace />;
+
+  return <Navigate to="/register" replace />;
 }
