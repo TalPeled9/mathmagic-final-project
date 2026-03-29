@@ -45,15 +45,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center p-4 py-8">
       <div className="w-full max-w-lg">
-        {/* Back to Home */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-sm text-purple-wizzy hover:text-purple-wizzy/80 transition-colors font-medium mb-6"
-        >
-          <ArrowLeft size={15} />
-          Back to Home
-        </Link>
-
         {/* Logo + heading */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-3">
@@ -138,7 +129,6 @@ export default function RegisterPage() {
                 <p className="text-xs text-gray-400 mt-1">At least 8 characters</p>
               </div>
             </div>
-
           </div>
 
           {/* Submit */}
