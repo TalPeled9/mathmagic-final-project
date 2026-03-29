@@ -1,6 +1,10 @@
-import { Outlet } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
+import { useAuth } from '@/hooks/useAuth';
 
-// TODO (step 1.4): redirect to /profiles if no active child is selected
 export default function ChildRoute() {
+  const { activeChild } = useAuth();
+
+  if (!activeChild) return <Navigate to="/profiles" replace />;
+
   return <Outlet />;
 }
