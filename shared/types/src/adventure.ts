@@ -83,3 +83,42 @@ export interface CompleteAdventureResponse {
   totalXP: number; // child's updated total
   totalStars: number;
 }
+
+export interface StartAdventureRequest {
+  mathTopic: string;
+  storyWorld: string;
+}
+
+export interface MathTopicConfig {
+  id: string;
+  name: string;
+  icon: string;
+  gradeRange: { min: number; max: number };
+  description: string;
+  color: string;
+}
+
+export interface StoryWorldConfig {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  theme: string;
+}
+
+export interface GetAvailableResponse {
+  topics: MathTopicConfig[];
+  worlds: StoryWorldConfig[];
+}
+
+export interface GetAdventureResponse {
+  adventureId: string;
+  status: 'in-progress' | 'completed';
+  mathTopic: string;
+  storyWorld: string;
+  currentStepIndex: number;
+  totalSteps: number;
+  currentSegment: StorySegment;
+  xpEarned: number;
+  starsEarned: number;
+}
