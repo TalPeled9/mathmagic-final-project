@@ -91,10 +91,12 @@ export async function updateChild(req: Request, res: Response): Promise<void> {
 // POST /api/parent/children/:childId/avatar
 export async function regenerateAvatar(req: Request, res: Response): Promise<void> {
   const parentId = req.user!.userId;
+  const { avatarDescription } = req.body as { avatarDescription?: string };
+
   const child = await Child.findOne({ _id: req.params.childId, parentId });
   if (!child) throw ApiError.notFound('Child not found');
 
-  child.avatarUrl = await generateAvatar(child.name, child.gradeLevel);
+  child.avatarUrl = await generateAvatar(child.name, child.gradeLevel, avatarDescription);
   await child.save();
 
   res.json({ child: toPublicChild(child) });

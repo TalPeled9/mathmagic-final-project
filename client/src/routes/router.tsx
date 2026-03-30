@@ -11,6 +11,7 @@ import AdventureSelectionPage from '../pages/child/AdventureSelectionPage';
 import StoryChat from '../pages/child/StoryChat';
 import ParentDashboard from '../pages/parent/ParentDashboard';
 import ChildDetailsPage from '../pages/parent/ChildDetailsPage';
+import AddFirstChildPage from '../pages/onboarding/AddFirstChildPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
+      { path: '/onboarding/add-child', element: <AddFirstChildPage /> },
       { path: '/profiles', element: <ProfileSelectionPage /> },
       { path: '/parent', element: <ParentDashboard /> },
       { path: '/parent/child/:childId', element: <ChildDetailsPage /> },

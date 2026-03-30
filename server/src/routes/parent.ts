@@ -32,11 +32,15 @@ const updateChildSchema = z.object({
 
 const childIdSchema = z.object({ childId: z.string().min(1) });
 
+const regenerateAvatarSchema = z.object({
+  avatarDescription: z.string().max(MAX_AVATAR_DESC_LENGTH).optional(),
+});
+
 router.get('/profile', requireAuth, parentController.getProfile);
 router.get('/children', requireAuth, parentController.getChildren);
 router.post('/children', requireAuth, validate({ body: createChildSchema }), parentController.createChild);
 router.get('/children/:childId', requireAuth, validate({ params: childIdSchema }), parentController.getChild);
 router.put('/children/:childId', requireAuth, validate({ params: childIdSchema, body: updateChildSchema }), parentController.updateChild);
-router.post('/children/:childId/avatar', requireAuth, validate({ params: childIdSchema }), parentController.regenerateAvatar);
+router.post('/children/:childId/avatar', requireAuth, validate({ params: childIdSchema, body: regenerateAvatarSchema }), parentController.regenerateAvatar);
 
 export default router;

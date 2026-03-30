@@ -28,14 +28,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center justify-center p-4">
-      <Link
-        to="/"
-        className="absolute top-4 left-4 flex items-center gap-1 text-sm text-purple-wizzy hover:text-purple-wizzy/80 transition-colors font-medium"
-      >
-        <ArrowLeft size={16} />
-        Back to Home
-      </Link>
-
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -108,9 +100,9 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors mt-2"
             >
-              <Sparkles size={18} />
+              <Sparkles className="text-gold-magic" size={18} />
               {isLoading ? 'Signing in...' : 'Sign In'}
-              <Sparkles size={18} />
+              <Sparkles className="text-gold-magic" size={18} />
             </button>
 
             <div className="relative py-1">

@@ -10,6 +10,6 @@ export const childService = {
     api.post<{ child: IChild }>('/parent/children', data).then((r) => r.child),
   update: (id: string, data: UpdateChildRequest) =>
     api.put<{ child: IChild }>(`/parent/children/${id}`, data).then((r) => r.child),
-  regenerateAvatar: (id: string) =>
-    api.post<{ child: IChild }>(`/parent/children/${id}/avatar`, {}).then((r) => r.child),
+  regenerateAvatar: (id: string, avatarDescription?: string) =>
+    api.post<{ child: IChild }>(`/parent/children/${id}/avatar`, { avatarDescription }).then((r) => r.child),
 };
