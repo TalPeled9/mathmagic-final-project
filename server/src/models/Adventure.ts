@@ -24,10 +24,16 @@ export interface IAdventureDocument extends Document {
   totalSteps: number;
   currentChallenge: ICurrentChallengeSubdoc | null;
   conversationHistory: IConversationEntry[];
+  lastChoices: string[];
   startedAt: Date;
   completedAt?: Date;
   xpEarned: number;
   starsEarned: number;
+  // Per-adventure stats for reward calculation at completion
+  totalChallenges: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  hintsUsed: number;
 }
 
 const currentChallengeSchema = new Schema<ICurrentChallengeSubdoc>(
@@ -61,10 +67,15 @@ const adventureSchema = new Schema<IAdventureDocument>(
     totalSteps: { type: Number, default: 6 },
     currentChallenge: { type: currentChallengeSchema, default: null },
     conversationHistory: { type: [conversationEntrySchema], default: [] },
+    lastChoices: { type: [String], default: [] },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
     xpEarned: { type: Number, default: 0 },
     starsEarned: { type: Number, default: 0, min: 0, max: 3 },
+    totalChallenges: { type: Number, default: 0 },
+    correctAnswers: { type: Number, default: 0 },
+    incorrectAnswers: { type: Number, default: 0 },
+    hintsUsed: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
