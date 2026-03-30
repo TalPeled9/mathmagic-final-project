@@ -295,6 +295,7 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
     adventure.xpEarned,
     starsEarned,
     stats,
+    adventure.storyWorld,
   );
 
   const durationMinutes = Math.round(

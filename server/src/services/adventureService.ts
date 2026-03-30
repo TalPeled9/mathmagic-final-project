@@ -208,6 +208,7 @@ export async function applyRewardsToChild(
   xpEarned: number,
   starsEarned: number,
   stats: AdventureStats,
+  currentStoryWorld?: string,
 ): Promise<{ newLevel?: number; newBadge?: IBadge }> {
   const previousLevel = child.currentLevel;
   child.totalXP += xpEarned;
@@ -256,9 +257,54 @@ export async function applyRewardsToChild(
     newBadge = pushBadge(child, 'speed-master');
   }
 
-  // 5-day-streak: deferred to Commit 11
-  // explorer: deferred to Commit 11
-  // topic-master: deferred to Commit 11
+  // 5-day-streak: completed adventures on 5 consecutive calendar days
+  if (!newBadge && !alreadyHas('5-day-streak')) {
+    const completedAdventures = await Adventure.find(
+      { childId: child._id, status: 'completed', completedAt: { $exists: true } },
+      { completedAt: 1, _id: 0 },
+    ).lean();
+
+    const daySet = new Set<string>();
+    const todayUTC = new Date().toISOString().slice(0, 10);
+    daySet.add(todayUTC);
+    for (const a of completedAdventures) {
+      if (a.completedAt) daySet.add(new Date(a.completedAt).toISOString().slice(0, 10));
+    }
+    const sortedDays = Array.from(daySet).sort().reverse(); // descending
+    let streak = 1;
+    for (let i = 1; i < sortedDays.length; i++) {
+      const prev = new Date(sortedDays[i - 1]).getTime();
+      const curr = new Date(sortedDays[i]).getTime();
+      if (prev - curr === 86400000) {
+        streak += 1;
+        if (streak >= 5) break;
+      } else {
+        break;
+      }
+    }
+    if (streak >= 5) newBadge = pushBadge(child, '5-day-streak');
+  }
+
+  // explorer: completed adventures in 3 different story worlds
+  if (!newBadge && !alreadyHas('explorer')) {
+    const distinctWorlds = await Adventure.distinct('storyWorld', {
+      childId: child._id,
+      status: 'completed',
+    });
+    const worldSet = new Set<string>(distinctWorlds);
+    if (currentStoryWorld) worldSet.add(currentStoryWorld);
+    if (worldSet.size >= 3) newBadge = pushBadge(child, 'explorer');
+  }
+
+  // topic-master: mastery >= 80% on a topic with at least 5 challenges
+  if (!newBadge && !alreadyHas('topic-master')) {
+    const masteredTopic = await TopicProgress.findOne({
+      childId: child._id,
+      masteryLevel: { $gte: 80 },
+      totalChallenges: { $gte: 5 },
+    }).lean();
+    if (masteredTopic) newBadge = pushBadge(child, 'topic-master');
+  }
 
   await child.save();
   return { newLevel, newBadge };
@@ -289,6 +335,8 @@ function pushBadge(child: IChildDocument, badgeType: string): IBadge | undefined
 
 // ─── Conversation History ────────────────────────────────────────────────────
 
+const MAX_HISTORY = 100;
+
 export function appendToHistory(
   adventure: IAdventureDocument,
   role: 'wizzy' | 'child' | 'system' | 'image',
@@ -296,6 +344,9 @@ export function appendToHistory(
   imageUrl?: string,
 ): void {
   adventure.conversationHistory.push({ role, content, imageUrl, timestamp: new Date() });
+  if (adventure.conversationHistory.length > MAX_HISTORY) {
+    adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
+  }
 }
 
 // ─── Topic Progress ──────────────────────────────────────────────────────────
