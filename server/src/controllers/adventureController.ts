@@ -112,12 +112,17 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     throw ApiError.badRequest('Adventure is already completed');
   }
 
-  const choiceText = adventure.lastChoices[choiceIndex];
-  if (choiceText === undefined) {
-    throw ApiError.badRequest(`Invalid choice index: ${choiceIndex}`);
+  if (adventure.lastChoices.length === 0) {
+    // Auto-continue after a math challenge was resolved (no choices available)
+    // — do not append a child history entry, just advance the step
+  } else {
+    const choiceText = adventure.lastChoices[choiceIndex];
+    if (choiceText === undefined) {
+      throw ApiError.badRequest(`Invalid choice index: ${choiceIndex}`);
+    }
+    appendToHistory(adventure, 'child', choiceText);
   }
 
-  appendToHistory(adventure, 'child', choiceText);
   adventure.currentStepIndex += 1;
 
   const mode = determineNextMode(adventure);
