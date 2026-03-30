@@ -315,3 +315,32 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
     totalStars: child.totalStars,
   });
 }
+
+// ─── GET /api/adventures/children/:childId ──────────────────────────────────
+
+export async function getChildAdventures(req: Request, res: Response): Promise<void> {
+  const childId = req.params.childId as string;
+  const userId = req.user!.userId;
+
+  await verifyChildOwnership(userId, childId);
+
+  const adventures = await Adventure.find({ childId })
+    .sort({ startedAt: -1 })
+    .select('mathTopic storyWorld status currentStepIndex totalSteps xpEarned starsEarned startedAt completedAt')
+    .lean();
+
+  res.json({
+    adventures: adventures.map((a) => ({
+      _id: a._id.toString(),
+      mathTopic: a.mathTopic,
+      storyWorld: a.storyWorld,
+      status: a.status,
+      currentStepIndex: a.currentStepIndex,
+      totalSteps: a.totalSteps,
+      xpEarned: a.xpEarned,
+      starsEarned: a.starsEarned,
+      startedAt: a.startedAt,
+      completedAt: a.completedAt,
+    })),
+  });
+}

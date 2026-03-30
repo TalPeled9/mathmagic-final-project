@@ -4,6 +4,7 @@ import type {
   StartAdventureRequest,
   StartAdventureResponse,
   GetAdventureResponse,
+  GetChildAdventuresResponse,
   ContinueAdventureRequest,
   ContinueAdventureResponse,
   AnswerChallengeRequest,
@@ -15,6 +16,9 @@ import type {
 export const adventureService = {
   getAvailable: (childId: string) =>
     api.get<GetAvailableResponse>(`/children/${childId}/adventures/available`),
+
+  getChildAdventures: (childId: string) =>
+    api.get<GetChildAdventuresResponse>(`/children/${childId}/adventures`),
 
   start: (childId: string, body: StartAdventureRequest) =>
     api.post<StartAdventureResponse>(`/children/${childId}/adventures`, body),

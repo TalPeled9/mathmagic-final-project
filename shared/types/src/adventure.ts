@@ -111,6 +111,23 @@ export interface GetAvailableResponse {
   worlds: StoryWorldConfig[];
 }
 
+export interface AdventureSummary {
+  _id: string;
+  mathTopic: string;
+  storyWorld: string;
+  status: 'in-progress' | 'completed';
+  currentStepIndex: number;
+  totalSteps: number;
+  xpEarned: number;
+  starsEarned: number;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface GetChildAdventuresResponse {
+  adventures: AdventureSummary[];
+}
+
 export interface GetAdventureResponse {
   adventureId: string;
   status: 'in-progress' | 'completed';

@@ -24,6 +24,13 @@ router.get(
   adventureController.getAvailableAdventures,
 );
 
+router.get(
+  '/children/:childId',
+  requireAuth,
+  validate({ params: childParamsSchema }),
+  adventureController.getChildAdventures,
+);
+
 router.post(
   '/children/:childId',
   requireAuth,
