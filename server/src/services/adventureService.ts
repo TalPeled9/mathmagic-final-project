@@ -1,0 +1,325 @@
+import type {
+  AdventureState,
+  StoryMode,
+  StorySegment,
+  HintResponse,
+  ICurrentChallenge,
+  LLMStartAdventureResponse,
+  LLMMathQuestionResponse,
+  LLMHintResponse,
+  LLMEndStoryResponse,
+  IBadge,
+} from '@mathmagic/types';
+import { Adventure, type IAdventureDocument } from '../models/Adventure';
+import { Child, type IChildDocument } from '../models/Child';
+import { TopicProgress } from '../models/TopicProgress';
+import { generateStoryImage } from './ai/imageGenerationService';
+import { buildStorySummary } from './ai/storyContextBuilder';
+import { getLevelForXP } from '../config/levelThresholds';
+import { BADGE_DEFINITIONS } from '../config/badges';
+import { ApiError } from '../utils/ApiError';
+
+// ─── Ownership & Access Verification ────────────────────────────────────────
+
+export async function verifyChildOwnership(
+  userId: string,
+  childId: string,
+): Promise<IChildDocument> {
+  const child = await Child.findById(childId);
+  if (!child) throw ApiError.notFound('Child not found');
+  if (child.parentId.toString() !== userId) throw ApiError.forbidden('Access denied');
+  return child;
+}
+
+export async function verifyAdventureAccess(
+  userId: string,
+  adventureId: string,
+): Promise<{ adventure: IAdventureDocument; child: IChildDocument }> {
+  const adventure = await Adventure.findById(adventureId);
+  if (!adventure) throw ApiError.notFound('Adventure not found');
+  const child = await verifyChildOwnership(userId, adventure.childId.toString());
+  return { adventure, child };
+}
+
+// ─── Adventure State Construction ───────────────────────────────────────────
+
+export function buildAdventureState(
+  adventure: IAdventureDocument,
+  child: IChildDocument,
+  mode: StoryMode,
+): AdventureState {
+  const selectedChoices = adventure.conversationHistory
+    .filter((e) => e.role === 'child')
+    .map((e) => e.content);
+
+  const recentEvents = adventure.conversationHistory
+    .filter((e) => e.role === 'wizzy')
+    .slice(-3)
+    .map((e) => e.content);
+
+  const state: AdventureState = {
+    childName: child.name,
+    gradeLevel: child.gradeLevel,
+    mathTopic: adventure.mathTopic,
+    storyWorld: adventure.storyWorld,
+    mode,
+    currentStepIndex: adventure.currentStepIndex,
+    totalSteps: adventure.totalSteps,
+    selectedChoices,
+    recentEvents,
+    lastProblemText: adventure.currentChallenge?.problemText,
+    correctAnswer: adventure.currentChallenge?.correctAnswer,
+    attemptCount: adventure.currentChallenge?.attemptsCount ?? 0,
+    hintUsed: (adventure.currentChallenge?.hintLevel ?? 0) > 0,
+    storySummary: '',
+  };
+
+  state.storySummary = buildStorySummary(state);
+  return state;
+}
+
+// ─── Mode Decision (State Machine) ──────────────────────────────────────────
+
+export function determineNextMode(adventure: IAdventureDocument): StoryMode {
+  const { currentStepIndex, totalSteps } = adventure;
+  if (currentStepIndex >= totalSteps - 1) return 'end_story';
+  if (currentStepIndex % 2 !== 0) return 'math_question';
+  return 'start_adventure';
+}
+
+// ─── Response Mapping ────────────────────────────────────────────────────────
+
+export function mapStartAdventureResponse(
+  llmResponse: LLMStartAdventureResponse,
+  imageUrl?: string,
+): StorySegment {
+  return {
+    narrative: llmResponse.adventureNarrative,
+    wizzyDialogue: llmResponse.wizzyDialogue,
+    choices: llmResponse.storyChoices,
+    challenge: null,
+    imageDescription: llmResponse.imageDescription,
+    imageUrl,
+    isLastStep: false,
+  };
+}
+
+export function mapMathQuestionResponse(
+  llmResponse: LLMMathQuestionResponse,
+  imageUrl?: string,
+): StorySegment {
+  const challenge: ICurrentChallenge = {
+    problemText: llmResponse.problemText,
+    correctAnswer: llmResponse.correctAnswer,
+    options: llmResponse.answerOptions.slice(0, 4) as [string, string, string, string],
+    hintLevel: 0,
+    attemptsCount: 0,
+  };
+  return {
+    narrative: llmResponse.wizzyDialogue,
+    wizzyDialogue: llmResponse.wizzyDialogue,
+    choices: [],
+    challenge,
+    imageDescription: llmResponse.imageDescription,
+    imageUrl,
+    isLastStep: false,
+  };
+}
+
+export function mapEndStoryResponse(
+  llmResponse: LLMEndStoryResponse,
+  imageUrl?: string,
+): StorySegment {
+  return {
+    narrative: llmResponse.recap,
+    wizzyDialogue: llmResponse.celebration,
+    choices: [],
+    challenge: null,
+    imageDescription: llmResponse.imageDescription,
+    imageUrl,
+    isLastStep: true,
+  };
+}
+
+export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number): HintResponse {
+  return {
+    hintText: llmResponse.hintText,
+    hintLevel,
+    subQuestion: llmResponse.scaffoldingQuestion,
+  };
+}
+
+// ─── Image Generation Wrapper ────────────────────────────────────────────────
+
+export async function generateSegmentImage(
+  imageDescription: string,
+  avatarUrl: string,
+): Promise<string | null> {
+  try {
+    return await generateStoryImage(imageDescription, avatarUrl);
+  } catch (err) {
+    console.warn('[Adventure] Image generation failed, continuing without image:', err);
+    return null;
+  }
+}
+
+// ─── XP Calculation ──────────────────────────────────────────────────────────
+
+export function calculateAnswerXP(
+  correct: boolean,
+  hintUsed: boolean,
+  streakCount: number,
+): number {
+  if (!correct) return 2;
+  let xp = 10;
+  if (!hintUsed) xp += 5;
+  if (streakCount >= 3) xp += 10;
+  else if (streakCount >= 2) xp += 5;
+  return xp;
+}
+
+export interface AdventureStats {
+  totalChallenges: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  hintsUsed: number;
+}
+
+export function calculateAdventureRewards(stats: AdventureStats): { starsEarned: number } {
+  const { totalChallenges, correctAnswers, hintsUsed } = stats;
+  if (totalChallenges === 0) return { starsEarned: 1 };
+
+  const accuracy = correctAnswers / totalChallenges;
+  let starsEarned: number;
+  if (accuracy > 0.9 && hintsUsed === 0) {
+    starsEarned = 3;
+  } else if (accuracy > 0.7) {
+    starsEarned = 2;
+  } else {
+    starsEarned = 1;
+  }
+  return { starsEarned };
+}
+
+// ─── Rewards Application ─────────────────────────────────────────────────────
+
+export async function applyRewardsToChild(
+  child: IChildDocument,
+  xpEarned: number,
+  starsEarned: number,
+  stats: AdventureStats,
+): Promise<{ newLevel?: number; newBadge?: IBadge }> {
+  const previousLevel = child.currentLevel;
+  child.totalXP += xpEarned;
+  child.totalStars += starsEarned;
+
+  const levelInfo = getLevelForXP(child.totalXP);
+  let newLevel: number | undefined;
+  if (levelInfo.level > previousLevel) {
+    child.currentLevel = levelInfo.level;
+    newLevel = levelInfo.level;
+  }
+
+  const alreadyHas = (badgeType: string) => child.badges.some((b) => b.badgeType === badgeType);
+  let newBadge: IBadge | undefined;
+
+  // first-adventure: check BEFORE this adventure is marked completed
+  if (!alreadyHas('first-adventure')) {
+    const completedCount = await Adventure.countDocuments({
+      childId: child._id,
+      status: 'completed',
+    });
+    if (completedCount === 0) {
+      newBadge = pushBadge(child, 'first-adventure');
+    }
+  }
+
+  // perfect-score: 100% accuracy with 0 hints (retries allowed)
+  if (
+    !newBadge &&
+    !alreadyHas('perfect-score') &&
+    stats.totalChallenges > 0 &&
+    stats.correctAnswers === stats.totalChallenges &&
+    stats.hintsUsed === 0
+  ) {
+    newBadge = pushBadge(child, 'perfect-score');
+  }
+
+  // speed-master: all correct on first attempt (no wrong answers, no hints)
+  if (
+    !newBadge &&
+    !alreadyHas('speed-master') &&
+    stats.totalChallenges > 0 &&
+    stats.incorrectAnswers === 0 &&
+    stats.hintsUsed === 0
+  ) {
+    newBadge = pushBadge(child, 'speed-master');
+  }
+
+  // 5-day-streak: deferred to Commit 11
+  // explorer: deferred to Commit 11
+  // topic-master: deferred to Commit 11
+
+  await child.save();
+  return { newLevel, newBadge };
+}
+
+function pushBadge(child: IChildDocument, badgeType: string): IBadge | undefined {
+  const def = BADGE_DEFINITIONS.find((b) => b.badgeType === badgeType);
+  if (!def) return undefined;
+
+  const earnedAt = new Date();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (child.badges as any[]).push({
+    badgeType: def.badgeType,
+    badgeName: def.badgeName,
+    description: def.description,
+    iconUrl: def.iconUrl,
+    earnedAt,
+  });
+
+  return {
+    badgeType: def.badgeType,
+    badgeName: def.badgeName,
+    description: def.description,
+    iconUrl: def.iconUrl,
+    earnedAt: earnedAt.toISOString(),
+  };
+}
+
+// ─── Conversation History ────────────────────────────────────────────────────
+
+export function appendToHistory(
+  adventure: IAdventureDocument,
+  role: 'wizzy' | 'child' | 'system' | 'image',
+  content: string,
+  imageUrl?: string,
+): void {
+  adventure.conversationHistory.push({ role, content, imageUrl, timestamp: new Date() });
+}
+
+// ─── Topic Progress ──────────────────────────────────────────────────────────
+
+export async function updateTopicProgress(
+  childId: string,
+  mathTopic: string,
+  correct: boolean,
+  hintUsed: boolean,
+): Promise<void> {
+  const inc: Record<string, number> = {
+    totalChallenges: 1,
+    ...(correct ? { correctAnswers: 1 } : { incorrectAnswers: 1 }),
+    ...(hintUsed ? { hintsUsed: 1 } : {}),
+  };
+
+  const doc = await TopicProgress.findOneAndUpdate(
+    { childId, mathTopic },
+    { $inc: inc, $set: { lastPracticedAt: new Date() } },
+    { upsert: true, new: true },
+  );
+
+  if (doc && doc.totalChallenges > 0) {
+    const masteryLevel = Math.round((doc.correctAnswers / doc.totalChallenges) * 100);
+    await TopicProgress.updateOne({ _id: doc._id }, { $set: { masteryLevel } });
+  }
+}
