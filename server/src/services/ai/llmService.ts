@@ -20,6 +20,7 @@ import {
   buildStartAdventureContext,
 } from './storyContextBuilder';
 import { GeminiJsonClient, type GeminiResponseSchema } from './geminiClient';
+import { sanitizeAndValidateAIResponse } from './contentFilter';
 import { buildEndStoryPrompt } from './prompts/endStory';
 import { buildHintPrompt } from './prompts/hint';
 import { buildMathQuestionPrompt } from './prompts/mathQuestion';
@@ -121,6 +122,88 @@ const modeDefinitions: ModeDefinitionMap = {
   },
 };
 
+function isUnsafeContentError(err: unknown): boolean {
+  return err instanceof Error && err.message.startsWith('Unsafe AI response in ');
+}
+
+function fallbackByMode<K extends StoryMode>(
+  mode: K,
+  ctx: LLMModeContextMap[K]
+): LLMModeResponseMap[K] {
+  switch (mode) {
+    case 'start_adventure': {
+      const response = {
+        stepType: 'start_adventure',
+        isLastStep: false,
+        narrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
+        adventureNarrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
+        wizzyDialogue: `Let's continue safely, ${ctx.childName}. Choose your next step!`,
+        storyChoices: [
+          'Follow the glowing trail',
+          'Visit the puzzle gate',
+          'Ask Wizzy for a quick warm-up',
+        ],
+        imageDescription:
+          'A bright and friendly cartoon scene of a child avatar with Wizzy near a glowing magical path.',
+      };
+      return response as unknown as LLMModeResponseMap[K];
+    }
+
+    case 'math_question': {
+      const response = {
+        stepType: 'math_question',
+        isLastStep: false,
+        narrative: 'Wizzy draws a quick puzzle in sparkling chalk for a warm-up challenge.',
+        wizzyDialogue: `Nice effort, ${ctx.childName}! Let's do a quick one together.`,
+        problemText: `What is 2 + 3?`,
+        expectedAnswerType: 'number',
+        answerFormatHint: 'Choose the number that equals 2 + 3.',
+        storyChoices: ['Try the puzzle', 'Ask for a hint', 'Review the last step'],
+        answerOptions: ['4', '5', '6', '7'],
+        correctAnswer: '5',
+        imageDescription:
+          'A cheerful cartoon classroom scene with a child avatar and Wizzy pointing at a simple addition problem.',
+      };
+      return response as unknown as LLMModeResponseMap[K];
+    }
+
+    case 'hint': {
+      const hintCtx = ctx as LLMHintContext;
+      const response = {
+        stepType: 'hint',
+        isLastStep: false,
+        hintText: `Try breaking the problem into smaller steps and solve one part at a time.`,
+        encouragement: `You're doing great, ${ctx.childName}. Keep going!`,
+        answerOptions: ['4', '5', '6', '7'],
+        correctAnswer: '5',
+        ...(hintCtx.hintLevel >= 3
+          ? { scaffoldingQuestion: 'What do you get when you add 2 and then 3?' }
+          : {}),
+      };
+      return response as unknown as LLMModeResponseMap[K];
+    }
+
+    case 'end_story': {
+      const response = {
+        stepType: 'end_story',
+        isLastStep: true,
+        storyChoices: [],
+        narrative: `Wizzy and ${ctx.childName} celebrate another magical step completed together.`,
+        wizzyDialogue: `Wonderful work today, ${ctx.childName}!`,
+        recap: `You explored ${ctx.storyWorld} and practiced ${ctx.mathTopic} with courage and curiosity.`,
+        celebration: 'You finished this chapter and earned a big magical high-five!',
+        imageDescription:
+          'A colorful celebration scene with a child avatar and Wizzy, stars and confetti in a friendly cartoon style.',
+      };
+      return response as unknown as LLMModeResponseMap[K];
+    }
+
+    default: {
+      throw new Error(`Unsupported story mode fallback: ${String(mode)}`);
+    }
+  }
+}
+
 class LLMService {
   private readonly client = new GeminiJsonClient(config.gemini.apiKey, systemInstructions);
 
@@ -169,13 +252,27 @@ class LLMService {
   ): Promise<LLMModeResponseMap[K]> {
     const definition = modeDefinitions[mode];
 
-    return this.client.generateJson<LLMModeResponseMap[K]>({
+    const response = await this.client.generateJson<LLMModeResponseMap[K]>({
       model: DEFAULT_MODEL,
       schema: definition.schema,
       prompt: definition.buildPrompt(ctx),
       temperature: mode === 'hint' ? 0.4 : 0.8,
       maxOutputTokens: 2048,
     });
+
+    try {
+      return sanitizeAndValidateAIResponse(response);
+    } catch (err) {
+      if (isUnsafeContentError(err)) {
+        console.warn(
+          `[llmService] Unsafe AI response blocked for mode=${mode}; using fallback.`,
+          err
+        );
+        return fallbackByMode(mode, ctx);
+      }
+
+      throw err;
+    }
   }
 }
 
