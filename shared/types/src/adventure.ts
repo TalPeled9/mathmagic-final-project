@@ -27,6 +27,14 @@ export interface AdventureState {
   storySummary: string;
 }
 
+export interface ICurrentChallenge {
+  problemText: string;
+  correctAnswer: string;
+  options: [string, string, string, string];
+  hintLevel: 0 | 1 | 2 | 3;
+  attemptsCount: number;
+}
+
 export interface StorySegment {
   narrative: string; // Wizzy's story text
   wizzyDialogue: string; // Wizzy's spoken line
