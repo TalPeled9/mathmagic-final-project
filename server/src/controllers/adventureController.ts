@@ -91,6 +91,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
       totalSteps: adventure.totalSteps,
       currentChallenge: adventure.currentChallenge,
       conversationHistory: adventure.conversationHistory,
+      lastChoices: adventure.lastChoices,
       xpEarned: adventure.xpEarned,
       starsEarned: adventure.starsEarned,
       startedAt: adventure.startedAt,

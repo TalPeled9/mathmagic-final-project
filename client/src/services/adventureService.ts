@@ -15,13 +15,13 @@ import type {
 
 export const adventureService = {
   getAvailable: (childId: string) =>
-    api.get<GetAvailableResponse>(`/children/${childId}/adventures/available`),
+    api.get<GetAvailableResponse>(`/adventures/children/${childId}/available`),
 
   getChildAdventures: (childId: string) =>
-    api.get<GetChildAdventuresResponse>(`/children/${childId}/adventures`),
+    api.get<GetChildAdventuresResponse>(`/adventures/children/${childId}`),
 
   start: (childId: string, body: StartAdventureRequest) =>
-    api.post<StartAdventureResponse>(`/children/${childId}/adventures`, body),
+    api.post<StartAdventureResponse>(`/adventures/children/${childId}`, body),
 
   get: (adventureId: string) =>
     api.get<GetAdventureResponse>(`/adventures/${adventureId}`),
