@@ -5,20 +5,7 @@ import { Sparkles, ArrowLeft, Wand2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdventure } from '@/hooks/useAdventure';
 import { adventureService } from '@/services/adventureService';
-import type { MathTopicConfig, StoryWorldConfig } from '@mathmagic/types';
-
-const WORLD_EMOJIS: Record<string, string> = {
-  space: '🚀',
-  fantasy: '🏰',
-  dinosaur: '🦕',
-  ocean: '🌊',
-  jungle: '🌴',
-  pirates: '🏴‍☠️',
-  robots: '🤖',
-  candy: '🍬',
-  'magic-school': '🧙',
-  'ancient-temple': '🏛️',
-};
+import { WORLD_EMOJIS, type MathTopicConfig, type StoryWorldConfig } from '@mathmagic/types';
 
 type Step = 'topic' | 'world';
 

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
-import type { AdventureSummary } from '@mathmagic/types';
+import { WORLD_EMOJIS, type AdventureSummary } from '@mathmagic/types';
 
 // ── Static config (mirrors server/src/config/levelThresholds.ts) ─────────────
 
@@ -64,19 +64,6 @@ const WORLD_NAMES: Record<string, string> = {
   candy: 'Candy Land',
   'magic-school': 'Magic School',
   'ancient-temple': 'Ancient Temple',
-};
-
-const WORLD_EMOJIS: Record<string, string> = {
-  space: '🚀',
-  fantasy: '🏰',
-  dinosaur: '🦕',
-  ocean: '🌊',
-  jungle: '🌴',
-  pirates: '🏴‍☠️',
-  robots: '🤖',
-  candy: '🍬',
-  'magic-school': '🧙',
-  'ancient-temple': '🏛️',
 };
 
 const BADGE_EMOJIS: Record<string, string> = {

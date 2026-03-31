@@ -105,6 +105,19 @@ export interface StoryWorldConfig {
   theme: string;
 }
 
+export const WORLD_EMOJIS: Record<string, string> = {
+  space: '🚀',
+  fantasy: '🏰',
+  dinosaur: '🦕',
+  ocean: '🌊',
+  jungle: '🌴',
+  pirates: '🏴‍☠️',
+  robots: '🤖',
+  candy: '🍬',
+  'magic-school': '🧙',
+  'ancient-temple': '🏛️',
+};
+
 export interface GetAvailableResponse {
   topics: MathTopicConfig[];
   worlds: StoryWorldConfig[];
