@@ -1,13 +1,6 @@
-export interface MathTopic {
-  id: string;
-  name: string;
-  icon: string;
-  gradeRange: { min: number; max: number };
-  description: string;
-  color: string;
-}
+import type { MathTopicConfig } from '@mathmagic/types';
 
-export const MATH_TOPICS: MathTopic[] = [
+export const MATH_TOPICS: MathTopicConfig[] = [
   {
     id: 'addition',
     name: 'Addition',
@@ -90,6 +83,6 @@ export const MATH_TOPICS: MathTopic[] = [
   },
 ];
 
-export function getMathTopicById(id: string): MathTopic | undefined {
+export function getMathTopicById(id: string): MathTopicConfig | undefined {
   return MATH_TOPICS.find((topic) => topic.id === id);
 }

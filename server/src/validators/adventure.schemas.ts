@@ -6,7 +6,7 @@ export const startAdventureSchema = z.object({
 });
 
 export const continueAdventureSchema = z.object({
-  choiceIndex: z.number().int().min(0).max(3),
+  choiceIndex: z.number().int().min(0).max(2),
 });
 
 export const answerChallengeSchema = z.object({

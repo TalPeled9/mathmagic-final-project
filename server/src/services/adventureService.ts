@@ -169,16 +169,10 @@ export async function generateSegmentImage(
 
 // ─── XP Calculation ──────────────────────────────────────────────────────────
 
-export function calculateAnswerXP(
-  correct: boolean,
-  hintUsed: boolean,
-  streakCount: number,
-): number {
+export function calculateAnswerXP(correct: boolean, hintUsed: boolean): number {
   if (!correct) return 2;
   let xp = 10;
   if (!hintUsed) xp += 5;
-  if (streakCount >= 3) xp += 10;
-  else if (streakCount >= 2) xp += 5;
   return xp;
 }
 

@@ -234,13 +234,12 @@ describe('adventure routes integration', () => {
         .set('Cookie', buildCookies(parentId))
         .expect(200);
 
-      const { adventure } = response.body;
-      expect(adventure._id).toBe(adventureId);
-      expect(adventure.mathTopic).toBe('addition');
-      expect(adventure.storyWorld).toBe('space');
-      expect(adventure.status).toBe('in-progress');
-      expect(Array.isArray(adventure.conversationHistory)).toBe(true);
-      expect(adventure.conversationHistory.length).toBeGreaterThan(0);
+      expect(response.body.adventureId).toBe(adventureId);
+      expect(response.body.mathTopic).toBe('addition');
+      expect(response.body.storyWorld).toBe('space');
+      expect(response.body.status).toBe('in-progress');
+      expect(Array.isArray(response.body.conversationHistory)).toBe(true);
+      expect(response.body.conversationHistory.length).toBeGreaterThan(0);
     });
 
     it('returns 404 for an unknown adventureId', async () => {
@@ -512,19 +511,28 @@ describe('adventure routes integration', () => {
 
       const { adventureId } = startRes.body;
 
-      // Directly push 120 entries via the model to simulate overflow
-      const adventure = await Adventure.findById(adventureId);
-      expect(adventure).not.toBeNull();
+      // Directly push 120 entries via the model to simulate overflow without 120 HTTP calls
+      await Adventure.findByIdAndUpdate(adventureId, {
+        $push: {
+          conversationHistory: {
+            $each: Array.from({ length: 120 }, (_, i) => ({
+              role: 'wizzy',
+              content: `msg ${i}`,
+              timestamp: new Date(),
+            })),
+          },
+        },
+      });
 
-      for (let i = 0; i < 120; i++) {
-        await request(app)
-          .post(`/api/adventures/${adventureId}/continue`)
-          .set('Cookie', buildCookies(parentId))
-          .set(csrfHeader())
-          .send({ choiceIndex: 0 });
-      }
+      // One more continue call to trigger the cap enforcement
+      await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
 
-      // Refresh from DB
+      // Refresh from DB and assert cap held
       const updated = await Adventure.findById(adventureId);
       expect(updated!.conversationHistory.length).toBeLessThanOrEqual(100);
     });

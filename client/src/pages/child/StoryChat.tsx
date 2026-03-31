@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { Sparkles, ArrowLeft, Lightbulb, Star, Zap, Trophy, Wand2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
-import { api } from '@/lib/api';
 import type {
   ICurrentChallenge,
   CompleteAdventureResponse,
@@ -21,26 +20,6 @@ interface ChatMessage {
   text: string;
   imageUrl?: string;
   isCorrect?: boolean; // for system messages
-}
-
-interface RawConversationEntry {
-  role: 'wizzy' | 'child' | 'system' | 'image';
-  content: string;
-  imageUrl?: string;
-}
-
-interface RawAdventureResponse {
-  adventureId: string;
-  mathTopic: string;
-  storyWorld: string;
-  status: 'in-progress' | 'completed';
-  currentStepIndex: number;
-  totalSteps: number;
-  currentChallenge: ICurrentChallenge | null;
-  conversationHistory: RawConversationEntry[];
-  lastChoices: string[];
-  xpEarned: number;
-  starsEarned: number;
 }
 
 // ── BADGE EMOJI MAP ───────────────────────────────────────────────────────────
@@ -108,8 +87,8 @@ export default function StoryChat() {
   useEffect(() => {
     if (!adventureId) return;
 
-    api
-      .get<RawAdventureResponse>(`/adventures/${adventureId}`)
+    adventureService
+      .get(adventureId)
       .then((adventure) => {
         setAdventureContext({ mathTopic: adventure.mathTopic, storyWorld: adventure.storyWorld });
 
@@ -215,8 +194,7 @@ export default function StoryChat() {
 
       try {
         const response = await adventureService.answer(adventureId, { answer });
-        const isCorrect =
-          response.correct || response.feedback.toLowerCase().includes('correct');
+        const isCorrect = response.correct;
         addMessage({ role: 'system', text: response.feedback, isCorrect });
         setLastAnswerFeedback(response);
 

@@ -105,6 +105,7 @@ export interface StoryWorldConfig {
   theme: string;
 }
 
+// TODO: move to @mathmagic/shared when the types package is split into types + shared-utils
 export const WORLD_EMOJIS: Record<string, string> = {
   space: '🚀',
   fantasy: '🏰',
@@ -140,6 +141,12 @@ export interface GetChildAdventuresResponse {
   adventures: AdventureSummary[];
 }
 
+export interface ConversationEntry {
+  role: 'wizzy' | 'child' | 'system' | 'image';
+  content: string;
+  imageUrl?: string;
+}
+
 export interface GetAdventureResponse {
   adventureId: string;
   status: 'in-progress' | 'completed';
@@ -150,4 +157,7 @@ export interface GetAdventureResponse {
   currentSegment: StorySegment;
   xpEarned: number;
   starsEarned: number;
+  conversationHistory: ConversationEntry[];
+  currentChallenge: ICurrentChallenge | null;
+  lastChoices: string[];
 }

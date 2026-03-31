@@ -211,7 +211,7 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (isCorrect) {
     const hintUsed = adventure.currentChallenge.hintLevel > 0;
-    const xpEarned = calculateAnswerXP(true, hintUsed, 0);
+    const xpEarned = calculateAnswerXP(true, hintUsed);
 
     adventure.xpEarned += xpEarned;
     adventure.correctAnswers += 1;
@@ -311,6 +311,8 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
   const { starsEarned } = calculateAdventureRewards(stats);
   adventure.starsEarned = starsEarned;
 
+  await adventure.save();
+
   const { newLevel, newBadge } = await applyRewardsToChild(
     child,
     adventure.xpEarned,
@@ -326,8 +328,6 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
     { adventureId: adventure._id },
     { endTime: adventure.completedAt, duration: durationMinutes },
   );
-
-  await adventure.save();
 
   res.json({
     xpEarned: adventure.xpEarned,
