@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { Adventure } from '../models/Adventure';
 import { LearningSession } from '../models/LearningSession';
-import { TopicProgress } from '../models/TopicProgress';
 import { ApiError } from '../utils/ApiError';
 import { MATH_TOPICS, getMathTopicById } from '../config/mathTopics';
 import { STORY_WORLDS, getStoryWorldById } from '../config/storyWorlds';
@@ -80,23 +79,42 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
 
   const { adventure } = await verifyAdventureAccess(userId, adventureId);
 
+  const lastWizzy = [...adventure.conversationHistory].reverse().find((e) => e.role === 'wizzy');
+  const lastImage = [...adventure.conversationHistory].reverse().find((e) => e.role === 'image');
+
+  const challenge = adventure.currentChallenge
+    ? {
+        problemText: adventure.currentChallenge.problemText,
+        options: adventure.currentChallenge.options,
+        hintLevel: adventure.currentChallenge.hintLevel,
+        attemptsCount: adventure.currentChallenge.attemptsCount,
+      }
+    : null;
+
+  const currentSegment: StorySegment = {
+    narrative: lastWizzy?.content ?? '',
+    wizzyDialogue: lastWizzy?.content ?? '',
+    choices: adventure.lastChoices,
+    challenge,
+    imageUrl: lastImage?.imageUrl,
+    imageDescription: '',
+    isLastStep: adventure.currentStepIndex >= adventure.totalSteps - 1,
+  };
+
   res.json({
-    adventure: {
-      _id: adventure._id,
-      childId: adventure.childId,
-      mathTopic: adventure.mathTopic,
-      storyWorld: adventure.storyWorld,
-      status: adventure.status,
-      currentStepIndex: adventure.currentStepIndex,
-      totalSteps: adventure.totalSteps,
-      currentChallenge: adventure.currentChallenge,
-      conversationHistory: adventure.conversationHistory,
-      lastChoices: adventure.lastChoices,
-      xpEarned: adventure.xpEarned,
-      starsEarned: adventure.starsEarned,
-      startedAt: adventure.startedAt,
-      completedAt: adventure.completedAt,
-    },
+    adventureId: adventure._id.toString(),
+    status: adventure.status,
+    mathTopic: adventure.mathTopic,
+    storyWorld: adventure.storyWorld,
+    currentStepIndex: adventure.currentStepIndex,
+    totalSteps: adventure.totalSteps,
+    currentSegment,
+    xpEarned: adventure.xpEarned,
+    starsEarned: adventure.starsEarned,
+    // Extra fields used by StoryChat to reconstruct full conversation history
+    conversationHistory: adventure.conversationHistory,
+    currentChallenge: challenge,
+    lastChoices: adventure.lastChoices,
   });
 }
 
@@ -111,6 +129,14 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
 
   if (adventure.status !== 'in-progress') {
     throw ApiError.badRequest('Adventure is already completed');
+  }
+
+  if (adventure.currentChallenge) {
+    throw ApiError.badRequest('Complete the math challenge before continuing');
+  }
+
+  if (adventure.currentStepIndex >= adventure.totalSteps - 1) {
+    throw ApiError.badRequest('Adventure has reached its final step; call /complete to finish');
   }
 
   if (adventure.lastChoices.length === 0) {
@@ -136,8 +162,8 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     segment = mapMathQuestionResponse(llmResponse);
     adventure.currentChallenge = segment.challenge
       ? {
-          problemText: segment.challenge.problemText,
-          correctAnswer: segment.challenge.correctAnswer,
+          problemText: llmResponse.problemText,
+          correctAnswer: llmResponse.correctAnswer,
           options: segment.challenge.options,
           hintLevel: 0,
           attemptsCount: 0,
@@ -227,8 +253,6 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
   appendToHistory(adventure, 'system', 'Incorrect, try again');
   await adventure.save();
 
-  await updateTopicProgress(child._id.toString(), adventure.mathTopic, false, false);
-
   res.json({ correct: false, feedback: 'Almost! Try again.' });
 }
 
@@ -240,6 +264,9 @@ export async function requestHint(req: Request, res: Response): Promise<void> {
 
   const { adventure, child } = await verifyAdventureAccess(userId, adventureId);
 
+  if (adventure.status !== 'in-progress') {
+    throw ApiError.badRequest('Adventure is already completed');
+  }
   if (!adventure.currentChallenge) {
     throw ApiError.badRequest('No active challenge');
   }
@@ -253,12 +280,6 @@ export async function requestHint(req: Request, res: Response): Promise<void> {
   const state = buildAdventureState(adventure, child, 'hint');
   const llmResponse = await llmService.generateHintFromState(state);
   const hintResponse = mapHintResponse(llmResponse, adventure.currentChallenge.hintLevel);
-
-  await TopicProgress.findOneAndUpdate(
-    { childId: child._id, mathTopic: adventure.mathTopic },
-    { $inc: { hintsUsed: 1 }, $set: { lastPracticedAt: new Date() } },
-    { upsert: true },
-  );
 
   await adventure.save();
 

@@ -29,7 +29,6 @@ export interface AdventureState {
 
 export interface ICurrentChallenge {
   problemText: string;
-  correctAnswer: string;
   options: [string, string, string, string];
   hintLevel: 0 | 1 | 2 | 3;
   attemptsCount: number;

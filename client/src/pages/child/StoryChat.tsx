@@ -29,8 +29,8 @@ interface RawConversationEntry {
   imageUrl?: string;
 }
 
-interface RawAdventure {
-  _id: string;
+interface RawAdventureResponse {
+  adventureId: string;
   mathTopic: string;
   storyWorld: string;
   status: 'in-progress' | 'completed';
@@ -74,6 +74,7 @@ export default function StoryChat() {
   const [lastAnswerFeedback, setLastAnswerFeedback] = useState<AnswerChallengeResponse | null>(
     null,
   );
+  const [lastSubmittedAnswer, setLastSubmittedAnswer] = useState<string | null>(null);
   const [pendingContinue, setPendingContinue] = useState(false);
   const [adventureContext, setAdventureContext] = useState<{
     mathTopic: string;
@@ -96,6 +97,7 @@ export default function StoryChat() {
       setCurrentChallenge(segment.challenge);
       setIsLastStep(segment.isLastStep);
       setLastAnswerFeedback(null);
+      setLastSubmittedAnswer(null);
       setPendingContinue(false);
     },
     [addMessage],
@@ -107,8 +109,8 @@ export default function StoryChat() {
     if (!adventureId) return;
 
     api
-      .get<{ adventure: RawAdventure }>(`/adventures/${adventureId}`)
-      .then(({ adventure }) => {
+      .get<RawAdventureResponse>(`/adventures/${adventureId}`)
+      .then((adventure) => {
         setAdventureContext({ mathTopic: adventure.mathTopic, storyWorld: adventure.storyWorld });
 
         // Reconstruct chat from persisted conversation history
@@ -208,6 +210,7 @@ export default function StoryChat() {
       if (!adventureId || isProcessing) return;
 
       addMessage({ role: 'child', text: answer });
+      setLastSubmittedAnswer(answer);
       setIsProcessing(true);
 
       try {
@@ -371,6 +374,7 @@ export default function StoryChat() {
                 onAnswer={handleAnswer}
                 onHint={handleHint}
                 lastFeedback={lastAnswerFeedback}
+                lastSubmittedAnswer={lastSubmittedAnswer}
               />
             ) : pendingContinue ? (
               <div className="flex justify-center">
@@ -528,9 +532,10 @@ interface ChallengePanelProps {
   onAnswer: (answer: string) => void;
   onHint: () => void;
   lastFeedback: AnswerChallengeResponse | null;
+  lastSubmittedAnswer: string | null;
 }
 
-function ChallengePanel({ challenge, onAnswer, onHint, lastFeedback }: ChallengePanelProps) {
+function ChallengePanel({ challenge, onAnswer, onHint, lastFeedback, lastSubmittedAnswer }: ChallengePanelProps) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
       <div className="flex items-center gap-2 justify-center mb-4">
@@ -543,7 +548,7 @@ function ChallengePanel({ challenge, onAnswer, onHint, lastFeedback }: Challenge
       <div className="grid grid-cols-2 gap-2">
         {challenge.options.map((option, i) => {
           const wasWrong =
-            lastFeedback && !lastFeedback.correct && i === challenge.options.indexOf(option);
+            lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
           return (
             <button
               key={i}

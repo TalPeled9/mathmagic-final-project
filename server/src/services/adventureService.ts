@@ -108,10 +108,13 @@ export function mapMathQuestionResponse(
   llmResponse: LLMMathQuestionResponse,
   imageUrl?: string,
 ): StorySegment {
+  const rawOptions = llmResponse.answerOptions.slice(0, 4);
+  if (rawOptions.length < 4) {
+    throw new ApiError(500, `LLM returned ${rawOptions.length} answer options; expected 4`);
+  }
   const challenge: ICurrentChallenge = {
     problemText: llmResponse.problemText,
-    correctAnswer: llmResponse.correctAnswer,
-    options: llmResponse.answerOptions.slice(0, 4) as [string, string, string, string],
+    options: rawOptions as [string, string, string, string],
     hintLevel: 0,
     attemptsCount: 0,
   };
@@ -142,10 +145,11 @@ export function mapEndStoryResponse(
 }
 
 export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number): HintResponse {
+  const sq = llmResponse.scaffoldingQuestion;
   return {
     hintText: llmResponse.hintText,
     hintLevel,
-    subQuestion: llmResponse.scaffoldingQuestion,
+    subQuestion: sq && sq !== 'null' ? sq : undefined,
   };
 }
 

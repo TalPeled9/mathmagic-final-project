@@ -14,9 +14,9 @@ export const answerChallengeSchema = z.object({
 });
 
 export const adventureParamsSchema = z.object({
-  adventureId: z.string().min(1, 'Adventure ID is required'),
+  adventureId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Adventure ID must be a valid ObjectId'),
 });
 
 export const childParamsSchema = z.object({
-  childId: z.string().min(1, 'Child ID is required'),
+  childId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Child ID must be a valid ObjectId'),
 });
