@@ -1,10 +1,31 @@
 import type {
   AdventureState,
+  ConversationTurn,
   LLMEndStoryContext,
   LLMHintContext,
   LLMMathQuestionContext,
   LLMStoryPromptContext,
 } from '@mathmagic/types';
+
+/**
+ * Formats the rolling conversation window into a readable transcript for
+ * injection into LLM prompts.  Each line is prefixed with the speaker role
+ * so Gemini can follow the narrative thread precisely.
+ *
+ * Example output:
+ *   Wizzy: The enchanted map glows as you enter the forest…
+ *   Child: Follow the glowing trail
+ *   Wizzy: A riddle appears on the bark of the oldest oak…
+ *   System: Correct answer!
+ */
+export function buildConversationTranscript(turns: ConversationTurn[]): string {
+  if (!turns || turns.length === 0) return '';
+  const lines = turns.map((t) => {
+    const speaker = t.role.charAt(0).toUpperCase() + t.role.slice(1);
+    return `${speaker}: ${t.content}`;
+  });
+  return lines.join('\n');
+}
 
 /**
  * Builds a concise, narrative story summary from the adventure state.
@@ -63,6 +84,7 @@ export function buildStartAdventureContext(state: AdventureState): LLMStoryPromp
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
+    conversationTranscript: buildConversationTranscript(state.conversationTurns),
   };
 }
 
@@ -77,6 +99,7 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
+    conversationTranscript: buildConversationTranscript(state.conversationTurns),
     selectedChoice: state.selectedChoices[state.selectedChoices.length - 1] || 'adventure begins',
     previousEvents: state.recentEvents.slice(-3),
   };
@@ -93,10 +116,11 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
+    conversationTranscript: buildConversationTranscript(state.conversationTurns),
     problemText: state.lastProblemText || '',
     childAnswer: state.lastChildAnswer || '',
-    hintLevel: state.attemptCount, // 1st attempt = level 1, etc.
-    previousHints: [], // TODO: track hint history in AdventureState if needed
+    hintLevel: state.attemptCount,
+    previousHints: state.previousHints ?? [],
   };
 }
 
@@ -111,6 +135,7 @@ export function buildEndStoryContext(state: AdventureState): LLMEndStoryContext 
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
+    conversationTranscript: buildConversationTranscript(state.conversationTurns),
     finalOutcome: state.lastChildAnswer ? 'success' : 'completion',
     solvedProblems: state.selectedChoices.length,
     totalProblems: state.totalSteps,
