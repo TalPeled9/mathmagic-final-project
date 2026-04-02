@@ -27,6 +27,13 @@ export interface AdventureState {
   storySummary: string;
 }
 
+export interface ICurrentChallenge {
+  problemText: string;
+  options: [string, string, string, string];
+  hintLevel: 0 | 1 | 2 | 3;
+  attemptsCount: number;
+}
+
 export interface StorySegment {
   narrative: string; // Wizzy's story text
   wizzyDialogue: string; // Wizzy's spoken line
@@ -74,4 +81,83 @@ export interface CompleteAdventureResponse {
   newBadge?: IBadge; // if a new badge was earned
   totalXP: number; // child's updated total
   totalStars: number;
+}
+
+export interface StartAdventureRequest {
+  mathTopic: string;
+  storyWorld: string;
+}
+
+export interface MathTopicConfig {
+  id: string;
+  name: string;
+  icon: string;
+  gradeRange: { min: number; max: number };
+  description: string;
+  color: string;
+}
+
+export interface StoryWorldConfig {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  theme: string;
+}
+
+// TODO: move to @mathmagic/shared when the types package is split into types + shared-utils
+export const WORLD_EMOJIS: Record<string, string> = {
+  space: '🚀',
+  fantasy: '🏰',
+  dinosaur: '🦕',
+  ocean: '🌊',
+  jungle: '🌴',
+  pirates: '🏴‍☠️',
+  robots: '🤖',
+  candy: '🍬',
+  'magic-school': '🧙',
+  'ancient-temple': '🏛️',
+};
+
+export interface GetAvailableResponse {
+  topics: MathTopicConfig[];
+  worlds: StoryWorldConfig[];
+}
+
+export interface AdventureSummary {
+  _id: string;
+  mathTopic: string;
+  storyWorld: string;
+  status: 'in-progress' | 'completed';
+  currentStepIndex: number;
+  totalSteps: number;
+  xpEarned: number;
+  starsEarned: number;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface GetChildAdventuresResponse {
+  adventures: AdventureSummary[];
+}
+
+export interface ConversationEntry {
+  role: 'wizzy' | 'child' | 'system' | 'image';
+  content: string;
+  imageUrl?: string;
+}
+
+export interface GetAdventureResponse {
+  adventureId: string;
+  status: 'in-progress' | 'completed';
+  mathTopic: string;
+  storyWorld: string;
+  currentStepIndex: number;
+  totalSteps: number;
+  currentSegment: StorySegment;
+  xpEarned: number;
+  starsEarned: number;
+  conversationHistory: ConversationEntry[];
+  currentChallenge: ICurrentChallenge | null;
+  lastChoices: string[];
 }

@@ -221,8 +221,7 @@ class LLMService {
   }
 
   async generateEndStory(ctx: LLMEndStoryContext): Promise<LLMEndStoryResponse> {
-    const response = await this.requestByMode('end_story', ctx);
-    return { ...response, storyChoices: [] };
+    return this.requestByMode('end_story', ctx);
   }
 
   // AdventureState-based convenience methods (recommended for controllers)

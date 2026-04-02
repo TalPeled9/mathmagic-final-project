@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
@@ -114,7 +114,6 @@ export default function LoginPage() {
 
             <div className="flex justify-center">
               <GoogleLogin
-                locale="en_US"
                 text="signin_with"
                 onSuccess={async (credentialResponse) => {
                   if (!credentialResponse.credential) {
