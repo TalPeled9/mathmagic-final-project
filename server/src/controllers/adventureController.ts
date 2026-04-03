@@ -32,7 +32,7 @@ export async function getAvailableAdventures(req: Request, res: Response): Promi
   const child = await verifyChildOwnership(userId, childId);
 
   const topics = MATH_TOPICS.filter(
-    (t) => t.gradeRange.min <= child.gradeLevel && t.gradeRange.max >= child.gradeLevel,
+    (t) => t.gradeRange.min <= child.gradeLevel && t.gradeRange.max >= child.gradeLevel
   );
 
   res.json({ topics, worlds: STORY_WORLDS });
@@ -217,6 +217,7 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
     adventure.correctAnswers += 1;
     appendToHistory(adventure, 'system', 'Correct answer!');
     adventure.currentChallenge = null;
+    adventure.currentHints = []; // reset hint memory for next challenge
     await adventure.save();
 
     await updateTopicProgress(child._id.toString(), adventure.mathTopic, true, hintUsed);
@@ -232,12 +233,9 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
   if (adventure.currentChallenge.attemptsCount >= 3) {
     const correctAnswer = adventure.currentChallenge.correctAnswer;
     adventure.xpEarned += 2; // consolation XP
-    appendToHistory(
-      adventure,
-      'system',
-      `The correct answer was ${correctAnswer}. Keep going!`,
-    );
+    appendToHistory(adventure, 'system', `The correct answer was ${correctAnswer}. Keep going!`);
     adventure.currentChallenge = null;
+    adventure.currentHints = []; // reset hint memory for next challenge
     await adventure.save();
 
     await updateTopicProgress(child._id.toString(), adventure.mathTopic, false, false);
@@ -281,6 +279,8 @@ export async function requestHint(req: Request, res: Response): Promise<void> {
   const llmResponse = await llmService.generateHintFromState(state);
   const hintResponse = mapHintResponse(llmResponse, adventure.currentChallenge.hintLevel);
 
+  // Persist hint text so next hint call can see what was already given
+  adventure.currentHints.push(hintResponse.hintText);
   await adventure.save();
 
   res.json(hintResponse);
@@ -318,15 +318,15 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
     adventure.xpEarned,
     starsEarned,
     stats,
-    adventure.storyWorld,
+    adventure.storyWorld
   );
 
   const durationMinutes = Math.round(
-    (adventure.completedAt.getTime() - adventure.startedAt.getTime()) / 60000,
+    (adventure.completedAt.getTime() - adventure.startedAt.getTime()) / 60000
   );
   await LearningSession.findOneAndUpdate(
     { adventureId: adventure._id },
-    { endTime: adventure.completedAt, duration: durationMinutes },
+    { endTime: adventure.completedAt, duration: durationMinutes }
   );
 
   res.json({
@@ -349,7 +349,9 @@ export async function getChildAdventures(req: Request, res: Response): Promise<v
 
   const adventures = await Adventure.find({ childId })
     .sort({ startedAt: -1 })
-    .select('mathTopic storyWorld status currentStepIndex totalSteps xpEarned starsEarned startedAt completedAt')
+    .select(
+      'mathTopic storyWorld status currentStepIndex totalSteps xpEarned starsEarned startedAt completedAt'
+    )
     .lean();
 
   res.json({

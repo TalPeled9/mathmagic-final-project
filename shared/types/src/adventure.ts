@@ -2,6 +2,11 @@ import type { IBadge } from './children';
 
 export type StoryMode = 'start_adventure' | 'math_question' | 'hint' | 'end_story';
 
+export interface ConversationTurn {
+  role: 'wizzy' | 'child' | 'system';
+  content: string;
+}
+
 export interface AdventureState {
   childName: string;
   gradeLevel: number;
@@ -17,11 +22,14 @@ export interface AdventureState {
 
   selectedChoices: string[];
   recentEvents: string[];
+  conversationTurns: ConversationTurn[]; // rolling window of last ~10 turns fed to LLM
+  previousHints: string[]; // hint texts given for the current challenge
 
   lastProblemText?: string;
   correctAnswer?: string;
   lastChildAnswer?: string;
   attemptCount: number;
+  hintLevel: 0 | 1 | 2 | 3;
   hintUsed: boolean;
 
   storySummary: string;

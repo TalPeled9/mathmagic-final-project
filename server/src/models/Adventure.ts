@@ -25,6 +25,7 @@ export interface IAdventureDocument extends Document {
   currentChallenge: ICurrentChallengeSubdoc | null;
   conversationHistory: IConversationEntry[];
   lastChoices: string[];
+  currentHints: string[]; // hint texts accumulated for the active challenge
   startedAt: Date;
   completedAt?: Date;
   xpEarned: number;
@@ -68,6 +69,7 @@ const adventureSchema = new Schema<IAdventureDocument>(
     currentChallenge: { type: currentChallengeSchema, default: null },
     conversationHistory: { type: [conversationEntrySchema], default: [] },
     lastChoices: { type: [String], default: [] },
+    currentHints: { type: [String], default: [] },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
     xpEarned: { type: Number, default: 0 },

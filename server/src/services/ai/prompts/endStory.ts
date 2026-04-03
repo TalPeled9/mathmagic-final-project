@@ -12,7 +12,14 @@ CHILD CONTEXT:
 - Final outcome: ${ctx.finalOutcome}
 - Problems solved: ${ctx.solvedProblems ?? 'Unknown'} / ${ctx.totalProblems ?? 'Unknown'}
 - Story summary so far: ${ctx.storySummary}
-
+${
+  ctx.conversationTranscript
+    ? `
+CONVERSATION HISTORY (full session — use to write a personalised, specific recap):
+${ctx.conversationTranscript}
+`
+    : ''
+}
 ENDING RULES:
 - This is the final step. Provide closure.
 - Keep tone celebratory and warm.

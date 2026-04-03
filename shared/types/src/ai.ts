@@ -6,6 +6,7 @@ export interface LLMStoryPromptContext {
   mathTopic: string;
   storyWorld: string;
   storySummary?: string;
+  conversationTranscript?: string; // formatted turn-by-turn history window
   selectedChoice?: string;
 }
 

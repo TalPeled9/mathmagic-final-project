@@ -15,7 +15,14 @@ Do NOT include any math challenge or math-related content.
 The child should be given story choices that determine how the adventure continues.
 
 STORY SO FAR:
-${ctx.storySummary}`;
+${ctx.storySummary}
+
+${
+  ctx.conversationTranscript
+    ? `CONVERSATION HISTORY (most recent turns):
+${ctx.conversationTranscript}`
+    : ''
+}`;
 
   const storyReqs = isFirstStep
     ? `- The opening should be easy to understand for the given grade level.`
@@ -23,7 +30,7 @@ ${ctx.storySummary}`;
 - Build on the previous events and the child's choices.`;
 
   return `You are Wizzy, a friendly and magical math wizard who guides children through fun and engaging math story adventures.
-${isFirstStep ? 'Generate the first step of a children\'s interactive math story adventure.' : 'Generate the next story step, continuing the adventure already in progress.'}
+${isFirstStep ? "Generate the first step of a children's interactive math story adventure." : 'Generate the next story step, continuing the adventure already in progress.'}
 
 ${goalSection}
 

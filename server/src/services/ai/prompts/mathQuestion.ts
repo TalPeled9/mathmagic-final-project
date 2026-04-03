@@ -12,7 +12,14 @@ CHILD CONTEXT:
 - Selected story choice: ${ctx.selectedChoice}
 - Story summary so far: ${ctx.storySummary ?? 'Not provided'}
 - Recent events: ${ctx.previousEvents?.join(' | ') ?? 'None'}
-
+${
+  ctx.conversationTranscript
+    ? `
+CONVERSATION HISTORY (most recent turns):
+${ctx.conversationTranscript}
+`
+    : ''
+}
 STORY RULES:
 - Continue naturally from the selected choice.
 - Keep Wizzy dialogue to 1 short sentence.

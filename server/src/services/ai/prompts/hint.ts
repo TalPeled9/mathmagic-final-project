@@ -12,10 +12,17 @@ CHILD CONTEXT:
 
 PROBLEM CONTEXT:
 - Problem text: ${ctx.problemText}
-- Child's answer: ${ctx.childAnswer}
+- Child's answer: ${ctx.childAnswer || '(not provided)'}
 - Hint level requested: ${ctx.hintLevel}
-- Previous hints: ${ctx.previousHints.join(' | ') || 'None'}
-
+- Previous hints given: ${ctx.previousHints.length > 0 ? ctx.previousHints.map((h, i) => `\n  Hint ${i + 1}: ${h}`).join('') : 'None'}
+${
+  ctx.conversationTranscript
+    ? `
+CONVERSATION HISTORY (most recent turns — use for tone and story continuity):
+${ctx.conversationTranscript}
+`
+    : ''
+}
 HINT RULES:
 - Never reveal the final answer.
 - Keep the hint short, clear, and age-appropriate.
