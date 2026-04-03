@@ -29,6 +29,7 @@ export interface AdventureState {
   correctAnswer?: string;
   lastChildAnswer?: string;
   attemptCount: number;
+  hintLevel: 0 | 1 | 2 | 3;
   hintUsed: boolean;
 
   storySummary: string;

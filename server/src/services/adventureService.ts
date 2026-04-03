@@ -86,6 +86,7 @@ export function buildAdventureState(
     correctAnswer: adventure.currentChallenge?.correctAnswer,
     lastChildAnswer,
     attemptCount: adventure.currentChallenge?.attemptsCount ?? 0,
+    hintLevel: (adventure.currentChallenge?.hintLevel ?? 0) as 0 | 1 | 2 | 3,
     hintUsed: (adventure.currentChallenge?.hintLevel ?? 0) > 0,
     storySummary: '',
   };

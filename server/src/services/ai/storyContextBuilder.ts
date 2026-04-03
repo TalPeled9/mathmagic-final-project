@@ -119,7 +119,7 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
     conversationTranscript: buildConversationTranscript(state.conversationTurns),
     problemText: state.lastProblemText || '',
     childAnswer: state.lastChildAnswer || '',
-    hintLevel: state.attemptCount,
+    hintLevel: state.hintLevel,
     previousHints: state.previousHints ?? [],
   };
 }
