@@ -29,8 +29,7 @@ ${ctx.conversationTranscript}`
     : `- Continue the existing narrative naturally — do NOT re-introduce the world or start over.
 - Build on the previous events and the child's choices.`;
 
-  return `You are Wizzy, a friendly and magical math wizard who guides children through fun and engaging math story adventures.
-${isFirstStep ? "Generate the first step of a children's interactive math story adventure." : 'Generate the next story step, continuing the adventure already in progress.'}
+  return `${isFirstStep ? "Generate the first step of a children's interactive math story adventure." : 'Generate the next story step, continuing the adventure already in progress.'}
 
 ${goalSection}
 
@@ -41,14 +40,10 @@ CHILD CONTEXT:
 - Child's name: ${ctx.childName}
 
 STORY REQUIREMENTS:
-- The story must feel playful, magical, and engaging.
 ${storyReqs}
-- Keep the narrative short and clear (3-4 sentences maximum).
 - Use the child's name naturally at most once.
 - The scene should fit the given story world.
 - Create curiosity and a sense of adventure.
-- Wizzy should speak in a warm and encouraging tone.
-- Do not include scary, violent, or stressful content.
 - Do not include any math, numbers, or problem-solving in this step.
 - Do not reveal future events beyond the current step.
 
@@ -61,13 +56,10 @@ CHOICES REQUIREMENTS:
 
 OUTPUT REQUIREMENTS:
 - storyChoices must contain exactly 3 items
-- Return only the fields defined in the schema
-- Do not add any extra fields
-- Return valid JSON only
 
 FIELD GUIDELINES:
-- adventureNarrative: 3-4 short sentences describing the scene
-- wizzyDialogue: 1 short sentence spoken by Wizzy
+- adventureNarrative: describe the current scene clearly
+- wizzyDialogue: spoken line from Wizzy
 - storyChoices: array of short strings
 - imageDescription: a clear, visual, child-friendly description of the exact scene (characters, setting, mood, key elements)
 `;

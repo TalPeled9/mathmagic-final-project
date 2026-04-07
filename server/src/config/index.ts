@@ -18,6 +18,9 @@ export const config = {
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
   },
-  gemini: { apiKey: process.env.GEMINI_API_KEY ?? '' },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY ?? '',
+    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  },
   isProduction: process.env.NODE_ENV === 'production',
 } as const;

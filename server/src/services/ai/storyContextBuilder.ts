@@ -22,7 +22,8 @@ export function buildConversationTranscript(turns: ConversationTurn[]): string {
   if (!turns || turns.length === 0) return '';
   const lines = turns.map((t) => {
     const speaker = t.role.charAt(0).toUpperCase() + t.role.slice(1);
-    return `${speaker}: ${t.content}`;
+    const text = t.role === 'wizzy' && t.dialogue ? t.dialogue : t.content;
+    return `${speaker}: ${text}`;
   });
   return lines.join('\n');
 }

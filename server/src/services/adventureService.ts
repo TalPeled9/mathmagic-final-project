@@ -63,7 +63,11 @@ export function buildAdventureState(
   const conversationTurns = adventure.conversationHistory
     .filter((e) => e.role !== 'image')
     .slice(-10)
-    .map((e) => ({ role: e.role as 'wizzy' | 'child' | 'system', content: e.content }));
+    .map((e) => ({
+      role: e.role as 'wizzy' | 'child' | 'system',
+      content: e.content,
+      dialogue: e.dialogue,
+    }));
 
   // Most recent child answer — fixes hint context bug where childAnswer was always ''
   const lastChildAnswer = [...adventure.conversationHistory]
@@ -356,9 +360,10 @@ export function appendToHistory(
   adventure: IAdventureDocument,
   role: 'wizzy' | 'child' | 'system' | 'image',
   content: string,
-  imageUrl?: string
+  imageUrl?: string,
+  dialogue?: string
 ): void {
-  adventure.conversationHistory.push({ role, content, imageUrl, timestamp: new Date() });
+  adventure.conversationHistory.push({ role, content, dialogue, imageUrl, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
     adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
   }

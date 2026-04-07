@@ -5,6 +5,7 @@ export type StoryMode = 'start_adventure' | 'math_question' | 'hint' | 'end_stor
 export interface ConversationTurn {
   role: 'wizzy' | 'child' | 'system';
   content: string;
+  dialogue?: string; // Wizzy's spoken line only — excludes adventureNarrative/recap
 }
 
 export interface AdventureState {

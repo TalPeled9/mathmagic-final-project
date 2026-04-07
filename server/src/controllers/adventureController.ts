@@ -65,7 +65,7 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
     (await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '')) ?? undefined;
 
   adventure.lastChoices = segment.choices;
-  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl);
+  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl, segment.wizzyDialogue);
   await adventure.save();
 
   res.status(201).json({ adventureId: adventure._id.toString(), segment });
@@ -157,6 +157,8 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
 
   let segment: StorySegment;
 
+  let mathProblemText: string | undefined;
+
   if (mode === 'math_question') {
     const llmResponse = await llmService.generateMathQuestionFromState(state);
     segment = mapMathQuestionResponse(llmResponse);
@@ -170,6 +172,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
         }
       : null;
     adventure.totalChallenges += 1;
+    mathProblemText = llmResponse.problemText;
   } else if (mode === 'end_story') {
     const llmResponse = await llmService.generateEndStoryFromState(state);
     segment = mapEndStoryResponse(llmResponse);
@@ -182,7 +185,10 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     (await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '')) ?? undefined;
 
   adventure.lastChoices = segment.choices;
-  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl);
+  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl, segment.wizzyDialogue);
+  if (mathProblemText) {
+    appendToHistory(adventure, 'wizzy', `Math challenge: ${mathProblemText}`);
+  }
   await adventure.save();
 
   res.json({ segment });

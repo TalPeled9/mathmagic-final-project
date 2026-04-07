@@ -27,7 +27,7 @@ import { buildMathQuestionPrompt } from './prompts/mathQuestion';
 import { buildStartAdventurePrompt } from './prompts/startAdventure';
 import { systemInstructions } from './prompts/systemInstructions';
 
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = config.gemini.model;
 
 const JSON_SCHEMA = {
   OBJECT: 'object',
