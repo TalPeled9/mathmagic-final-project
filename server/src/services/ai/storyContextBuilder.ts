@@ -65,9 +65,9 @@ export function buildStorySummary(state: AdventureState): string {
 
 /**
  * Build the complete LLMStoryPromptContext from AdventureState.
- * Used as base context for start_adventure mode.
+ * Used as base context for story_step mode.
  */
-export function buildStartAdventureContext(state: AdventureState): LLMStoryPromptContext {
+export function buildStoryStepContext(state: AdventureState): LLMStoryPromptContext {
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,

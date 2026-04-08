@@ -17,7 +17,7 @@ import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE } from '../utils/cookieOptions';
 
 vi.mock('../services/ai/llmService', () => ({
   llmService: {
-    generateStartAdventureFromState: vi.fn(),
+    generateStoryStepFromState: vi.fn(),
     generateMathQuestionFromState: vi.fn(),
     generateHintFromState: vi.fn(),
     generateEndStoryFromState: vi.fn(),
@@ -135,7 +135,7 @@ describe('adventure routes integration', () => {
     otherParentId = String(other._id);
 
     // Default LLM mock return values
-    mockedLlm.generateStartAdventureFromState.mockResolvedValue(MOCK_START_RESPONSE);
+    mockedLlm.generateStoryStepFromState.mockResolvedValue(MOCK_START_RESPONSE);
     mockedLlm.generateMathQuestionFromState.mockResolvedValue(MOCK_MATH_RESPONSE);
     mockedLlm.generateHintFromState.mockResolvedValue(MOCK_HINT_RESPONSE);
     mockedLlm.generateEndStoryFromState.mockResolvedValue(MOCK_END_RESPONSE);

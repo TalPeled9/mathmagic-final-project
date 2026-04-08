@@ -34,7 +34,7 @@ describe('llmService provider wiring', () => {
       imageDescription: 'A magical forest path.',
     });
 
-    const result = await llmService.generateStartAdventureFromState(baseState);
+    const result = await llmService.generateStoryStepFromState(baseState);
 
     expect(result.wizzyDialogue).toBe('Welcome, explorer!');
     expect(result.storyChoices).toHaveLength(3);
@@ -47,7 +47,7 @@ describe('llmService provider wiring', () => {
       new Error('rate limited')
     );
 
-    const result = await llmService.generateStartAdventureFromState(baseState);
+    const result = await llmService.generateStoryStepFromState(baseState);
 
     expect(result).toBeDefined();
     expect(typeof result.wizzyDialogue).toBe('string');

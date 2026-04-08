@@ -1,6 +1,6 @@
 import type { LLMStoryPromptContext } from '@mathmagic/types';
 
-export function buildStartAdventurePrompt(ctx: LLMStoryPromptContext): string {
+export function buildStoryStepPrompt(ctx: LLMStoryPromptContext): string {
   const isFirstStep = !ctx.storySummary || ctx.storySummary.includes('starting fresh');
 
   const goalSection = isFirstStep

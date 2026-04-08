@@ -4,7 +4,7 @@ import type {
   StorySegment,
   HintResponse,
   ICurrentChallenge,
-  LLMStartAdventureResponse,
+  LLMStoryStepResponse,
   LLMMathQuestionResponse,
   LLMHintResponse,
   LLMEndStoryResponse,
@@ -111,7 +111,7 @@ export function determineNextMode(adventure: IAdventureDocument): StoryMode {
 // ─── Response Mapping ────────────────────────────────────────────────────────
 
 export function mapStartAdventureResponse(
-  llmResponse: LLMStartAdventureResponse,
+  llmResponse: LLMStoryStepResponse,
   imageUrl?: string
 ): StorySegment {
   return {

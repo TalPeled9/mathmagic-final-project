@@ -32,7 +32,7 @@ export interface LLMBaseStoryResponse {
   imageDescription: string;
 }
 
-export interface LLMStartAdventureResponse extends LLMBaseStoryResponse {
+export interface LLMStoryStepResponse extends LLMBaseStoryResponse {
   adventureNarrative: string;
   storyChoices: string[];
 }
@@ -64,7 +64,7 @@ export type LLMModeContextMap = {
 };
 
 export type LLMModeResponseMap = {
-  story_step: LLMStartAdventureResponse;
+  story_step: LLMStoryStepResponse;
   math_question: LLMMathQuestionResponse;
   hint: LLMHintResponse;
   end_story: LLMEndStoryResponse;

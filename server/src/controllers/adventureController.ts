@@ -58,7 +58,7 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
   await LearningSession.create({ childId, adventureId: adventure._id });
 
   const state = buildAdventureState(adventure, child, 'story_step');
-  const llmResponse = await llmService.generateStartAdventureFromState(state);
+  const llmResponse = await llmService.generateStoryStepFromState(state);
   const segment: StorySegment = mapStartAdventureResponse(llmResponse);
 
   segment.imageUrl =
@@ -177,7 +177,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     const llmResponse = await llmService.generateEndStoryFromState(state);
     segment = mapEndStoryResponse(llmResponse);
   } else {
-    const llmResponse = await llmService.generateStartAdventureFromState(state);
+    const llmResponse = await llmService.generateStoryStepFromState(state);
     segment = mapStartAdventureResponse(llmResponse);
   }
 

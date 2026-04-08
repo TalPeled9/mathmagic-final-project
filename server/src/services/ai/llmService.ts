@@ -9,7 +9,7 @@ import type {
   LLMModeContextMap,
   LLMModeResponseMap,
   LLMStoryPromptContext,
-  LLMStartAdventureResponse,
+  LLMStoryStepResponse,
   StoryMode,
 } from '@mathmagic/types';
 import { config } from '../../config';
@@ -17,7 +17,7 @@ import {
   buildEndStoryContext,
   buildHintContext,
   buildMathQuestionContext,
-  buildStartAdventureContext,
+  buildStoryStepContext,
 } from './storyContextBuilder';
 import type { GeminiResponseSchema } from './geminiClient';
 import { FallbackLLMClient } from './fallbackLLMClient';
@@ -28,7 +28,7 @@ import { sanitizeAndValidateAIResponse } from './contentFilter';
 import { buildEndStoryPrompt } from './prompts/endStory';
 import { buildHintPrompt } from './prompts/hint';
 import { buildMathQuestionPrompt } from './prompts/mathQuestion';
-import { buildStartAdventurePrompt } from './prompts/startAdventure';
+import { buildStoryStepPrompt } from './prompts/storyStep';
 
 const JSON_SCHEMA = {
   OBJECT: 'object',
@@ -36,7 +36,7 @@ const JSON_SCHEMA = {
   STRING: 'string',
 } as const;
 
-const startAdventureSchema: GeminiResponseSchema = {
+const storyStepSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
   required: ['adventureNarrative', 'wizzyDialogue', 'storyChoices', 'imageDescription'],
   properties: {
@@ -106,8 +106,8 @@ type ModeDefinitionMap = {
 
 const modeDefinitions: ModeDefinitionMap = {
   story_step: {
-    schema: startAdventureSchema,
-    buildPrompt: buildStartAdventurePrompt,
+    schema: storyStepSchema,
+    buildPrompt: buildStoryStepPrompt,
   },
   math_question: {
     schema: mathQuestionSchema,
@@ -217,7 +217,7 @@ class LLMService {
   }
 
   // Direct context-based methods (legacy/flexible)
-  async generateStartAdventure(ctx: LLMStoryPromptContext): Promise<LLMStartAdventureResponse> {
+  async generateStoryStep(ctx: LLMStoryPromptContext): Promise<LLMStoryStepResponse> {
     return this.requestByMode('story_step', ctx);
   }
 
@@ -234,9 +234,9 @@ class LLMService {
   }
 
   // AdventureState-based convenience methods (recommended for controllers)
-  async generateStartAdventureFromState(state: AdventureState): Promise<LLMStartAdventureResponse> {
-    const ctx = buildStartAdventureContext(state);
-    return this.generateStartAdventure(ctx);
+  async generateStoryStepFromState(state: AdventureState): Promise<LLMStoryStepResponse> {
+    const ctx = buildStoryStepContext(state);
+    return this.generateStoryStep(ctx);
   }
 
   async generateMathQuestionFromState(state: AdventureState): Promise<LLMMathQuestionResponse> {
