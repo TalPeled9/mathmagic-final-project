@@ -100,9 +100,7 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
-    conversationTranscript: buildConversationTranscript(state.conversationTurns),
     selectedChoice: state.selectedChoices[state.selectedChoices.length - 1] || 'adventure begins',
-    previousEvents: state.recentEvents.slice(-3),
   };
 }
 
