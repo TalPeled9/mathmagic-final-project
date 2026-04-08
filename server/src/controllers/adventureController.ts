@@ -57,7 +57,7 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
   const adventure = await Adventure.create({ childId, mathTopic, storyWorld });
   await LearningSession.create({ childId, adventureId: adventure._id });
 
-  const state = buildAdventureState(adventure, child, 'start_adventure');
+  const state = buildAdventureState(adventure, child, 'story_step');
   const llmResponse = await llmService.generateStartAdventureFromState(state);
   const segment: StorySegment = mapStartAdventureResponse(llmResponse);
 

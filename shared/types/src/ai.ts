@@ -57,14 +57,14 @@ export interface LLMEndStoryResponse extends LLMBaseStoryResponse {
 }
 
 export type LLMModeContextMap = {
-  start_adventure: LLMStoryPromptContext;
+  story_step: LLMStoryPromptContext;
   math_question: LLMMathQuestionContext;
   hint: LLMHintContext;
   end_story: LLMEndStoryContext;
 };
 
 export type LLMModeResponseMap = {
-  start_adventure: LLMStartAdventureResponse;
+  story_step: LLMStartAdventureResponse;
   math_question: LLMMathQuestionResponse;
   hint: LLMHintResponse;
   end_story: LLMEndStoryResponse;

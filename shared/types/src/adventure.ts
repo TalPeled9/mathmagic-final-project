@@ -1,6 +1,6 @@
 import type { IBadge } from './children';
 
-export type StoryMode = 'start_adventure' | 'math_question' | 'hint' | 'end_story';
+export type StoryMode = 'story_step' | 'math_question' | 'hint' | 'end_story';
 
 export interface ConversationTurn {
   role: 'wizzy' | 'child' | 'system';

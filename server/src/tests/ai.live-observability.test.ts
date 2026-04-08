@@ -55,7 +55,7 @@ function printCompactSummary(entries: SummaryEntry[]): void {
 
 function inferModeFromSchemaKeys(schemaKeys: string[]): string {
   if (schemaKeys.includes('adventureNarrative') && schemaKeys.includes('storyChoices')) {
-    return 'start_adventure';
+    return 'story_step';
   }
   if (schemaKeys.includes('problemText') && schemaKeys.includes('correctAnswer')) {
     return 'math_question';
@@ -70,7 +70,7 @@ function inferModeFromSchemaKeys(schemaKeys: string[]): string {
 }
 
 function buildMockResponseByMode(mode: string): Record<string, unknown> {
-  if (mode === 'start_adventure') {
+  if (mode === 'story_step') {
     return {
       adventureNarrative: 'Maya and Wizzy arrive at the moon gate where stars sparkle all around.',
       wizzyDialogue: 'Great choice, Maya. Let us explore this path together!',
@@ -418,7 +418,7 @@ liveDescribe('AI live observability (controller full flow)', () => {
         printCompactSummary(summary);
 
         const seenModes = new Set(summary.map((e) => e.mode));
-        expect(seenModes.has('start_adventure')).toBe(true);
+        expect(seenModes.has('story_step')).toBe(true);
         expect(seenModes.has('math_question')).toBe(true);
         expect(seenModes.has('hint')).toBe(true);
         expect(seenModes.has('end_story')).toBe(true);

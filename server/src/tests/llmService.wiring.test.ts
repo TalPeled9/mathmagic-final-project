@@ -8,7 +8,7 @@ const baseState: AdventureState = {
   gradeLevel: 2,
   mathTopic: 'addition',
   storyWorld: 'space',
-  mode: 'start_adventure',
+  mode: 'story_step',
   currentStepIndex: 0,
   totalSteps: 5,
   selectedChoices: [],

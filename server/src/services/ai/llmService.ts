@@ -105,7 +105,7 @@ type ModeDefinitionMap = {
 };
 
 const modeDefinitions: ModeDefinitionMap = {
-  start_adventure: {
+  story_step: {
     schema: startAdventureSchema,
     buildPrompt: buildStartAdventurePrompt,
   },
@@ -132,9 +132,9 @@ function fallbackByMode<K extends StoryMode>(
   ctx: LLMModeContextMap[K]
 ): LLMModeResponseMap[K] {
   switch (mode) {
-    case 'start_adventure': {
+    case 'story_step': {
       const response = {
-        stepType: 'start_adventure',
+        stepType: 'story_step',
         isLastStep: false,
         narrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
         adventureNarrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
@@ -218,7 +218,7 @@ class LLMService {
 
   // Direct context-based methods (legacy/flexible)
   async generateStartAdventure(ctx: LLMStoryPromptContext): Promise<LLMStartAdventureResponse> {
-    return this.requestByMode('start_adventure', ctx);
+    return this.requestByMode('story_step', ctx);
   }
 
   async generateMathQuestion(ctx: LLMMathQuestionContext): Promise<LLMMathQuestionResponse> {

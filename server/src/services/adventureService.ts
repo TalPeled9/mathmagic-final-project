@@ -105,7 +105,7 @@ export function determineNextMode(adventure: IAdventureDocument): StoryMode {
   const { currentStepIndex, totalSteps } = adventure;
   if (currentStepIndex >= totalSteps - 1) return 'end_story';
   if (currentStepIndex % 2 !== 0) return 'math_question';
-  return 'start_adventure';
+  return 'story_step';
 }
 
 // ─── Response Mapping ────────────────────────────────────────────────────────
