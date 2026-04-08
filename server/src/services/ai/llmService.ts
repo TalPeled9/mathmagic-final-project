@@ -19,15 +19,16 @@ import {
   buildMathQuestionContext,
   buildStartAdventureContext,
 } from './storyContextBuilder';
-import { GeminiJsonClient, type GeminiResponseSchema } from './geminiClient';
+import type { GeminiResponseSchema } from './geminiClient';
+import { FallbackLLMClient } from './fallbackLLMClient';
+import { GeminiProvider } from './providers/geminiProvider';
+import { OllamaProvider } from './providers/ollamaProvider';
+import type { LLMProvider } from './providers/LLMProvider';
 import { sanitizeAndValidateAIResponse } from './contentFilter';
 import { buildEndStoryPrompt } from './prompts/endStory';
 import { buildHintPrompt } from './prompts/hint';
 import { buildMathQuestionPrompt } from './prompts/mathQuestion';
 import { buildStartAdventurePrompt } from './prompts/startAdventure';
-import { systemInstructions } from './prompts/systemInstructions';
-
-const DEFAULT_MODEL = config.gemini.model;
 
 const JSON_SCHEMA = {
   OBJECT: 'object',
@@ -205,7 +206,15 @@ function fallbackByMode<K extends StoryMode>(
 }
 
 class LLMService {
-  private readonly client = new GeminiJsonClient(config.gemini.apiKey, systemInstructions);
+  private readonly client: FallbackLLMClient;
+
+  constructor() {
+    const providers: LLMProvider[] = [new GeminiProvider()];
+    if (config.ollama.baseUrl) {
+      providers.push(new OllamaProvider());
+    }
+    this.client = new FallbackLLMClient(providers);
+  }
 
   // Direct context-based methods (legacy/flexible)
   async generateStartAdventure(ctx: LLMStoryPromptContext): Promise<LLMStartAdventureResponse> {
@@ -251,13 +260,18 @@ class LLMService {
   ): Promise<LLMModeResponseMap[K]> {
     const definition = modeDefinitions[mode];
 
-    const response = await this.client.generateJson<LLMModeResponseMap[K]>({
-      model: DEFAULT_MODEL,
-      schema: definition.schema,
-      prompt: definition.buildPrompt(ctx),
-      temperature: mode === 'hint' ? 0.4 : 0.8,
-      maxOutputTokens: 2048,
-    });
+    let response: LLMModeResponseMap[K];
+    try {
+      response = await this.client.generateJson<LLMModeResponseMap[K]>({
+        schema: definition.schema,
+        prompt: definition.buildPrompt(ctx),
+        temperature: mode === 'hint' ? 0.4 : 0.8,
+        maxOutputTokens: 2048,
+      });
+    } catch (err) {
+      console.warn(`[llmService] All providers failed for mode=${mode}; using fallback.`, err);
+      return fallbackByMode(mode, ctx);
+    }
 
     try {
       return sanitizeAndValidateAIResponse(response);

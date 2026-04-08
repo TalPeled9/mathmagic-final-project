@@ -8,7 +8,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:ai:observe": "vitest run src/tests/ai.live-observability.test.ts",
+    "test:ai:observe": "RUN_AI_OBSERVABILITY_MOCK=true vitest run src/tests/ai.live-observability.test.ts",
     "test:auth": "vitest run src/tests/auth.test.ts",
     "test:auth:integration": "vitest run src/tests/auth.integration.test.ts",
     "test:watch": "vitest",
