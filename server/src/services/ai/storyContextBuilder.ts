@@ -58,17 +58,6 @@ export function buildStorySummary(state: AdventureState): string {
       const recentChoices = state.selectedChoices.slice(-2);
       parts.push(`The child chose to ${recentChoices.join(', then ')}.`);
     }
-
-    // Current challenge context (especially important in hint mode)
-    if (state.lastProblemText) {
-      const context = `Challenge: "${state.lastProblemText}"`;
-      if (state.mode === 'hint') {
-        parts.push(
-          `${context} Child answered: "${state.lastChildAnswer}". ` +
-            `Attempt ${state.attemptCount} of 3.`
-        );
-      }
-    }
   }
 
   return parts.join(' ');
