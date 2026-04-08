@@ -25,9 +25,8 @@ ${ctx.conversationTranscript}`
 }`;
 
   const storyReqs = isFirstStep
-    ? `- The opening should be easy to understand for the given grade level.`
-    : `- Continue the existing narrative naturally — do NOT re-introduce the world or start over.
-- Build on the previous events and the child's choices.`;
+    ? null
+    : `- Continue the existing narrative naturally — do NOT re-introduce the world or start over.\n- Build on the previous events and the child's choices.`;
 
   return `${isFirstStep ? "Generate the first step of a children's interactive math story adventure." : 'Generate the next story step, continuing the adventure already in progress.'}
 
@@ -40,8 +39,7 @@ CHILD CONTEXT:
 - Child's name: ${ctx.childName}
 
 STORY REQUIREMENTS:
-${storyReqs}
-- Use the child's name naturally at most once.
+${storyReqs ? `${storyReqs}\n` : ''}- Use the child's name naturally at most once.
 - The scene should fit the given story world.
 - Create curiosity and a sense of adventure.
 - Do not include any math, numbers, or problem-solving in this step.
