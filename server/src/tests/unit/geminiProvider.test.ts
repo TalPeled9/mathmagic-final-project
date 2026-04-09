@@ -6,7 +6,7 @@ import { GeminiJsonClient } from '../../services/ai/geminiClient';
 vi.mock('../../services/ai/geminiClient');
 vi.mock('../../config', () => ({
   config: {
-    gemini: { apiKey: 'test-api-key', model: 'gemini-2.0-flash' },
+    gemini: { apiKey: 'test-api-key', model: 'gemini-3.1-flash-lite-preview' },
   },
 }));
 vi.mock('../../services/ai/prompts/systemInstructions', () => ({
@@ -39,7 +39,7 @@ describe('GeminiProvider', () => {
 
     expect(result).toEqual({ result: 'ok' });
     expect(mockGenerateJson).toHaveBeenCalledWith({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.1-flash-lite-preview',
       prompt: 'hello',
       schema,
       temperature: 0.5,

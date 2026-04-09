@@ -20,7 +20,7 @@ export const config = {
   },
   gemini: {
     apiKey: process.env.GEMINI_API_KEY ?? '',
-    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite-preview',
   },
   ollama: {
     baseUrl: process.env.OLLAMA_BASE_URL ?? '',
