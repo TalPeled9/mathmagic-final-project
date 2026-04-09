@@ -29,6 +29,12 @@ export class GeminiJsonClient {
 
     const ai = await this.getClient();
 
+    if (process.env.DEBUG_AI_LOGS) {
+      console.info('\n─── Gemini prompt ───────────────────────────────────────');
+      console.info(prompt);
+      console.info('─────────────────────────────────────────────────────────\n');
+    }
+
     const response = await ai.models.generateContent({
       model,
       config: {
@@ -44,6 +50,12 @@ export class GeminiJsonClient {
     const rawText = response.text;
     if (!rawText) {
       throw new Error('Gemini returned an empty response body.');
+    }
+
+    if (process.env.DEBUG_AI_LOGS) {
+      console.info('\n─── Gemini response ──────────────────────────────────────');
+      console.info(rawText);
+      console.info('─────────────────────────────────────────────────────────\n');
     }
 
     return parseJsonResponse<T>(rawText);

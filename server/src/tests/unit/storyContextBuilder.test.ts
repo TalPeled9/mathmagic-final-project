@@ -1,9 +1,9 @@
-// server/src/tests/storyContextBuilder.test.ts
+// server/src/tests/unit/storyContextBuilder.test.ts
 import { describe, it, expect } from 'vitest';
 import {
   buildMathQuestionContext,
   buildStorySummary,
-} from '../services/ai/storyContextBuilder';
+} from '../../services/ai/storyContextBuilder';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { OllamaProvider } from '../services/ai/providers/ollamaProvider';
+import { OllamaProvider } from '../../services/ai/providers/ollamaProvider';
 
-vi.mock('../config', () => ({
+vi.mock('../../config', () => ({
   config: {
     ollama: {
       baseUrl: 'http://10.10.248.41',

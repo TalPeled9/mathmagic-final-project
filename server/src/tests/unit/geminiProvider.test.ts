@@ -1,15 +1,15 @@
-// server/src/tests/geminiProvider.test.ts
+// server/src/tests/unit/geminiProvider.test.ts
 import { describe, it, expect, vi } from 'vitest';
-import { GeminiProvider } from '../services/ai/providers/geminiProvider';
-import { GeminiJsonClient } from '../services/ai/geminiClient';
+import { GeminiProvider } from '../../services/ai/providers/geminiProvider';
+import { GeminiJsonClient } from '../../services/ai/geminiClient';
 
-vi.mock('../services/ai/geminiClient');
-vi.mock('../config', () => ({
+vi.mock('../../services/ai/geminiClient');
+vi.mock('../../config', () => ({
   config: {
     gemini: { apiKey: 'test-api-key', model: 'gemini-2.0-flash' },
   },
 }));
-vi.mock('../services/ai/prompts/systemInstructions', () => ({
+vi.mock('../../services/ai/prompts/systemInstructions', () => ({
   systemInstructions: 'test-instructions',
 }));
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { FallbackLLMClient } from '../services/ai/fallbackLLMClient';
-import type { LLMProvider, LLMProviderRequest } from '../services/ai/providers/LLMProvider';
+import { FallbackLLMClient } from '../../services/ai/fallbackLLMClient';
+import type { LLMProvider, LLMProviderRequest } from '../../services/ai/providers/LLMProvider';
 
 const params: LLMProviderRequest = { prompt: 'test', schema: {} };
 

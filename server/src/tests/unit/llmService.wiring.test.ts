@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { GeminiJsonClient } from '../services/ai/geminiClient';
-import { llmService } from '../services/ai/llmService';
+import { GeminiJsonClient } from '../../services/ai/geminiClient';
+import { llmService } from '../../services/ai/llmService';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {

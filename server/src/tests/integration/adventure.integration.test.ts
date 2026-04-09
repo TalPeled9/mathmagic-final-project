@@ -3,19 +3,19 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import app from '../app';
-import { llmService } from '../services/ai/llmService';
-import User from '../model/User';
-import { Child } from '../models/Child';
-import { Adventure } from '../models/Adventure';
-import { LearningSession } from '../models/LearningSession';
-import { TopicProgress } from '../models/TopicProgress';
-import { generateAccessToken } from '../utils/jwt';
-import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE } from '../utils/cookieOptions';
+import app from '../../app';
+import { llmService } from '../../services/ai/llmService';
+import User from '../../model/User';
+import { Child } from '../../models/Child';
+import { Adventure } from '../../models/Adventure';
+import { LearningSession } from '../../models/LearningSession';
+import { TopicProgress } from '../../models/TopicProgress';
+import { generateAccessToken } from '../../utils/jwt';
+import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE } from '../../utils/cookieOptions';
 
 // ─── LLM + image mocks (hoisted) ─────────────────────────────────────────────
 
-vi.mock('../services/ai/llmService', () => ({
+vi.mock('../../services/ai/llmService', () => ({
   llmService: {
     generateStoryStepFromState: vi.fn(),
     generateMathQuestionFromState: vi.fn(),
@@ -24,12 +24,12 @@ vi.mock('../services/ai/llmService', () => ({
   },
 }));
 
-vi.mock('../services/ai/imageGenerationService', () => ({
+vi.mock('../../services/ai/imageGenerationService', () => ({
   generateStoryImage: vi.fn().mockResolvedValue(null),
 }));
 
 // Bypass AI rate limit for tests so requests don't get throttled
-vi.mock('../middleware/rateLimit', () => ({
+vi.mock('../../middleware/rateLimit', () => ({
   aiRateLimit: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 
