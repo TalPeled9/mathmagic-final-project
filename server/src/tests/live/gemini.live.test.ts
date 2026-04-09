@@ -108,8 +108,8 @@ describe('Gemini live E2E — full adventure flow', () => {
   });
 
   it(
-    'runs full adventure: start → story → math(correct) → story → math(wrong) → hint → end → complete',
-    { timeout: 120_000 },
+    'runs full adventure: start → math(correct) → story → math(wrong) → hint → story → end → complete',
+    { timeout: 300_000 },
     async () => {
       const child = await Child.create({
         parentId: (await User.findOne({ email: 'live-parent@example.com' }))!._id,
@@ -119,7 +119,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       const childId = String(child._id);
 
-      // 1) Start adventure
+      // 1) Start adventure → intro story step (step 0)
       const startRes = await timedPost({
         label: 'start adventure',
         path: `/api/adventures/children/${childId}`,
@@ -136,7 +136,34 @@ describe('Gemini live E2E — full adventure flow', () => {
       expect(afterStart?.status).toBe('in-progress');
       expect(afterStart?.lastChoices).toHaveLength(3);
 
-      // 2) Continue → story step
+      // 2) Continue → math question (step 1 — odd steps are math)
+      await sleep(SLEEP_MS);
+      const mathRes = await timedPost({
+        label: 'continue → math question',
+        path: `/api/adventures/${adventureId}/continue`,
+        cookies,
+        body: { choiceIndex: 0 },
+        expectedStatus: 200,
+        timings,
+      });
+      expect(mathRes.body.segment.challenge).not.toBeNull();
+
+      // 3) Answer math correctly (no LLM call — no sleep needed)
+      const challenge = await Adventure.findById(adventureId);
+      const correctAnswer = challenge?.currentChallenge?.correctAnswer;
+      expect(correctAnswer).toBeTypeOf('string');
+
+      const correctRes = await timedPost({
+        label: 'answer math (correct)',
+        path: `/api/adventures/${adventureId}/answer`,
+        cookies,
+        body: { answer: correctAnswer },
+        expectedStatus: 200,
+        timings,
+      });
+      expect(correctRes.body.correct).toBe(true);
+
+      // 4) Continue → story step (step 2 — even steps are story)
       await sleep(SLEEP_MS);
       const storyRes = await timedPost({
         label: 'continue → story step',
@@ -149,47 +176,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       expect(Array.isArray(storyRes.body.segment.choices)).toBe(true);
       expect(storyRes.body.segment.choices).toHaveLength(3);
 
-      // 3) Continue → math question
-      await sleep(SLEEP_MS);
-      const mathRes = await timedPost({
-        label: 'continue → math question',
-        path: `/api/adventures/${adventureId}/continue`,
-        cookies,
-        body: { choiceIndex: 0 },
-        expectedStatus: 200,
-        timings,
-      });
-      expect(mathRes.body.segment.challenge).not.toBeNull();
-
-      // 4) Answer math correctly
-      const challenge = await Adventure.findById(adventureId);
-      const correctAnswer = challenge?.currentChallenge?.correctAnswer;
-      expect(correctAnswer).toBeTypeOf('string');
-
-      await sleep(SLEEP_MS);
-      const correctRes = await timedPost({
-        label: 'answer math (correct)',
-        path: `/api/adventures/${adventureId}/answer`,
-        cookies,
-        body: { answer: correctAnswer },
-        expectedStatus: 200,
-        timings,
-      });
-      expect(correctRes.body.correct).toBe(true);
-
-      // 5) Continue → next story step
-      await sleep(SLEEP_MS);
-      const story2Res = await timedPost({
-        label: 'continue → story step 2',
-        path: `/api/adventures/${adventureId}/continue`,
-        cookies,
-        body: { choiceIndex: 0 },
-        expectedStatus: 200,
-        timings,
-      });
-      expect(Array.isArray(story2Res.body.segment.choices)).toBe(true);
-
-      // 6) Continue → second math question
+      // 5) Continue → second math question (step 3 — odd)
       await sleep(SLEEP_MS);
       const math2Res = await timedPost({
         label: 'continue → math question 2',
@@ -201,8 +188,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(math2Res.body.segment.challenge).not.toBeNull();
 
-      // 7) Answer math incorrectly
-      await sleep(SLEEP_MS);
+      // 6) Answer math incorrectly (no LLM call)
       const wrongRes = await timedPost({
         label: 'answer math (wrong)',
         path: `/api/adventures/${adventureId}/answer`,
@@ -213,7 +199,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(wrongRes.body.correct).toBe(false);
 
-      // 8) Request a hint
+      // 7) Request a hint (LLM call)
       await sleep(SLEEP_MS);
       const hintRes = await timedPost({
         label: 'request hint',
@@ -226,8 +212,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       expect(typeof hintRes.body.hintText).toBe('string');
       expect(hintRes.body.hintText.length).toBeGreaterThan(0);
 
-      // 9) Exhaust attempts to clear challenge (2 more wrong answers)
-      await sleep(SLEEP_MS);
+      // 8–9) Exhaust remaining attempts to clear the challenge (no LLM calls)
       await timedPost({
         label: 'wrong attempt 2',
         path: `/api/adventures/${adventureId}/answer`,
@@ -237,7 +222,6 @@ describe('Gemini live E2E — full adventure flow', () => {
         timings,
       });
 
-      await sleep(SLEEP_MS);
       const revealRes = await timedPost({
         label: 'wrong attempt 3 (reveal)',
         path: `/api/adventures/${adventureId}/answer`,
@@ -248,19 +232,19 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(typeof revealRes.body.correctAnswer).toBe('string');
 
-      // 10) Continue → story step 3
+      // 10) Continue → story step (step 4 — even)
       await sleep(SLEEP_MS);
-      const story3Res = await timedPost({
-        label: 'continue → story step 3',
+      const story2Res = await timedPost({
+        label: 'continue → story step 2',
         path: `/api/adventures/${adventureId}/continue`,
         cookies,
         body: { choiceIndex: 0 },
         expectedStatus: 200,
         timings,
       });
-      expect(Array.isArray(story3Res.body.segment.choices)).toBe(true);
+      expect(Array.isArray(story2Res.body.segment.choices)).toBe(true);
 
-      // 11) Continue → end story
+      // 11) Continue → end story (step 5 — last step)
       await sleep(SLEEP_MS);
       const endRes = await timedPost({
         label: 'continue → end story',
@@ -272,7 +256,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(endRes.body.segment.isLastStep).toBe(true);
 
-      // 12) Complete
+      // 12) Complete (no LLM call)
       const completeRes = await timedPost({
         label: 'complete adventure',
         path: `/api/adventures/${adventureId}/complete`,
