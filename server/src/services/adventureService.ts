@@ -50,29 +50,29 @@ export function buildAdventureState(
 ): AdventureState {
   // Cap to last 4 story choices — earlier ones are low-signal noise
   const selectedChoices = adventure.conversationHistory
-    .filter((e) => e.role === 'child')
+    .filter((turn) => turn.role === 'child')
     .slice(-4)
-    .map((e) => e.content);
+    .map((turn) => turn.content);
 
   const recentEvents = adventure.conversationHistory
-    .filter((e) => e.role === 'wizzy')
+    .filter((turn) => turn.role === 'wizzy')
     .slice(-3)
-    .map((e) => e.content);
+    .map((turn) => turn.content);
 
   // Rolling window of last 10 turns (no image entries) for full transcript
   const conversationTurns = adventure.conversationHistory
-    .filter((e) => e.role !== 'image')
+    .filter((turn) => turn.role !== 'image')
     .slice(-10)
-    .map((e) => ({
-      role: e.role as 'wizzy' | 'child' | 'system',
-      content: e.content,
-      dialogue: e.dialogue,
+    .map((turn) => ({
+      role: turn.role as 'wizzy' | 'child' | 'system',
+      content: turn.content,
+      dialogue: turn.dialogue,
     }));
 
   // Most recent child answer — fixes hint context bug where childAnswer was always ''
   const lastChildAnswer = [...adventure.conversationHistory]
     .reverse()
-    .find((e) => e.role === 'child')?.content;
+    .find((turn) => turn.role === 'child')?.content;
 
   const state: AdventureState = {
     childName: child.name,
