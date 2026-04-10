@@ -21,7 +21,7 @@ build/
 
 # Local tooling folders
 .claude/
-superpowers/
+**/superpowers/
 
 # Local instruction docs
 CLAUDE.md
