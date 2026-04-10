@@ -13,6 +13,7 @@ import type {
   StoryMode,
 } from '@mathmagic/types';
 import { config } from '../../config';
+import { logger } from '../../lib/logger';
 import {
   buildEndStoryContext,
   buildHintContext,
@@ -269,7 +270,7 @@ class LLMService {
         maxOutputTokens: 2048,
       });
     } catch (err) {
-      console.warn(`[llmService] All providers failed for mode=${mode}; using fallback.`, err);
+      logger.warn({ err }, `All providers failed for mode=${mode}; using fallback.`);
       return fallbackByMode(mode, ctx);
     }
 
@@ -277,10 +278,7 @@ class LLMService {
       return sanitizeAndValidateAIResponse(response);
     } catch (err) {
       if (isUnsafeContentError(err)) {
-        console.warn(
-          `[llmService] Unsafe AI response blocked for mode=${mode}; using fallback.`,
-          err
-        );
+        logger.warn({ err }, `Unsafe AI response blocked for mode=${mode}; using fallback.`);
         return fallbackByMode(mode, ctx);
       }
 

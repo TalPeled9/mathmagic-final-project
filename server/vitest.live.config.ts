@@ -6,7 +6,8 @@ export default defineConfig({
     setupFiles: ['./src/tests/setup.ts'],
     include: ['src/tests/live/**/*.live.test.ts'],
     env: {
-      DEBUG_AI_LOGS: 'true',
+      LOG_LEVEL: 'debug',
+      PINO_PRETTY: 'true',
     },
     clearMocks: true,
     restoreMocks: true,

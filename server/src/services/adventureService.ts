@@ -18,6 +18,7 @@ import { buildStorySummary } from './ai/storyContextBuilder';
 import { getLevelForXP } from '../config/levelThresholds';
 import { BADGE_DEFINITIONS } from '../config/badges';
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../lib/logger';
 
 // ─── Ownership & Access Verification ────────────────────────────────────────
 
@@ -183,7 +184,7 @@ export async function generateSegmentImage(
   try {
     return await generateStoryImage(imageDescription, avatarUrl);
   } catch (err) {
-    console.warn('[Adventure] Image generation failed, continuing without image:', err);
+    logger.warn({ err }, 'Image generation failed, continuing without image');
     return null;
   }
 }

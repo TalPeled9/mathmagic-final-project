@@ -1,4 +1,5 @@
 import type { LLMProvider, LLMProviderRequest } from './providers/LLMProvider';
+import { logger } from '../../lib/logger';
 
 export class FallbackLLMClient {
   constructor(private readonly providers: LLMProvider[]) {}
@@ -8,10 +9,7 @@ export class FallbackLLMClient {
       try {
         return await provider.generateJson<T>(params);
       } catch (err) {
-        console.warn(
-          `[FallbackLLMClient] Provider "${provider.name}" failed, trying next.`,
-          err
-        );
+        logger.warn({ err }, `Provider "${provider.name}" failed, trying next.`);
       }
     }
     throw new Error('All LLM providers failed.');
