@@ -35,6 +35,7 @@ export class GeminiJsonClient {
       console.info('─────────────────────────────────────────────────────────\n');
     }
 
+    const llmStart = Date.now();
     const response = await ai.models.generateContent({
       model,
       config: {
@@ -46,6 +47,7 @@ export class GeminiJsonClient {
       },
       contents: prompt,
     });
+    const llmDurationMs = Date.now() - llmStart;
 
     const rawText = response.text;
     if (!rawText) {
@@ -53,6 +55,7 @@ export class GeminiJsonClient {
     }
 
     if (process.env.DEBUG_AI_LOGS) {
+      console.info(`⏱  LLM: ${(llmDurationMs / 1000).toFixed(1)}s`);
       console.info('\n─── Gemini response ──────────────────────────────────────');
       console.info(rawText);
       console.info('─────────────────────────────────────────────────────────\n');

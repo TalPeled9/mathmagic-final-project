@@ -188,9 +188,9 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(math2Res.body.segment.challenge).not.toBeNull();
 
-      // 6) Answer math incorrectly (no LLM call)
+      // 6) Answer math incorrectly — attempt 1 (no LLM call)
       const wrongRes = await timedPost({
-        label: 'answer math (wrong)',
+        label: 'answer math (wrong attempt 1)',
         path: `/api/adventures/${adventureId}/answer`,
         cookies,
         body: { answer: '__definitely_wrong__' },
@@ -199,20 +199,46 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(wrongRes.body.correct).toBe(false);
 
-      // 7) Request a hint (LLM call)
+      // 7) Hint level 1
       await sleep(SLEEP_MS);
-      const hintRes = await timedPost({
-        label: 'request hint',
+      const hint1Res = await timedPost({
+        label: 'hint level 1',
         path: `/api/adventures/${adventureId}/hint`,
         cookies,
         expectedStatus: 200,
         timings,
       });
-      expect(hintRes.body.hintLevel).toBe(1);
-      expect(typeof hintRes.body.hintText).toBe('string');
-      expect(hintRes.body.hintText.length).toBeGreaterThan(0);
+      expect(hint1Res.body.hintLevel).toBe(1);
+      expect(typeof hint1Res.body.hintText).toBe('string');
+      expect(hint1Res.body.hintText.length).toBeGreaterThan(0);
 
-      // 8–9) Exhaust remaining attempts to clear the challenge (no LLM calls)
+      // 8) Hint level 2
+      await sleep(SLEEP_MS);
+      const hint2Res = await timedPost({
+        label: 'hint level 2',
+        path: `/api/adventures/${adventureId}/hint`,
+        cookies,
+        expectedStatus: 200,
+        timings,
+      });
+      expect(hint2Res.body.hintLevel).toBe(2);
+      expect(typeof hint2Res.body.hintText).toBe('string');
+      expect(hint2Res.body.hintText.length).toBeGreaterThan(0);
+
+      // 9) Hint level 3
+      await sleep(SLEEP_MS);
+      const hint3Res = await timedPost({
+        label: 'hint level 3',
+        path: `/api/adventures/${adventureId}/hint`,
+        cookies,
+        expectedStatus: 200,
+        timings,
+      });
+      expect(hint3Res.body.hintLevel).toBe(3);
+      expect(typeof hint3Res.body.hintText).toBe('string');
+      expect(hint3Res.body.hintText.length).toBeGreaterThan(0);
+
+      // 10–11) Exhaust remaining attempts to clear the challenge (no LLM calls)
       await timedPost({
         label: 'wrong attempt 2',
         path: `/api/adventures/${adventureId}/answer`,
@@ -232,7 +258,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(typeof revealRes.body.correctAnswer).toBe('string');
 
-      // 10) Continue → story step (step 4 — even)
+      // 12) Continue → story step (step 4 — even)
       await sleep(SLEEP_MS);
       const story2Res = await timedPost({
         label: 'continue → story step 2',
@@ -244,7 +270,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(Array.isArray(story2Res.body.segment.choices)).toBe(true);
 
-      // 11) Continue → end story (step 5 — last step)
+      // 13) Continue → end story (step 5 — last step)
       await sleep(SLEEP_MS);
       const endRes = await timedPost({
         label: 'continue → end story',
@@ -256,7 +282,7 @@ describe('Gemini live E2E — full adventure flow', () => {
       });
       expect(endRes.body.segment.isLastStep).toBe(true);
 
-      // 12) Complete (no LLM call)
+      // 14) Complete (no LLM call)
       const completeRes = await timedPost({
         label: 'complete adventure',
         path: `/api/adventures/${adventureId}/complete`,
