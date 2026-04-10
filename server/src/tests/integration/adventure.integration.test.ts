@@ -3,33 +3,33 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import app from '../app';
-import { llmService } from '../services/ai/llmService';
-import User from '../model/User';
-import { Child } from '../models/Child';
-import { Adventure } from '../models/Adventure';
-import { LearningSession } from '../models/LearningSession';
-import { TopicProgress } from '../models/TopicProgress';
-import { generateAccessToken } from '../utils/jwt';
-import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE } from '../utils/cookieOptions';
+import app from '../../app';
+import { llmService } from '../../services/ai/llmService';
+import User from '../../model/User';
+import { Child } from '../../models/Child';
+import { Adventure } from '../../models/Adventure';
+import { LearningSession } from '../../models/LearningSession';
+import { TopicProgress } from '../../models/TopicProgress';
+import { generateAccessToken } from '../../utils/jwt';
+import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE } from '../../utils/cookieOptions';
 
 // ─── LLM + image mocks (hoisted) ─────────────────────────────────────────────
 
-vi.mock('../services/ai/llmService', () => ({
+vi.mock('../../services/ai/llmService', () => ({
   llmService: {
-    generateStartAdventureFromState: vi.fn(),
+    generateStoryStepFromState: vi.fn(),
     generateMathQuestionFromState: vi.fn(),
     generateHintFromState: vi.fn(),
     generateEndStoryFromState: vi.fn(),
   },
 }));
 
-vi.mock('../services/ai/imageGenerationService', () => ({
+vi.mock('../../services/ai/imageGenerationService', () => ({
   generateStoryImage: vi.fn().mockResolvedValue(null),
 }));
 
 // Bypass AI rate limit for tests so requests don't get throttled
-vi.mock('../middleware/rateLimit', () => ({
+vi.mock('../../middleware/rateLimit', () => ({
   aiRateLimit: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 
@@ -135,7 +135,7 @@ describe('adventure routes integration', () => {
     otherParentId = String(other._id);
 
     // Default LLM mock return values
-    mockedLlm.generateStartAdventureFromState.mockResolvedValue(MOCK_START_RESPONSE);
+    mockedLlm.generateStoryStepFromState.mockResolvedValue(MOCK_START_RESPONSE);
     mockedLlm.generateMathQuestionFromState.mockResolvedValue(MOCK_MATH_RESPONSE);
     mockedLlm.generateHintFromState.mockResolvedValue(MOCK_HINT_RESPONSE);
     mockedLlm.generateEndStoryFromState.mockResolvedValue(MOCK_END_RESPONSE);

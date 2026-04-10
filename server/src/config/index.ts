@@ -18,6 +18,15 @@ export const config = {
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
   },
-  gemini: { apiKey: process.env.GEMINI_API_KEY ?? '' },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY ?? '',
+    model: process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite-preview',
+  },
+  ollama: {
+    baseUrl: process.env.OLLAMA_BASE_URL ?? '',
+    username: process.env.OLLAMA_USERNAME ?? '',
+    password: process.env.OLLAMA_PASSWORD ?? '',
+    model: process.env.OLLAMA_MODEL || 'llama3.1:8b',
+  },
   isProduction: process.env.NODE_ENV === 'production',
 } as const;

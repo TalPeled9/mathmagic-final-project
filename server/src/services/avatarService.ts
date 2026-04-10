@@ -1,4 +1,5 @@
 import { config } from '../config/index';
+import { logger } from '../lib/logger';
 
 function buildPrompt(name: string, gradeLevel: number, description?: string): string {
   if (description) {
@@ -42,7 +43,7 @@ export async function generateAvatar(
       return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
     }
   } catch (err) {
-    console.error('[avatarService] Gemini image generation failed, using fallback:', err);
+    logger.error({ err }, 'Gemini image generation failed, using fallback');
   }
 
   return generateFallbackAvatar(name);

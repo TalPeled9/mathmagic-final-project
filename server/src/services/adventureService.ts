@@ -4,7 +4,7 @@ import type {
   StorySegment,
   HintResponse,
   ICurrentChallenge,
-  LLMStartAdventureResponse,
+  LLMStoryStepResponse,
   LLMMathQuestionResponse,
   LLMHintResponse,
   LLMEndStoryResponse,
@@ -18,6 +18,7 @@ import { buildStorySummary } from './ai/storyContextBuilder';
 import { getLevelForXP } from '../config/levelThresholds';
 import { BADGE_DEFINITIONS } from '../config/badges';
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../lib/logger';
 
 // ─── Ownership & Access Verification ────────────────────────────────────────
 
@@ -50,25 +51,29 @@ export function buildAdventureState(
 ): AdventureState {
   // Cap to last 4 story choices — earlier ones are low-signal noise
   const selectedChoices = adventure.conversationHistory
-    .filter((e) => e.role === 'child')
+    .filter((turn) => turn.role === 'child')
     .slice(-4)
-    .map((e) => e.content);
+    .map((turn) => turn.content);
 
   const recentEvents = adventure.conversationHistory
-    .filter((e) => e.role === 'wizzy')
+    .filter((turn) => turn.role === 'wizzy')
     .slice(-3)
-    .map((e) => e.content);
+    .map((turn) => turn.content);
 
   // Rolling window of last 10 turns (no image entries) for full transcript
   const conversationTurns = adventure.conversationHistory
-    .filter((e) => e.role !== 'image')
+    .filter((turn) => turn.role !== 'image')
     .slice(-10)
-    .map((e) => ({ role: e.role as 'wizzy' | 'child' | 'system', content: e.content }));
+    .map((turn) => ({
+      role: turn.role as 'wizzy' | 'child' | 'system',
+      content: turn.content,
+      dialogue: turn.dialogue,
+    }));
 
   // Most recent child answer — fixes hint context bug where childAnswer was always ''
   const lastChildAnswer = [...adventure.conversationHistory]
     .reverse()
-    .find((e) => e.role === 'child')?.content;
+    .find((turn) => turn.role === 'child')?.content;
 
   const state: AdventureState = {
     childName: child.name,
@@ -101,13 +106,13 @@ export function determineNextMode(adventure: IAdventureDocument): StoryMode {
   const { currentStepIndex, totalSteps } = adventure;
   if (currentStepIndex >= totalSteps - 1) return 'end_story';
   if (currentStepIndex % 2 !== 0) return 'math_question';
-  return 'start_adventure';
+  return 'story_step';
 }
 
 // ─── Response Mapping ────────────────────────────────────────────────────────
 
 export function mapStartAdventureResponse(
-  llmResponse: LLMStartAdventureResponse,
+  llmResponse: LLMStoryStepResponse,
   imageUrl?: string
 ): StorySegment {
   return {
@@ -179,7 +184,7 @@ export async function generateSegmentImage(
   try {
     return await generateStoryImage(imageDescription, avatarUrl);
   } catch (err) {
-    console.warn('[Adventure] Image generation failed, continuing without image:', err);
+    logger.warn({ err }, 'Image generation failed, continuing without image');
     return null;
   }
 }
@@ -356,9 +361,10 @@ export function appendToHistory(
   adventure: IAdventureDocument,
   role: 'wizzy' | 'child' | 'system' | 'image',
   content: string,
-  imageUrl?: string
+  imageUrl?: string,
+  dialogue?: string
 ): void {
-  adventure.conversationHistory.push({ role, content, imageUrl, timestamp: new Date() });
+  adventure.conversationHistory.push({ role, content, dialogue, imageUrl, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
     adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
   }
