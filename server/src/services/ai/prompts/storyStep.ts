@@ -46,14 +46,14 @@ ${storyReqs ? `${storyReqs}\n` : ''}- Use the child's name naturally at most onc
 - Do not reveal future events beyond the current step.
 
 CHOICES REQUIREMENTS:
-- Provide exactly 3 story choices.
+- Provide exactly 2 story choices.
 - Each choice must be short (max 1 sentence).
 - Each choice must lead to a clearly different story direction.
 - Choices must not include math or answers.
 - Choices must be simple and easy for a child to understand.
 
 OUTPUT REQUIREMENTS:
-- storyChoices must contain exactly 3 items
+- storyChoices must contain exactly 2 items
 
 FIELD GUIDELINES:
 - adventureNarrative: describe the current scene clearly

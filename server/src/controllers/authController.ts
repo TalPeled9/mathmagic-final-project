@@ -68,7 +68,12 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
   if (!token) throw ApiError.unauthorized('No refresh token provided');
   if (isTokenRevoked(token)) throw ApiError.unauthorized('Session revoked');
 
-  const payload = verifyRefreshToken(token);
+  let payload: { userId: string };
+  try {
+    payload = verifyRefreshToken(token);
+  } catch {
+    throw ApiError.unauthorized('Session expired');
+  }
   const newAccessToken = generateAccessToken(payload.userId);
 
   res.cookie(ACCESS_TOKEN_COOKIE, newAccessToken, accessCookieOptions);

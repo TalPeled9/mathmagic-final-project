@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { toast } from 'sonner';
 import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
-import { WORLD_EMOJIS, type AdventureSummary } from '@mathmagic/types';
+import { WORLD_EMOJIS, type AdventureSummary, type CompleteAdventureResponse } from '@mathmagic/types';
 
 // ── Static config (mirrors server/src/config/levelThresholds.ts) ─────────────
 
@@ -97,9 +97,21 @@ function getXPProgress(totalXP: number, currentLevel: number): { xpInLevel: numb
 export default function ChildDashboard() {
   const { activeChild, setActiveChild } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const recentCompletion = (location.state as { completionData?: CompleteAdventureResponse } | null)
+    ?.completionData ?? null;
 
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [isLoadingAdventures, setIsLoadingAdventures] = useState(true);
+  const [barPercent, setBarPercent] = useState(0);
+  const [showReward, setShowReward] = useState(!!recentCompletion);
+
+  // Compute progress before hooks so effects can reference it (null-safe for early render)
+  const totalXP = activeChild?.totalXP ?? 0;
+  const currentLevel = activeChild?.currentLevel ?? 1;
+  const isMaxLevel = currentLevel >= LEVEL_THRESHOLDS.length;
+  const { xpInLevel, xpNeeded } = getXPProgress(totalXP, currentLevel);
+  const progressPercent = isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
 
   useEffect(() => {
     if (!activeChild) return;
@@ -110,13 +122,23 @@ export default function ChildDashboard() {
       .finally(() => setIsLoadingAdventures(false));
   }, [activeChild]);
 
+  // Animate the XP bar on every mount and whenever the value changes
+  useEffect(() => {
+    const t = setTimeout(() => setBarPercent(progressPercent), 150);
+    return () => clearTimeout(t);
+  }, [progressPercent]);
+
+  // Auto-hide the reward banner after 5 s
+  useEffect(() => {
+    if (!showReward) return;
+    const t = setTimeout(() => setShowReward(false), 5000);
+    return () => clearTimeout(t);
+  }, [showReward]);
+
   if (!activeChild) return null;
 
   const inProgressAdventure = adventures.find((a) => a.status === 'in-progress') ?? null;
   const hasInProgress = inProgressAdventure !== null;
-  const { xpInLevel, xpNeeded } = getXPProgress(activeChild.totalXP, activeChild.currentLevel);
-  const isMaxLevel = activeChild.currentLevel >= LEVEL_THRESHOLDS.length;
-  const progressPercent = isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
 
   const handleSwitchProfile = () => {
     setActiveChild(null);
@@ -141,6 +163,48 @@ export default function ChildDashboard() {
       </div>
 
       <div className="w-full max-w-2xl flex flex-col gap-6">
+        {/* Adventure completion reward banner */}
+        {showReward && recentCompletion && (
+          <div
+            className="bg-white rounded-2xl shadow-sm px-5 py-4 flex flex-col gap-2"
+            style={{ animation: 'slide-up-fade 0.4s ease-out forwards' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                Adventure Reward
+              </span>
+              <button
+                onClick={() => setShowReward(false)}
+                className="text-gray-300 hover:text-gray-400 text-lg leading-none"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-1.5 bg-purple-wizzy/10 rounded-xl px-4 py-2">
+                <Zap size={16} className="text-gold-magic fill-gold-magic" />
+                <span className="font-bold text-purple-wizzy">+{recentCompletion.xpEarned} XP</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-yellow-50 rounded-xl px-4 py-2">
+                <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                <span className="font-bold text-yellow-600">
+                  {recentCompletion.starsEarned} {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}
+                </span>
+              </div>
+              {recentCompletion.newLevel && (
+                <div
+                  className="flex items-center gap-1.5 bg-gold-magic/10 border border-gold-magic/30 rounded-xl px-4 py-2"
+                  style={{ animation: 'glow-pulse 2s ease-in-out infinite' }}
+                >
+                  <Trophy size={16} className="text-gold-magic" />
+                  <span className="font-bold text-amber-700">Level {recentCompletion.newLevel}!</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Child Identity Card */}
         <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
           {/* Avatar */}
@@ -185,8 +249,8 @@ export default function ChildDashboard() {
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-purple-wizzy rounded-full transition-all"
-                  style={{ width: `${progressPercent}%` }}
+                  className="h-full bg-purple-wizzy rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${barPercent}%` }}
                 />
               </div>
             </div>
@@ -266,22 +330,15 @@ export default function ChildDashboard() {
         {/* Actions */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            {hasInProgress ? 'Adventures' : 'Ready to Play?'}
+            Ready to Play?
           </h2>
           <button
             onClick={() => navigate('/child/adventure')}
-            disabled={hasInProgress}
-            className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl px-6 py-3 font-bold hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            title={hasInProgress ? 'Finish your current adventure first' : undefined}
+            className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl px-6 py-3 font-bold hover:bg-purple-700 transition-all"
           >
             <BookOpen size={18} />
-            {hasInProgress ? 'Finish Current Adventure First' : 'Start New Adventure'}
+            Start New Adventure
           </button>
-          {hasInProgress && (
-            <p className="text-xs text-center text-gray-400 mt-2">
-              Complete your current adventure to unlock a new one.
-            </p>
-          )}
         </div>
       </div>
     </div>

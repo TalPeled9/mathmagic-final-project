@@ -11,14 +11,38 @@ import type {
   IBadge,
 } from '@mathmagic/types';
 import { Adventure, type IAdventureDocument } from '../models/Adventure';
+import { AdventureImage } from '../models/AdventureImage';
 import { Child, type IChildDocument } from '../models/Child';
 import { TopicProgress } from '../models/TopicProgress';
 import { generateStoryImage } from './ai/imageGenerationService';
 import { buildStorySummary } from './ai/storyContextBuilder';
+import { llmService } from './ai/llmService';
 import { getLevelForXP } from '../config/levelThresholds';
 import { BADGE_DEFINITIONS } from '../config/badges';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../lib/logger';
+
+// ─── In-process pre-generated image cache ────────────────────────────────────
+// Images generated during prefetch are held here keyed by
+// `${adventureId}:${stepIndex}:${choiceIndex}` (choice images) or
+// `${adventureId}:${stepIndex}:step` (deterministic next-step images).
+// Each entry is consumed exactly once and then deleted, so memory stays bounded.
+const pregeneratedImageCache = new Map<string, string>();
+
+function imageCacheKey(adventureId: string, stepIndex: number, choiceIndex?: number): string {
+  return `${adventureId}:${stepIndex}:${choiceIndex ?? 'step'}`;
+}
+
+export function consumePregeneratedImage(
+  adventureId: string,
+  stepIndex: number,
+  choiceIndex?: number,
+): string | null {
+  const key = imageCacheKey(adventureId, stepIndex, choiceIndex);
+  const image = pregeneratedImageCache.get(key) ?? null;
+  if (image) pregeneratedImageCache.delete(key);
+  return image;
+}
 
 // ─── Ownership & Access Verification ────────────────────────────────────────
 
@@ -360,9 +384,8 @@ export function appendToHistory(
   adventure: IAdventureDocument,
   role: 'wizzy' | 'child' | 'system',
   content: string,
-  dialogue?: string,
 ): void {
-  adventure.conversationHistory.push({ role, content, dialogue, timestamp: new Date() });
+  adventure.conversationHistory.push({ role, content, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
     adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
   }
@@ -391,5 +414,142 @@ export async function updateTopicProgress(
   if (doc && doc.totalChallenges > 0) {
     const masteryLevel = Math.round((doc.correctAnswers / doc.totalChallenges) * 100);
     await TopicProgress.updateOne({ _id: doc._id }, { $set: { masteryLevel } });
+  }
+}
+
+// ─── Pre-generation ──────────────────────────────────────────────────────────
+
+/**
+ * Fire-and-forget: pre-generates a math question for EACH story choice in parallel.
+ * Called after serving a story_step so both possible next steps are cached.
+ * When the user later picks choice 0 or 1, the matching math question is served instantly.
+ * Never throws — errors are logged and the adventure continues normally.
+ */
+export async function prefetchForChoices(
+  adventure: IAdventureDocument,
+  child: IChildDocument,
+): Promise<void> {
+  const nextIndex = adventure.currentStepIndex + 1;
+  // Next step after a story_step must be math_question; guard against end_story
+  if (nextIndex >= adventure.totalSteps - 1) {
+    console.log(`[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} >= totalSteps-1=${adventure.totalSteps - 1}`);
+    return;
+  }
+  if (nextIndex % 2 === 0) {
+    console.log(`[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} is even (expected math step)`);
+    return;
+  }
+
+  const choices = adventure.lastChoices;
+  if (choices.length === 0) {
+    console.log(`[prefetch] SKIP prefetchForChoices: no lastChoices on adventure=${adventure._id.toString()}`);
+    return;
+  }
+
+  console.log(`[prefetch] START prefetchForChoices adventure=${adventure._id.toString()} nextIndex=${nextIndex} choices=${choices.length}`);
+
+  const pregeneratedChoiceSteps: (Record<string, unknown> | null)[] = Array(choices.length).fill(null);
+
+  await Promise.all(
+    choices.map(async (choiceText, choiceIndex) => {
+      try {
+        const state = buildAdventureState(adventure, child, 'math_question');
+        state.currentStepIndex = nextIndex;
+        // Add the hypothetical choice so the LLM sees the story direction
+        state.selectedChoices = [...state.selectedChoices, choiceText];
+
+        // strict=true: if Gemini fails, throw — don't cache a fallback response
+        const llmResponse = await llmService.generateMathQuestionFromState(state, true);
+        // Generate image now (while user is on the previous step) and hold in
+        // the in-process cache so cache-hit serves are instant.
+        const imageUrl = await generateSegmentImage(llmResponse.imageDescription, child.avatarUrl ?? '');
+        if (imageUrl) {
+          pregeneratedImageCache.set(
+            imageCacheKey(adventure._id.toString(), nextIndex, choiceIndex),
+            imageUrl,
+          );
+        }
+        pregeneratedChoiceSteps[choiceIndex] = {
+          mode: 'math_question',
+          llmResponse: llmResponse as unknown as Record<string, unknown>,
+          imageUrl: null,
+          imageDescription: llmResponse.imageDescription,
+        };
+
+        console.log(`[prefetch] OK choice[${choiceIndex}]="${choiceText.slice(0, 30)}" adventure=${adventure._id.toString()}`);
+      } catch (err) {
+        console.warn(`[prefetch] FAIL choice[${choiceIndex}] adventure=${adventure._id.toString()}`, err);
+      }
+    }),
+  );
+
+  try {
+    await Adventure.updateOne(
+      { _id: adventure._id },
+      { $set: { pregeneratedChoiceSteps } },
+    );
+    const cached = pregeneratedChoiceSteps.filter(Boolean).length;
+    console.log(`[prefetch] SAVED prefetchForChoices adventure=${adventure._id.toString()} cached=${cached}/${choices.length}`);
+  } catch (err) {
+    console.warn(`[prefetch] DB WRITE FAILED prefetchForChoices adventure=${adventure._id.toString()}`, err);
+  }
+}
+
+/**
+ * Fire-and-forget: pre-generates the next story_step after a math challenge resolves.
+ * The next step (auto-continue) is always a story_step — pre-generate it now.
+ * Never throws — errors are logged and the adventure continues normally.
+ */
+export async function prefetchNextStep(
+  adventure: IAdventureDocument,
+  child: IChildDocument,
+): Promise<void> {
+  const nextIndex = adventure.currentStepIndex + 1;
+  // Skip pre-generation for end_story — its recap depends on final stats
+  if (nextIndex >= adventure.totalSteps - 1) {
+    console.log(`[prefetch] SKIP prefetchNextStep: nextIndex=${nextIndex} >= totalSteps-1=${adventure.totalSteps - 1}`);
+    return;
+  }
+
+  const nextMode: StoryMode = nextIndex % 2 !== 0 ? 'math_question' : 'story_step';
+  console.log(`[prefetch] START prefetchNextStep adventure=${adventure._id.toString()} nextIndex=${nextIndex} mode=${nextMode}`);
+
+  try {
+    const state = buildAdventureState(adventure, child, nextMode);
+    state.currentStepIndex = nextIndex;
+
+    let llmResponse: LLMStoryStepResponse | LLMMathQuestionResponse;
+    // strict=true: if Gemini fails, throw — don't cache a fallback response
+    if (nextMode === 'math_question') {
+      llmResponse = await llmService.generateMathQuestionFromState(state, true);
+    } else {
+      llmResponse = await llmService.generateStoryStepFromState(state, true);
+    }
+    // Generate image now (while user is solving math) and hold in the in-process
+    // cache so cache-hit serves are instant.
+    const imageUrl = await generateSegmentImage(llmResponse.imageDescription, child.avatarUrl ?? '');
+    if (imageUrl) {
+      pregeneratedImageCache.set(
+        imageCacheKey(adventure._id.toString(), nextIndex),
+        imageUrl,
+      );
+    }
+
+    await Adventure.updateOne(
+      { _id: adventure._id },
+      {
+        $set: {
+          pregeneratedStep: {
+            mode: nextMode,
+            llmResponse: llmResponse as unknown as Record<string, unknown>,
+            imageUrl: null,
+            imageDescription: llmResponse.imageDescription,
+          },
+        },
+      },
+    );
+    console.log(`[prefetch] SAVED prefetchNextStep adventure=${adventure._id.toString()} mode=${nextMode}`);
+  } catch (err) {
+    console.warn(`[prefetch] FAIL prefetchNextStep adventure=${adventure._id.toString()}`, err);
   }
 }

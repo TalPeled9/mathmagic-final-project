@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Sparkles, ArrowLeft, Lightbulb, Star, Zap, Trophy, Wand2 } from 'lucide-react';
@@ -33,11 +33,22 @@ const BADGE_EMOJIS: Record<string, string> = {
   explorer: '🗺️',
 };
 
+// ── CONFETTI CONFIG ───────────────────────────────────────────────────────────
+
+const CONFETTI_COLORS = ['#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899'];
+const CONFETTI_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
+  id: i,
+  x: 4 + (i * 6) % 92,
+  delay: i * 55,
+  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  size: 6 + (i % 3) * 3,
+}));
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function StoryChat() {
   const { adventureId } = useParams<{ adventureId: string }>();
-  const { activeChild } = useAuth();
+  const { activeChild, setActiveChild } = useAuth();
   const navigate = useNavigate();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -261,12 +272,24 @@ export default function StoryChat() {
       const response = await adventureService.complete(adventureId);
       setCompletionData(response);
       setAdventureStatus('completed');
+
+      if (activeChild) {
+        setActiveChild({
+          ...activeChild,
+          totalXP: response.totalXP,
+          totalStars: response.totalStars,
+          currentLevel: response.newLevel ?? activeChild.currentLevel,
+          badges: response.newBadge
+            ? [...activeChild.badges, response.newBadge]
+            : activeChild.badges,
+        });
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to complete adventure');
     } finally {
       setIsProcessing(false);
     }
-  }, [adventureId, isProcessing]);
+  }, [adventureId, isProcessing, activeChild, setActiveChild]);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -402,7 +425,7 @@ export default function StoryChat() {
       {completionData && (
         <CompletionOverlay
           data={completionData}
-          onDashboard={() => navigate('/child/dashboard')}
+          onDashboard={() => navigate('/child/dashboard', { state: { completionData } })}
           onNewAdventure={() => navigate('/child/adventure')}
         />
       )}
@@ -582,86 +605,187 @@ interface CompletionOverlayProps {
 }
 
 function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOverlayProps) {
-  return (
-    <div className="fixed inset-0 bg-parchment/95 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-6">
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center gap-5">
-        <div className="text-5xl">🎉</div>
-        <h1 className="text-2xl font-bold text-purple-wizzy text-center">
-          Adventure Complete!
-        </h1>
+  const [animatedStars, setAnimatedStars] = useState<Set<number>>(new Set());
+  const [showXP, setShowXP] = useState(false);
+  const [xpDisplay, setXpDisplay] = useState(0);
+  const [showTotals, setShowTotals] = useState(false);
+  const [showExtras, setShowExtras] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
 
-        {/* Stars */}
-        <div className="flex items-center gap-2">
-          {[1, 2, 3].map((i) => (
-            <Star
-              key={i}
-              size={32}
-              className={
-                i <= data.starsEarned
-                  ? 'text-yellow-400 fill-yellow-400'
-                  : 'text-gray-200 fill-gray-200'
-              }
+  // Stagger the reveal sequence
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // Stars pop in one by one (earned only)
+    for (let i = 1; i <= data.starsEarned; i++) {
+      timers.push(
+        setTimeout(() => setAnimatedStars((prev) => new Set([...prev, i])), 500 + i * 320),
+      );
+    }
+
+    // XP counter starts after last star
+    const xpDelay = 500 + data.starsEarned * 320 + 380;
+    timers.push(setTimeout(() => setShowXP(true), xpDelay));
+    timers.push(setTimeout(() => setShowTotals(true), xpDelay + 750));
+    timers.push(setTimeout(() => setShowExtras(true), xpDelay + 1050));
+    timers.push(setTimeout(() => setShowButtons(true), xpDelay + 1350));
+
+    return () => timers.forEach(clearTimeout);
+  }, [data.starsEarned]);
+
+  // XP count-up with ease-out cubic
+  useEffect(() => {
+    if (!showXP) return;
+    if (data.xpEarned === 0) {
+      setXpDisplay(0);
+      return;
+    }
+    const duration = 900;
+    const startTime = Date.now();
+    let rafId: number;
+
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setXpDisplay(Math.floor(eased * data.xpEarned));
+      if (progress < 1) rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [showXP, data.xpEarned]);
+
+  const hasExtras = !!(data.newLevel || data.newBadge);
+
+  // Stable confetti list (derived from module-level constant, no re-computation needed)
+  const confetti = useMemo(() => CONFETTI_PARTICLES, []);
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-6">
+      <div
+        className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-5 overflow-hidden"
+        style={{ animation: 'pop-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
+      >
+        {/* Confetti burst from bottom */}
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none" aria-hidden="true">
+          {confetti.map((c) => (
+            <div
+              key={c.id}
+              className="absolute rounded-full"
+              style={{
+                left: `${c.x}%`,
+                bottom: 0,
+                width: c.size,
+                height: c.size,
+                backgroundColor: c.color,
+                animation: `confetti-rise 1.3s ${c.delay}ms ease-out forwards`,
+              }}
             />
           ))}
         </div>
 
-        {/* XP */}
-        <div className="flex items-center gap-2 bg-purple-wizzy/10 rounded-xl px-6 py-3">
-          <Zap size={20} className="text-gold-magic fill-gold-magic" />
-          <span className="font-bold text-purple-wizzy text-lg">+{data.xpEarned} XP</span>
+        {/* Trophy + title */}
+        <div className="text-5xl animate-bounce select-none">🎉</div>
+        <h1 className="text-2xl font-bold text-purple-wizzy text-center">Adventure Complete!</h1>
+
+        {/* Stars */}
+        <div className="flex items-center gap-3">
+          {[1, 2, 3].map((i) => {
+            const lit = animatedStars.has(i);
+            return (
+              <Star
+                key={i}
+                size={40}
+                className={lit ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'}
+                style={
+                  lit
+                    ? { animation: 'star-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }
+                    : {}
+                }
+              />
+            );
+          })}
         </div>
 
-        {/* Totals */}
-        <div className="flex gap-8 text-sm text-gray-500">
-          <div className="text-center">
-            <p className="font-bold text-gray-800 text-base">{data.totalXP}</p>
-            <p>Total XP</p>
-          </div>
-          <div className="text-center">
-            <p className="font-bold text-gray-800 text-base">{data.totalStars}</p>
-            <p>Total Stars</p>
-          </div>
-        </div>
-
-        {/* Level up */}
-        {data.newLevel && (
-          <div className="flex items-center gap-2 bg-gold-magic/10 rounded-xl px-5 py-3 w-full justify-center">
-            <Trophy size={18} className="text-gold-magic" />
-            <span className="font-bold text-amber-700 text-sm">
-              Level Up! You're now Level {data.newLevel} 🚀
-            </span>
+        {/* XP earned */}
+        {showXP && (
+          <div
+            className="flex items-center gap-2 bg-purple-wizzy/10 rounded-xl px-6 py-3"
+            style={{ animation: 'slide-up-fade 0.4s ease-out forwards' }}
+          >
+            <Zap size={22} className="text-gold-magic fill-gold-magic" />
+            <span className="font-bold text-purple-wizzy text-xl">+{xpDisplay} XP</span>
           </div>
         )}
 
-        {/* Badge */}
-        {data.newBadge && (
-          <div className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full">
-            <span className="text-2xl">
-              {BADGE_EMOJIS[data.newBadge.badgeType] ?? '🏅'}
-            </span>
-            <div>
-              <p className="font-bold text-purple-wizzy text-sm">{data.newBadge.badgeName}</p>
-              <p className="text-xs text-gray-500">{data.newBadge.description}</p>
+        {/* Totals */}
+        {showTotals && (
+          <div
+            className="flex gap-10 text-sm text-gray-500"
+            style={{ animation: 'slide-up-fade 0.4s ease-out forwards' }}
+          >
+            <div className="text-center">
+              <p className="font-bold text-gray-800 text-lg">{data.totalXP.toLocaleString()}</p>
+              <p>Total XP</p>
+            </div>
+            <div className="text-center">
+              <p className="font-bold text-gray-800 text-lg">{data.totalStars}</p>
+              <p>Total Stars</p>
             </div>
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-3 w-full pt-1">
-          <button
-            onClick={onDashboard}
-            className="flex-1 py-3 rounded-xl border-2 border-purple-wizzy/30 text-purple-wizzy font-semibold hover:bg-purple-wizzy/5 transition-colors"
+        {/* Level-up + new badge */}
+        {showExtras && hasExtras && (
+          <div
+            className="flex flex-col gap-2 w-full"
+            style={{ animation: 'slide-up-fade 0.4s ease-out forwards' }}
           >
-            Dashboard
-          </button>
-          <button
-            onClick={onNewAdventure}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-purple-wizzy text-white font-semibold hover:bg-purple-700 transition-colors"
+            {data.newLevel && (
+              <div
+                className="flex items-center gap-2 bg-gold-magic/10 rounded-xl px-5 py-3 w-full justify-center border border-gold-magic/30"
+                style={{ animation: 'glow-pulse 2s ease-in-out infinite' }}
+              >
+                <Trophy size={18} className="text-gold-magic" />
+                <span className="font-bold text-amber-700 text-sm">
+                  Level Up! You're now Level {data.newLevel} 🚀
+                </span>
+              </div>
+            )}
+            {data.newBadge && (
+              <div className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full border border-purple-wizzy/10">
+                <span className="text-2xl">{BADGE_EMOJIS[data.newBadge.badgeType] ?? '🏅'}</span>
+                <div>
+                  <p className="font-bold text-purple-wizzy text-sm">{data.newBadge.badgeName}</p>
+                  <p className="text-xs text-gray-500">{data.newBadge.description}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        {showButtons && (
+          <div
+            className="flex gap-3 w-full pt-1"
+            style={{ animation: 'slide-up-fade 0.4s ease-out forwards' }}
           >
-            <Sparkles size={15} className="text-gold-magic" />
-            New Adventure
-          </button>
-        </div>
+            <button
+              onClick={onDashboard}
+              className="flex-1 py-3 rounded-xl border-2 border-purple-wizzy/30 text-purple-wizzy font-semibold hover:bg-purple-wizzy/5 transition-colors"
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={onNewAdventure}
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-purple-wizzy text-white font-semibold hover:bg-purple-700 transition-colors"
+            >
+              <Sparkles size={15} className="text-gold-magic" />
+              New Adventure
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
