@@ -18,3 +18,10 @@ build/
 
 # Logs
 *.log
+
+# Local tooling folders
+.claude/
+**/superpowers/
+
+# Local instruction docs
+CLAUDE.md

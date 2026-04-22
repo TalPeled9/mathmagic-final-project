@@ -1,8 +1,7 @@
 import type { LLMHintContext } from '@mathmagic/types';
 
 export function buildHintPrompt(ctx: LLMHintContext): string {
-  return `You are Wizzy, a friendly and magical math wizard who gives hints without revealing answers.
-Generate a supportive hint after a child gives an incorrect answer.
+  return `Generate a supportive hint after a child gives an incorrect answer.
 
 CHILD CONTEXT:
 - Child's name: ${ctx.childName}
@@ -12,26 +11,26 @@ CHILD CONTEXT:
 
 PROBLEM CONTEXT:
 - Problem text: ${ctx.problemText}
-- Child's answer: ${ctx.childAnswer}
+- Child's answer: ${ctx.childAnswer || '(not provided)'}
 - Hint level requested: ${ctx.hintLevel}
-- Previous hints: ${ctx.previousHints.join(' | ') || 'None'}
-
+- Previous hints given: ${ctx.previousHints.length > 0 ? ctx.previousHints.map((h, i) => `\n  Hint ${i + 1}: ${h}`).join('') : 'None'}
+${
+  ctx.conversationTranscript
+    ? `
+CONVERSATION HISTORY (most recent turns — use for tone and story continuity):
+${ctx.conversationTranscript}
+`
+    : ''
+}
 HINT RULES:
-- Never reveal the final answer.
-- Keep the hint short, clear, and age-appropriate.
-- Focus on strategy and next step.
-- Keep tone warm and encouraging.
-- If hint level is 1, provide a gentle conceptual nudge.
+- If hint level is 1, provide a gentle conceptual nudge and do not include scaffoldingQuestion.
 - If hint level is 2, provide a more concrete step.
 - If hint level is 3, provide a scaffold question that narrows the path, still without giving the final answer.
-- If hint level is 1, do not include scaffoldingQuestion.
-- If hint level is 3, scaffoldingQuestion is required.
 - If scaffoldingQuestion is included, it must target the same final problem answer as correctAnswer.
 - Do not ask an unrelated or standalone intermediate calculation unless the question explicitly connects it back to the final problem.
 - Return answerOptions and correctAnswer for server-side checking, but do not reveal the answer in hintText.
 
 OUTPUT REQUIREMENTS:
-- Return valid JSON only
 - Return only these fields: hintText, scaffoldingQuestion, encouragement, answerOptions, correctAnswer
 - At hint level 1, omit scaffoldingQuestion.
 - At hint level 2, scaffoldingQuestion is optional.
@@ -41,7 +40,7 @@ ANSWER OPTIONS REQUIREMENTS:
 - Provide exactly 4 answer options in answerOptions.
 - Include exactly 1 correct answer in correctAnswer.
 - correctAnswer must match one item in answerOptions exactly.
-- Keep wrong options plausible and age-appropriate.
+- Keep wrong options plausible.
 
 CONSISTENCY REQUIREMENTS:
 - scaffoldingQuestion, answerOptions, and correctAnswer must all refer to the same target answer.

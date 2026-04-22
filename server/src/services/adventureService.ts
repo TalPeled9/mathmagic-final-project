@@ -4,7 +4,7 @@ import type {
   StorySegment,
   HintResponse,
   ICurrentChallenge,
-  LLMStartAdventureResponse,
+  LLMStoryStepResponse,
   LLMMathQuestionResponse,
   LLMHintResponse,
   LLMEndStoryResponse,
@@ -18,12 +18,13 @@ import { buildStorySummary } from './ai/storyContextBuilder';
 import { getLevelForXP } from '../config/levelThresholds';
 import { BADGE_DEFINITIONS } from '../config/badges';
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../lib/logger';
 
 // ─── Ownership & Access Verification ────────────────────────────────────────
 
 export async function verifyChildOwnership(
   userId: string,
-  childId: string,
+  childId: string
 ): Promise<IChildDocument> {
   const child = await Child.findById(childId);
   if (!child) throw ApiError.notFound('Child not found');
@@ -33,7 +34,7 @@ export async function verifyChildOwnership(
 
 export async function verifyAdventureAccess(
   userId: string,
-  adventureId: string,
+  adventureId: string
 ): Promise<{ adventure: IAdventureDocument; child: IChildDocument }> {
   const adventure = await Adventure.findById(adventureId);
   if (!adventure) throw ApiError.notFound('Adventure not found');
@@ -46,16 +47,32 @@ export async function verifyAdventureAccess(
 export function buildAdventureState(
   adventure: IAdventureDocument,
   child: IChildDocument,
-  mode: StoryMode,
+  mode: StoryMode
 ): AdventureState {
+  // Cap to last 4 story choices — earlier ones are low-signal noise
   const selectedChoices = adventure.conversationHistory
-    .filter((e) => e.role === 'child')
-    .map((e) => e.content);
+    .filter((turn) => turn.role === 'child')
+    .slice(-4)
+    .map((turn) => turn.content);
 
   const recentEvents = adventure.conversationHistory
-    .filter((e) => e.role === 'wizzy')
+    .filter((turn) => turn.role === 'wizzy')
     .slice(-3)
-    .map((e) => e.content);
+    .map((turn) => turn.content);
+
+  // Rolling window of last 10 turns for full transcript
+  const conversationTurns = adventure.conversationHistory
+    .slice(-10)
+    .map((turn) => ({
+      role: turn.role as 'wizzy' | 'child' | 'system',
+      content: turn.content,
+      dialogue: turn.dialogue,
+    }));
+
+  // Most recent child answer — fixes hint context bug where childAnswer was always ''
+  const lastChildAnswer = [...adventure.conversationHistory]
+    .reverse()
+    .find((turn) => turn.role === 'child')?.content;
 
   const state: AdventureState = {
     childName: child.name,
@@ -67,9 +84,13 @@ export function buildAdventureState(
     totalSteps: adventure.totalSteps,
     selectedChoices,
     recentEvents,
+    conversationTurns,
+    previousHints: adventure.currentHints ?? [],
     lastProblemText: adventure.currentChallenge?.problemText,
     correctAnswer: adventure.currentChallenge?.correctAnswer,
+    lastChildAnswer,
     attemptCount: adventure.currentChallenge?.attemptsCount ?? 0,
+    hintLevel: (adventure.currentChallenge?.hintLevel ?? 0) as 0 | 1 | 2 | 3,
     hintUsed: (adventure.currentChallenge?.hintLevel ?? 0) > 0,
     storySummary: '',
   };
@@ -84,14 +105,14 @@ export function determineNextMode(adventure: IAdventureDocument): StoryMode {
   const { currentStepIndex, totalSteps } = adventure;
   if (currentStepIndex >= totalSteps - 1) return 'end_story';
   if (currentStepIndex % 2 !== 0) return 'math_question';
-  return 'start_adventure';
+  return 'story_step';
 }
 
 // ─── Response Mapping ────────────────────────────────────────────────────────
 
 export function mapStartAdventureResponse(
-  llmResponse: LLMStartAdventureResponse,
-  imageUrl?: string,
+  llmResponse: LLMStoryStepResponse,
+  imageUrl?: string
 ): StorySegment {
   return {
     narrative: llmResponse.adventureNarrative,
@@ -106,7 +127,7 @@ export function mapStartAdventureResponse(
 
 export function mapMathQuestionResponse(
   llmResponse: LLMMathQuestionResponse,
-  imageUrl?: string,
+  imageUrl?: string
 ): StorySegment {
   const rawOptions = llmResponse.answerOptions.slice(0, 4);
   if (rawOptions.length < 4) {
@@ -131,7 +152,7 @@ export function mapMathQuestionResponse(
 
 export function mapEndStoryResponse(
   llmResponse: LLMEndStoryResponse,
-  imageUrl?: string,
+  imageUrl?: string
 ): StorySegment {
   return {
     narrative: llmResponse.recap,
@@ -157,12 +178,12 @@ export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number)
 
 export async function generateSegmentImage(
   imageDescription: string,
-  avatarUrl: string,
+  avatarUrl: string
 ): Promise<string | null> {
   try {
     return await generateStoryImage(imageDescription, avatarUrl);
   } catch (err) {
-    console.warn('[Adventure] Image generation failed, continuing without image:', err);
+    logger.warn({ err }, 'Image generation failed, continuing without image');
     return null;
   }
 }
@@ -206,7 +227,7 @@ export async function applyRewardsToChild(
   xpEarned: number,
   starsEarned: number,
   stats: AdventureStats,
-  currentStoryWorld?: string,
+  currentStoryWorld?: string
 ): Promise<{ newLevel?: number; newBadge?: IBadge }> {
   const previousLevel = child.currentLevel;
   child.totalXP += xpEarned;
@@ -259,7 +280,7 @@ export async function applyRewardsToChild(
   if (!newBadge && !alreadyHas('5-day-streak')) {
     const completedAdventures = await Adventure.find(
       { childId: child._id, status: 'completed', completedAt: { $exists: true } },
-      { completedAt: 1, _id: 0 },
+      { completedAt: 1, _id: 0 }
     ).lean();
 
     const daySet = new Set<string>();
@@ -339,8 +360,9 @@ export function appendToHistory(
   adventure: IAdventureDocument,
   role: 'wizzy' | 'child' | 'system',
   content: string,
+  dialogue?: string,
 ): void {
-  adventure.conversationHistory.push({ role, content, timestamp: new Date() });
+  adventure.conversationHistory.push({ role, content, dialogue, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
     adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
   }
@@ -352,7 +374,7 @@ export async function updateTopicProgress(
   childId: string,
   mathTopic: string,
   correct: boolean,
-  hintUsed: boolean,
+  hintUsed: boolean
 ): Promise<void> {
   const inc: Record<string, number> = {
     totalChallenges: 1,
@@ -363,7 +385,7 @@ export async function updateTopicProgress(
   const doc = await TopicProgress.findOneAndUpdate(
     { childId, mathTopic },
     { $inc: inc, $set: { lastPracticedAt: new Date() } },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
   if (doc && doc.totalChallenges > 0) {

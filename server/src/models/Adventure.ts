@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 interface IConversationEntry {
   role: 'wizzy' | 'child' | 'system';
   content: string;
+  dialogue?: string; // Wizzy's spoken line only (separate from adventureNarrative)
   timestamp: Date;
 }
 
@@ -24,6 +25,7 @@ export interface IAdventureDocument extends Document {
   currentChallenge: ICurrentChallengeSubdoc | null;
   conversationHistory: IConversationEntry[];
   lastChoices: string[];
+  currentHints: string[]; // hint texts accumulated for the active challenge
   startedAt: Date;
   completedAt?: Date;
   xpEarned: number;
@@ -50,6 +52,7 @@ const conversationEntrySchema = new Schema<IConversationEntry>(
   {
     role: { type: String, enum: ['wizzy', 'child', 'system'], required: true },
     content: { type: String, required: true },
+    dialogue: { type: String },
     timestamp: { type: Date, default: Date.now },
   },
   { _id: false }
@@ -66,6 +69,7 @@ const adventureSchema = new Schema<IAdventureDocument>(
     currentChallenge: { type: currentChallengeSchema, default: null },
     conversationHistory: { type: [conversationEntrySchema], default: [] },
     lastChoices: { type: [String], default: [] },
+    currentHints: { type: [String], default: [] },
     startedAt: { type: Date, default: Date.now },
     completedAt: { type: Date },
     xpEarned: { type: Number, default: 0 },
