@@ -12,7 +12,6 @@ export interface LLMStoryPromptContext {
 
 export interface LLMMathQuestionContext extends LLMStoryPromptContext {
   selectedChoice: string;
-  previousEvents?: string[];
 }
 
 export interface LLMHintContext extends LLMStoryPromptContext {
@@ -33,7 +32,7 @@ export interface LLMBaseStoryResponse {
   imageDescription: string;
 }
 
-export interface LLMStartAdventureResponse extends LLMBaseStoryResponse {
+export interface LLMStoryStepResponse extends LLMBaseStoryResponse {
   adventureNarrative: string;
   storyChoices: string[];
 }
@@ -58,14 +57,14 @@ export interface LLMEndStoryResponse extends LLMBaseStoryResponse {
 }
 
 export type LLMModeContextMap = {
-  start_adventure: LLMStoryPromptContext;
+  story_step: LLMStoryPromptContext;
   math_question: LLMMathQuestionContext;
   hint: LLMHintContext;
   end_story: LLMEndStoryContext;
 };
 
 export type LLMModeResponseMap = {
-  start_adventure: LLMStartAdventureResponse;
+  story_step: LLMStoryStepResponse;
   math_question: LLMMathQuestionResponse;
   hint: LLMHintResponse;
   end_story: LLMEndStoryResponse;

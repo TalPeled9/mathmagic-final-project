@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 interface IConversationEntry {
   role: 'wizzy' | 'child' | 'system' | 'image';
   content: string;
+  dialogue?: string; // Wizzy's spoken line only (separate from adventureNarrative)
   imageUrl?: string;
   timestamp: Date;
 }
@@ -52,6 +53,7 @@ const conversationEntrySchema = new Schema<IConversationEntry>(
   {
     role: { type: String, enum: ['wizzy', 'child', 'system', 'image'], required: true },
     content: { type: String, required: true },
+    dialogue: { type: String },
     imageUrl: { type: String },
     timestamp: { type: Date, default: Date.now },
   },

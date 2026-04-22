@@ -45,7 +45,7 @@ Audience: teammate implementing the adventure backend and Story Chat integration
 
 - `server/src/services/ai/llmService.ts`
   - Main orchestrator for all story modes.
-  - Modes: `start_adventure`, `math_question`, `hint`, `end_story`.
+  - Modes: `story_step`, `math_question`, `hint`, `end_story`.
   - Uses per-mode schema + prompt builder.
   - Calls Gemini via `GeminiJsonClient`.
   - Sanitizes and validates all text content.
@@ -137,7 +137,7 @@ The server must decide mode transitions. The client should never choose LLM mode
 1. Load adventure state from DB.
 2. Apply incoming user action (choice, answer, hint request).
 3. Decide next mode based on server logic:
-   - new adventure -> `start_adventure`
+   - new adventure -> `story_step`
    - after choice -> `math_question`
    - wrong answer and attempts remaining -> `hint`
    - adventure completed -> `end_story`

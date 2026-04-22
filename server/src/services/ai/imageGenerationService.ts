@@ -1,4 +1,5 @@
 import { config } from '../../config';
+import { logger } from '../../lib/logger';
 
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
@@ -117,7 +118,7 @@ export async function generateStoryImage(
       }
     }
   } catch (err) {
-    console.error('[imageGenerationService] Gemini story image generation failed:', err);
+    logger.error({ err }, 'Gemini story image generation failed');
   }
 
   return null;
