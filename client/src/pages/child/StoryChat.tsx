@@ -87,56 +87,73 @@ export default function StoryChat() {
   useEffect(() => {
     if (!adventureId) return;
 
-    adventureService
-      .get(adventureId)
-      .then((adventure) => {
-        setAdventureContext({ mathTopic: adventure.mathTopic, storyWorld: adventure.storyWorld });
+    const load = async () => {
+      const adventure = await adventureService.get(adventureId);
+      setAdventureContext({ mathTopic: adventure.mathTopic, storyWorld: adventure.storyWorld });
 
-        // Reconstruct chat from persisted conversation history
-        const msgs: ChatMessage[] = adventure.conversationHistory
-          .filter((e) => e.role !== 'image')
-          .map((entry, i) => {
-            const isCorrectMsg =
-              entry.role === 'system' &&
-              (entry.content.startsWith('Correct') || entry.content.startsWith('Great job'));
-            return {
-              id: `hist-${i}`,
-              role: entry.role as 'wizzy' | 'child' | 'system',
-              text: entry.content,
-              imageUrl: entry.role === 'wizzy' ? entry.imageUrl : undefined,
-              isCorrect: entry.role === 'system' ? isCorrectMsg : undefined,
-            };
-          });
-        setMessages(msgs);
+      // Pre-fetch base64 image data for every step that has a stored image
+      const stepImageUrls: Record<number, string> = {};
+      const imageEntries = Object.entries(adventure.stepImages ?? {});
+      if (imageEntries.length > 0) {
+        await Promise.all(
+          imageEntries.map(async ([stepStr]) => {
+            const stepIndex = Number(stepStr);
+            try {
+              const { imageUrl } = await adventureService.getImage(adventureId, stepIndex);
+              stepImageUrls[stepIndex] = imageUrl;
+            } catch {
+              // image unavailable — render without it
+            }
+          }),
+        );
+      }
 
-        if (adventure.status === 'completed') {
-          setAdventureStatus('completed');
-          return;
-        }
-
-        setCurrentChallenge(adventure.currentChallenge);
-
-        if (adventure.currentChallenge) {
-          // Active challenge: choices are deferred until challenge resolves
-          setCurrentChoices([]);
-        } else if (adventure.lastChoices.length > 0) {
-          setCurrentChoices(adventure.lastChoices);
-        } else {
-          // Challenge was resolved but user hasn't continued yet
-          setPendingContinue(true);
-        }
-
-        // Detect if we're at the final step (end story was generated)
-        if (adventure.currentStepIndex >= adventure.totalSteps - 1) {
-          setIsLastStep(true);
-        }
-
-        setAdventureStatus('in-progress');
-      })
-      .catch(() => {
-        toast.error('Failed to load adventure');
-        setAdventureStatus('error');
+      // Reconstruct chat from persisted conversation history
+      let wizzyCount = 0;
+      const msgs: ChatMessage[] = adventure.conversationHistory.map((entry, i) => {
+        const isCorrectMsg =
+          entry.role === 'system' &&
+          (entry.content.startsWith('Correct') || entry.content.startsWith('Great job'));
+        const imageUrl = entry.role === 'wizzy' ? stepImageUrls[wizzyCount++] : undefined;
+        return {
+          id: `hist-${i}`,
+          role: entry.role as 'wizzy' | 'child' | 'system',
+          text: entry.content,
+          imageUrl,
+          isCorrect: entry.role === 'system' ? isCorrectMsg : undefined,
+        };
       });
+      setMessages(msgs);
+
+      if (adventure.status === 'completed') {
+        setAdventureStatus('completed');
+        return;
+      }
+
+      setCurrentChallenge(adventure.currentChallenge);
+
+      if (adventure.currentChallenge) {
+        // Active challenge: choices are deferred until challenge resolves
+        setCurrentChoices([]);
+      } else if (adventure.lastChoices.length > 0) {
+        setCurrentChoices(adventure.lastChoices);
+      } else {
+        // Challenge was resolved but user hasn't continued yet
+        setPendingContinue(true);
+      }
+
+      // Detect if we're at the final step (end story was generated)
+      if (adventure.currentStepIndex >= adventure.totalSteps - 1) {
+        setIsLastStep(true);
+      }
+
+      setAdventureStatus('in-progress');
+    };
+
+    load().catch(() => {
+      toast.error('Failed to load adventure');
+      setAdventureStatus('error');
+    });
   }, [adventureId]);
 
   // ── Auto-scroll when messages update ────────────────────────────────────────

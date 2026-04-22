@@ -7,6 +7,7 @@ import {
   continueAdventureSchema,
   answerChallengeSchema,
   adventureParamsSchema,
+  imageParamsSchema,
   childParamsSchema,
 } from '../validators/adventure.schemas';
 import * as adventureController from '../controllers/adventureController';
@@ -39,6 +40,13 @@ router.post(
 );
 
 // Adventure-scoped routes
+router.get(
+  '/:adventureId/images/:stepIndex',
+  requireAuth,
+  validate({ params: imageParamsSchema }),
+  adventureController.getAdventureImage,
+);
+
 router.get(
   '/:adventureId',
   requireAuth,

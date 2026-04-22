@@ -142,9 +142,8 @@ export interface GetChildAdventuresResponse {
 }
 
 export interface ConversationEntry {
-  role: 'wizzy' | 'child' | 'system' | 'image';
+  role: 'wizzy' | 'child' | 'system';
   content: string;
-  imageUrl?: string;
 }
 
 export interface GetAdventureResponse {
@@ -160,4 +159,9 @@ export interface GetAdventureResponse {
   conversationHistory: ConversationEntry[];
   currentChallenge: ICurrentChallenge | null;
   lastChoices: string[];
+  stepImages: Record<number, string>;
+}
+
+export interface GetAdventureImageResponse {
+  imageUrl: string;
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Adventure } from '../models/Adventure';
+import { AdventureImage } from '../models/AdventureImage';
 import { LearningSession } from '../models/LearningSession';
 import { ApiError } from '../utils/ApiError';
 import { MATH_TOPICS, getMathTopicById } from '../config/mathTopics';
@@ -61,11 +62,20 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
   const llmResponse = await llmService.generateStartAdventureFromState(state);
   const segment: StorySegment = mapStartAdventureResponse(llmResponse);
 
-  segment.imageUrl =
-    (await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '')) ?? undefined;
+  const generatedImageUrl = await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '');
+  if (generatedImageUrl) {
+    segment.imageUrl = generatedImageUrl;
+    await AdventureImage.create({
+      adventureId: adventure._id,
+      stepIndex: adventure.currentStepIndex,
+      imageData: generatedImageUrl,
+      contentType: 'image/jpeg',
+      imageDescription: segment.imageDescription,
+    });
+  }
 
   adventure.lastChoices = segment.choices;
-  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl);
+  appendToHistory(adventure, 'wizzy', segment.narrative);
   await adventure.save();
 
   res.status(201).json({ adventureId: adventure._id.toString(), segment });
@@ -80,7 +90,14 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
   const { adventure } = await verifyAdventureAccess(userId, adventureId);
 
   const lastWizzy = [...adventure.conversationHistory].reverse().find((e) => e.role === 'wizzy');
-  const lastImage = [...adventure.conversationHistory].reverse().find((e) => e.role === 'image');
+
+  const adventureImages = await AdventureImage.find({ adventureId: adventure._id }).lean();
+  const stepImages: Record<number, string> = Object.fromEntries(
+    adventureImages.map((img) => [
+      img.stepIndex,
+      `/api/adventures/${adventure._id}/images/${img.stepIndex}`,
+    ]),
+  );
 
   const challenge = adventure.currentChallenge
     ? {
@@ -96,7 +113,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     wizzyDialogue: lastWizzy?.content ?? '',
     choices: adventure.lastChoices,
     challenge,
-    imageUrl: lastImage?.imageUrl,
+    imageUrl: stepImages[adventure.currentStepIndex],
     imageDescription: '',
     isLastStep: adventure.currentStepIndex >= adventure.totalSteps - 1,
   };
@@ -115,6 +132,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     conversationHistory: adventure.conversationHistory,
     currentChallenge: challenge,
     lastChoices: adventure.lastChoices,
+    stepImages,
   });
 }
 
@@ -178,11 +196,20 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     segment = mapStartAdventureResponse(llmResponse);
   }
 
-  segment.imageUrl =
-    (await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '')) ?? undefined;
+  const generatedImageUrl = await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '');
+  if (generatedImageUrl) {
+    segment.imageUrl = generatedImageUrl;
+    await AdventureImage.create({
+      adventureId: adventure._id,
+      stepIndex: adventure.currentStepIndex,
+      imageData: generatedImageUrl,
+      contentType: 'image/jpeg',
+      imageDescription: segment.imageDescription,
+    });
+  }
 
   adventure.lastChoices = segment.choices;
-  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl);
+  appendToHistory(adventure, 'wizzy', segment.narrative);
   await adventure.save();
 
   res.json({ segment });
@@ -337,6 +364,26 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
     totalXP: child.totalXP,
     totalStars: child.totalStars,
   });
+}
+
+// ─── GET /api/adventures/:adventureId/images/:stepIndex ─────────────────────
+
+export async function getAdventureImage(req: Request, res: Response): Promise<void> {
+  const { adventureId, stepIndex } = req.params as { adventureId: string; stepIndex: string };
+  const userId = req.user!.userId;
+
+  await verifyAdventureAccess(userId, adventureId);
+
+  const img = await AdventureImage.findOne({
+    adventureId,
+    stepIndex: parseInt(stepIndex, 10),
+  }).lean();
+
+  if (!img) {
+    throw ApiError.notFound('Image not found');
+  }
+
+  res.json({ imageUrl: img.imageData });
 }
 
 // ─── GET /api/adventures/children/:childId ──────────────────────────────────

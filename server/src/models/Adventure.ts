@@ -1,9 +1,8 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
 interface IConversationEntry {
-  role: 'wizzy' | 'child' | 'system' | 'image';
+  role: 'wizzy' | 'child' | 'system';
   content: string;
-  imageUrl?: string;
   timestamp: Date;
 }
 
@@ -49,9 +48,8 @@ const currentChallengeSchema = new Schema<ICurrentChallengeSubdoc>(
 
 const conversationEntrySchema = new Schema<IConversationEntry>(
   {
-    role: { type: String, enum: ['wizzy', 'child', 'system', 'image'], required: true },
+    role: { type: String, enum: ['wizzy', 'child', 'system'], required: true },
     content: { type: String, required: true },
-    imageUrl: { type: String },
     timestamp: { type: Date, default: Date.now },
   },
   { _id: false }

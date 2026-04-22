@@ -337,11 +337,10 @@ const MAX_HISTORY = 100;
 
 export function appendToHistory(
   adventure: IAdventureDocument,
-  role: 'wizzy' | 'child' | 'system' | 'image',
+  role: 'wizzy' | 'child' | 'system',
   content: string,
-  imageUrl?: string,
 ): void {
-  adventure.conversationHistory.push({ role, content, imageUrl, timestamp: new Date() });
+  adventure.conversationHistory.push({ role, content, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
     adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
   }
