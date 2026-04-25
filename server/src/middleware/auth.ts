@@ -61,46 +61,47 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
 
   const accessToken = req.cookies[ACCESS_TOKEN_COOKIE] as string | undefined;
-  if (!accessToken) {
-    return next(ApiError.unauthorized());
+
+  if (accessToken && isTokenRevoked(accessToken)) {
+    return next(ApiError.unauthorized('Session revoked'));
   }
-  if (isTokenRevoked(accessToken)) {
+
+  // If the access token is present and valid, proceed immediately
+  if (accessToken) {
+    try {
+      const payload = verifyAccessToken(accessToken);
+      req.user = { userId: payload.userId };
+      return next();
+    } catch (err: unknown) {
+      // Only fall through to refresh on expiry; any other JWT error is a hard reject
+      if ((err as { name?: string })?.name !== 'TokenExpiredError') {
+        return next(ApiError.unauthorized('Invalid access token'));
+      }
+    }
+  }
+
+  // Access token is missing (browser purged the expired cookie) or expired — try refresh token
+  const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
+  if (!refreshToken) {
+    return next(ApiError.unauthorized('Session expired'));
+  }
+  if (isTokenRevoked(refreshToken)) {
     return next(ApiError.unauthorized('Session revoked'));
   }
 
   try {
-    const payload = verifyAccessToken(accessToken);
+    const payload = verifyRefreshToken(refreshToken);
+
+    const newAccessToken = generateAccessToken(payload.userId);
+    res.cookie(ACCESS_TOKEN_COOKIE, newAccessToken, accessCookieOptions);
+
+    // Rotate CSRF token alongside the new access token
+    const newCsrf = crypto.randomBytes(32).toString('hex');
+    res.cookie(CSRF_COOKIE, newCsrf, csrfCookieOptions);
+
     req.user = { userId: payload.userId };
     return next();
-  } catch (accessErr: unknown) {
-    const err = accessErr as { name?: string };
-    if (err?.name !== 'TokenExpiredError') {
-      return next(ApiError.unauthorized('Invalid access token'));
-    }
-
-    // Access token expired — attempt silent refresh
-    const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
-    if (!refreshToken) {
-      return next(ApiError.unauthorized('Session expired'));
-    }
-    if (isTokenRevoked(refreshToken)) {
-      return next(ApiError.unauthorized('Session revoked'));
-    }
-
-    try {
-      const payload = verifyRefreshToken(refreshToken);
-
-      const newAccessToken = generateAccessToken(payload.userId);
-      res.cookie(ACCESS_TOKEN_COOKIE, newAccessToken, accessCookieOptions);
-
-      // Rotate CSRF token alongside the new access token
-      const newCsrf = crypto.randomBytes(32).toString('hex');
-      res.cookie(CSRF_COOKIE, newCsrf, csrfCookieOptions);
-
-      req.user = { userId: payload.userId };
-      return next();
-    } catch {
-      return next(ApiError.unauthorized('Session expired'));
-    }
+  } catch {
+    return next(ApiError.unauthorized('Session expired'));
   }
 }

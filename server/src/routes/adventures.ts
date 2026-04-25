@@ -14,9 +14,6 @@ import * as adventureController from '../controllers/adventureController';
 
 const router = Router();
 
-// Apply AI rate limits to all adventure endpoints.
-router.use(aiRateLimit);
-
 // Child-scoped routes
 router.get(
   '/children/:childId/available',
@@ -35,6 +32,7 @@ router.get(
 router.post(
   '/children/:childId',
   requireAuth,
+  aiRateLimit,
   validate({ params: childParamsSchema, body: startAdventureSchema }),
   adventureController.startAdventure,
 );
@@ -57,6 +55,7 @@ router.get(
 router.post(
   '/:adventureId/continue',
   requireAuth,
+  aiRateLimit,
   validate({ params: adventureParamsSchema, body: continueAdventureSchema }),
   adventureController.continueAdventure,
 );
@@ -71,6 +70,7 @@ router.post(
 router.post(
   '/:adventureId/hint',
   requireAuth,
+  aiRateLimit,
   validate({ params: adventureParamsSchema }),
   adventureController.requestHint,
 );

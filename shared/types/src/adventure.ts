@@ -46,7 +46,7 @@ export interface ICurrentChallenge {
 export interface StorySegment {
   narrative: string; // Wizzy's story text
   wizzyDialogue: string; // Wizzy's spoken line
-  choices: string[]; // 2–4 options for child to pick
+  choices: string[]; // exactly 2 story choices
   challenge: ICurrentChallenge | null; // null if this segment is pure story
   imageDescription: string; // description for image generation
   imageUrl?: string; // generated image URL (set by server)

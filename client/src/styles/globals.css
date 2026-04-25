@@ -7,6 +7,9 @@
 
   --animate-float: float 3s ease-in-out infinite;
   --animate-sparkle: sparkle 1.5s ease-in-out infinite;
+  --animate-pop-in: pop-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  --animate-slide-up-fade: slide-up-fade 0.4s ease-out forwards;
+  --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
 }
 
 @keyframes float {
@@ -26,6 +29,61 @@
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.85) translateY(24px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes star-pop {
+  0% {
+    transform: scale(0.4) rotate(-20deg);
+  }
+  65% {
+    transform: scale(1.4) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes slide-up-fade {
+  0% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes confetti-rise {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110px) rotate(600deg) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.65);
   }
 }
 

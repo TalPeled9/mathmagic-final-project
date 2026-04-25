@@ -45,8 +45,8 @@ const storyStepSchema: GeminiResponseSchema = {
     wizzyDialogue: { type: JSON_SCHEMA.STRING },
     storyChoices: {
       type: JSON_SCHEMA.ARRAY,
-      minItems: 3,
-      maxItems: 3,
+      minItems: 2,
+      maxItems: 2,
       items: { type: JSON_SCHEMA.STRING },
     },
     imageDescription: { type: JSON_SCHEMA.STRING },
@@ -143,7 +143,6 @@ function fallbackByMode<K extends StoryMode>(
         storyChoices: [
           'Follow the glowing trail',
           'Visit the puzzle gate',
-          'Ask Wizzy for a quick warm-up',
         ],
         imageDescription:
           'A bright and friendly cartoon scene of a child avatar with Wizzy near a glowing magical path.',
@@ -160,7 +159,7 @@ function fallbackByMode<K extends StoryMode>(
         problemText: `What is 2 + 3?`,
         expectedAnswerType: 'number',
         answerFormatHint: 'Choose the number that equals 2 + 3.',
-        storyChoices: ['Try the puzzle', 'Ask for a hint', 'Review the last step'],
+        storyChoices: ['Try the puzzle', 'Ask for a hint'],
         answerOptions: ['4', '5', '6', '7'],
         correctAnswer: '5',
         imageDescription:
@@ -235,14 +234,14 @@ class LLMService {
   }
 
   // AdventureState-based convenience methods (recommended for controllers)
-  async generateStoryStepFromState(state: AdventureState): Promise<LLMStoryStepResponse> {
+  async generateStoryStepFromState(state: AdventureState, strict = false): Promise<LLMStoryStepResponse> {
     const ctx = buildStoryStepContext(state);
-    return this.generateStoryStep(ctx);
+    return this.requestByMode('story_step', ctx, strict);
   }
 
-  async generateMathQuestionFromState(state: AdventureState): Promise<LLMMathQuestionResponse> {
+  async generateMathQuestionFromState(state: AdventureState, strict = false): Promise<LLMMathQuestionResponse> {
     const ctx = buildMathQuestionContext(state);
-    return this.generateMathQuestion(ctx);
+    return this.requestByMode('math_question', ctx, strict);
   }
 
   async generateHintFromState(state: AdventureState): Promise<LLMHintResponse> {
@@ -257,7 +256,8 @@ class LLMService {
 
   private async requestByMode<K extends StoryMode>(
     mode: K,
-    ctx: LLMModeContextMap[K]
+    ctx: LLMModeContextMap[K],
+    strict = false
   ): Promise<LLMModeResponseMap[K]> {
     const definition = modeDefinitions[mode];
 
@@ -270,6 +270,7 @@ class LLMService {
         maxOutputTokens: 2048,
       });
     } catch (err) {
+      if (strict) throw err; // prefetch path: let caller handle, don't cache fallback
       logger.warn({ err }, `All providers failed for mode=${mode}; using fallback.`);
       return fallbackByMode(mode, ctx);
     }
@@ -278,6 +279,7 @@ class LLMService {
       return sanitizeAndValidateAIResponse(response);
     } catch (err) {
       if (isUnsafeContentError(err)) {
+        if (strict) throw err;
         logger.warn({ err }, `Unsafe AI response blocked for mode=${mode}; using fallback.`);
         return fallbackByMode(mode, ctx);
       }
