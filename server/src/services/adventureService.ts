@@ -60,9 +60,8 @@ export function buildAdventureState(
     .slice(-3)
     .map((turn) => turn.content);
 
-  // Rolling window of last 10 turns (no image entries) for full transcript
+  // Rolling window of last 10 turns for full transcript
   const conversationTurns = adventure.conversationHistory
-    .filter((turn) => turn.role !== 'image')
     .slice(-10)
     .map((turn) => ({
       role: turn.role as 'wizzy' | 'child' | 'system',
@@ -359,12 +358,11 @@ const MAX_HISTORY = 100;
 
 export function appendToHistory(
   adventure: IAdventureDocument,
-  role: 'wizzy' | 'child' | 'system' | 'image',
+  role: 'wizzy' | 'child' | 'system',
   content: string,
-  imageUrl?: string,
-  dialogue?: string
+  dialogue?: string,
 ): void {
-  adventure.conversationHistory.push({ role, content, dialogue, imageUrl, timestamp: new Date() });
+  adventure.conversationHistory.push({ role, content, dialogue, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
     adventure.conversationHistory.splice(0, adventure.conversationHistory.length - MAX_HISTORY);
   }

@@ -17,6 +17,11 @@ export const adventureParamsSchema = z.object({
   adventureId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Adventure ID must be a valid ObjectId'),
 });
 
+export const imageParamsSchema = z.object({
+  adventureId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Adventure ID must be a valid ObjectId'),
+  stepIndex: z.coerce.number().int().min(0),
+});
+
 export const childParamsSchema = z.object({
   childId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Child ID must be a valid ObjectId'),
 });

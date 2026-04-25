@@ -1,10 +1,9 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
 interface IConversationEntry {
-  role: 'wizzy' | 'child' | 'system' | 'image';
+  role: 'wizzy' | 'child' | 'system';
   content: string;
   dialogue?: string; // Wizzy's spoken line only (separate from adventureNarrative)
-  imageUrl?: string;
   timestamp: Date;
 }
 
@@ -51,10 +50,9 @@ const currentChallengeSchema = new Schema<ICurrentChallengeSubdoc>(
 
 const conversationEntrySchema = new Schema<IConversationEntry>(
   {
-    role: { type: String, enum: ['wizzy', 'child', 'system', 'image'], required: true },
+    role: { type: String, enum: ['wizzy', 'child', 'system'], required: true },
     content: { type: String, required: true },
     dialogue: { type: String },
-    imageUrl: { type: String },
     timestamp: { type: Date, default: Date.now },
   },
   { _id: false }
