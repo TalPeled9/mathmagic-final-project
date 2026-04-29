@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Plus, Settings, LogOut, Star, Zap } from 'lucide-react';
+import { Plus, Sparkles, Settings, LogOut, Star, Zap } from 'lucide-react';
+import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { childService } from '../../services/childService';
 import type { IChild } from '@mathmagic/types';
@@ -70,10 +71,7 @@ export default function ProfileSelectionPage() {
 
       {/* Profiles grid */}
       {isLoading ? (
-        <div className="flex items-center gap-2 text-gray-400 mt-16">
-          <Sparkles size={20} className="animate-pulse" />
-          <span>Loading profiles...</span>
-        </div>
+        <ParentLoader message="Loading profiles…" />
       ) : (
         <div className="w-full max-w-2xl">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

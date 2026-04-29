@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Sparkles, RefreshCw, Save, Star, Zap, Trophy } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Save, Star, Zap, Trophy } from 'lucide-react';
+import { ParentLoader, GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 
@@ -68,10 +69,7 @@ export default function ChildDetailsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
-        <div className="flex items-center gap-2 text-gray-400">
-          <Sparkles size={20} className="animate-pulse" />
-          <span>Loading...</span>
-        </div>
+        <ParentLoader message="Loading child profile…" />
       </div>
     );
   }
@@ -183,7 +181,7 @@ export default function ChildDetailsPage() {
               disabled={isSaving}
               className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
             >
-              <Save size={16} />
+              {isSaving ? <GradientRing size={18} thickness={2.5} label="" /> : <Save size={16} />}
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </form>

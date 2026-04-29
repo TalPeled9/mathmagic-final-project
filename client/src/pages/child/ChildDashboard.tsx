@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { toast } from 'sonner';
 import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'lucide-react';
+import { SkeletonCard } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
 import { WORLD_EMOJIS, type AdventureSummary, type CompleteAdventureResponse } from '@mathmagic/types';
@@ -287,6 +288,18 @@ export default function ChildDashboard() {
         )}
 
         {/* Resume card (conditional) */}
+        {isLoadingAdventures && (
+          <div className="bg-white rounded-2xl shadow-sm p-5">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Continue Your Adventure
+            </h2>
+            <div className="flex flex-col gap-3">
+              {[0, 1].map((i) => (
+                <SkeletonCard key={i} kind="row" />
+              ))}
+            </div>
+          </div>
+        )}
         {!isLoadingAdventures && hasInProgress && (
           <div className="bg-white rounded-2xl shadow-sm p-5">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">

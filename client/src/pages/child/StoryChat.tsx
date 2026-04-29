@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, ArrowLeft, Lightbulb, Star, Zap, Trophy, Wand2 } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2 } from 'lucide-react';
+import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
 import type {
@@ -296,10 +297,7 @@ export default function StoryChat() {
   if (adventureStatus === 'loading') {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
-        <div className="flex items-center gap-2 text-gray-400">
-          <Sparkles size={20} className="animate-pulse text-purple-wizzy" />
-          <span>Loading your adventure...</span>
-        </div>
+        <ParentLoader message="Loading your adventure…" />
       </div>
     );
   }

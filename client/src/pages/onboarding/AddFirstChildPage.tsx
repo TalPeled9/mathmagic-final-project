@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Users, Sparkles, Lightbulb } from 'lucide-react';
+import { GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { GradeLevel } from '@mathmagic/types';
 
@@ -120,9 +121,11 @@ export default function AddFirstChildPage() {
             disabled={isLoading}
             className="w-full mt-4 flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3.5 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
           >
-            <Sparkles size={18} className="text-gold-magic" />
+            {isLoading
+              ? <GradientRing size={18} thickness={2.5} label="" />
+              : <Sparkles size={18} className="text-gold-magic" />}
             {isLoading ? 'Creating profile...' : "Create Child's Profile"}
-            <Sparkles size={18} className="text-gold-magic" />
+            {!isLoading && <Sparkles size={18} className="text-gold-magic" />}
           </button>
         </form>
       </div>
