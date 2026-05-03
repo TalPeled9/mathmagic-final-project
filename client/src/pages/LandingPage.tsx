@@ -32,6 +32,18 @@ const steps = [
   },
 ];
 
+const parentFeatures = [
+  "Create one account to manage all your children's profiles",
+  'Track individual progress for each child',
+  'View learning insights from your parent dashboard',
+];
+
+const childFeatures = [
+  'Safe, ad-free learning environment',
+  'Personalised adventures that adapt to their level',
+  'Build confidence while having fun with Wizzy',
+];
+
 export default function LandingPage() {
   const { user, isLoading } = useAuth();
 
@@ -42,7 +54,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-parchment">
       {/* Hero */}
       <section
-        aria-label="Hero"
+        aria-label="Introduction"
         className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center gap-8"
       >
         <div className="flex-1">
@@ -111,6 +123,77 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Safe, Personalized Learning */}
+      <section aria-label="Safe, Personalized Learning" className="py-16 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Safe, Personalized Learning</h2>
+            <div className="w-12 h-1 bg-purple-wizzy mx-auto rounded-full" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-violet-50 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-violet-100 p-2 rounded-xl">
+                  <Users size={20} aria-hidden="true" className="text-purple-wizzy" />
+                </div>
+                <h3 className="font-bold text-gray-800">For Parents</h3>
+              </div>
+              <ul className="space-y-2">
+                {parentFeatures.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
+                    <CheckCircle
+                      size={16}
+                      aria-hidden="true"
+                      className="text-purple-wizzy mt-0.5 flex-shrink-0"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-violet-50 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-violet-100 p-2 rounded-xl">
+                  <Shield size={20} aria-hidden="true" className="text-purple-wizzy" />
+                </div>
+                <h3 className="font-bold text-gray-800">For Your Child</h3>
+              </div>
+              <ul className="space-y-2">
+                {childFeatures.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
+                    <CheckCircle
+                      size={16}
+                      aria-hidden="true"
+                      className="text-purple-wizzy mt-0.5 flex-shrink-0"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section aria-label="Call to action" className="bg-purple-wizzy py-16 px-6 text-center">
+        <h2 className="text-2xl font-bold text-white mb-2">Ready to Start the Adventure?</h2>
+        <p className="text-purple-100 mb-8">Join thousands of families making math magical</p>
+        <Link
+          to="/register"
+          className="inline-flex items-center gap-2 bg-white text-purple-wizzy px-8 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-colors"
+        >
+          Get Started Free <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 py-6 px-6 text-center">
+        <p className="text-gray-400 text-sm">
+          © 2024 MathMagic. Making math magical, one adventure at a time.
+        </p>
+      </footer>
     </div>
   );
 }
