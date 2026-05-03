@@ -179,10 +179,10 @@ export default function LandingPage() {
       {/* CTA Banner */}
       <section aria-label="Call to action" className="bg-purple-wizzy py-16 px-6 text-center">
         <h2 className="text-2xl font-bold text-white mb-2">Ready to Start the Adventure?</h2>
-        <p className="text-purple-100 mb-8">Join thousands of families making math magical</p>
+        <p className="text-white/75 mb-8">Join thousands of families making math magical</p>
         <Link
           to="/register"
-          className="inline-flex items-center gap-2 bg-white text-purple-wizzy px-8 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-colors"
+          className="inline-flex items-center gap-2 bg-white text-purple-wizzy px-8 py-3 rounded-xl font-semibold hover:bg-violet-50 transition-colors"
         >
           Get Started Free <ArrowRight size={16} aria-hidden="true" />
         </Link>
@@ -191,7 +191,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-gray-900 py-6 px-6 text-center">
         <p className="text-gray-400 text-sm">
-          © 2024 MathMagic. Making math magical, one adventure at a time.
+          © {new Date().getFullYear()} MathMagic. Making math magical, one adventure at a time.
         </p>
       </footer>
     </div>
