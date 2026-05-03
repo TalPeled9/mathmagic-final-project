@@ -3,6 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Lock, Mail, Sparkles } from 'lucide-react';
+import { GradientRing } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
@@ -100,9 +101,11 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors mt-2"
             >
-              <Sparkles className="text-gold-magic" size={18} />
+              {isLoading
+                ? <GradientRing size={18} thickness={2.5} label="" />
+                : <Sparkles className="text-gold-magic" size={18} />}
               {isLoading ? 'Signing in...' : 'Sign In'}
-              <Sparkles className="text-gold-magic" size={18} />
+              {!isLoading && <Sparkles className="text-gold-magic" size={18} />}
             </button>
 
             <div className="relative py-1">

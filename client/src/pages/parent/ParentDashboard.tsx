@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Plus, ArrowLeft, Star, Zap, Trophy, Edit2, X, Users } from 'lucide-react';
+import { Plus, ArrowLeft, Sparkles, Star, Zap, Trophy, Edit2, X, Users } from 'lucide-react';
+import { ParentLoader, GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,10 +80,7 @@ export default function ParentDashboard() {
 
         {/* Children list */}
         {isLoading ? (
-          <div className="flex items-center gap-2 text-gray-400 py-12 justify-center">
-            <Sparkles size={18} className="animate-pulse" />
-            <span>Loading profiles...</span>
-          </div>
+          <ParentLoader message="Loading profiles…" />
         ) : (
           <div className="space-y-3 mb-4">
             {children.length === 0 && !showAddForm && (
@@ -221,7 +219,7 @@ export default function ParentDashboard() {
                   disabled={isCreating}
                   className="flex-1 py-2.5 rounded-xl bg-purple-wizzy text-white text-sm font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <Sparkles size={14} />
+                  {isCreating ? <GradientRing size={16} thickness={2.5} label="" /> : null}
                   {isCreating ? 'Creating...' : 'Create Profile'}
                 </button>
               </div>

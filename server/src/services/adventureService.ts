@@ -29,6 +29,21 @@ import { logger } from '../lib/logger';
 // Each entry is consumed exactly once and then deleted, so memory stays bounded.
 const pregeneratedImageCache = new Map<string, string>();
 
+// ─── In-process pending prefetch tracker ─────────────────────────────────────
+// Tracks in-flight prefetch promises so continueAdventure can await them on a
+// fast click (cache miss while prefetch is still running) rather than starting
+// a duplicate LLM call.
+// Keys: `${adventureId}:${stepIndex}:choices` | `${adventureId}:${stepIndex}:step`
+const pendingPrefetches = new Map<string, Promise<void>>();
+
+export function getPendingPrefetch(
+  adventureId: string,
+  stepIndex: number,
+  type: 'choices' | 'step',
+): Promise<void> | undefined {
+  return pendingPrefetches.get(`${adventureId}:${stepIndex}:${type}`);
+}
+
 function imageCacheKey(adventureId: string, stepIndex: number, choiceIndex?: number): string {
   return `${adventureId}:${stepIndex}:${choiceIndex ?? 'step'}`;
 }
@@ -424,15 +439,19 @@ export async function updateTopicProgress(
  * Called after serving a story_step so both possible next steps are cached.
  * When the user later picks choice 0 or 1, the matching math question is served instantly.
  * Never throws — errors are logged and the adventure continues normally.
+ *
+ * Registers the in-flight promise in `pendingPrefetches` so continueAdventure can
+ * await it on a fast click instead of starting a duplicate LLM call.
  */
-export async function prefetchForChoices(
+export function prefetchForChoices(
   adventure: IAdventureDocument,
   child: IChildDocument,
-): Promise<void> {
+): void {
   const nextIndex = adventure.currentStepIndex + 1;
-  // Next step after a story_step must be math_question; guard against end_story
+  // When the next step is end_story, there are no per-choice branches to pre-generate.
+  // Delegate to prefetchNextStep which handles the single end_story response.
   if (nextIndex >= adventure.totalSteps - 1) {
-    console.log(`[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} >= totalSteps-1=${adventure.totalSteps - 1}`);
+    prefetchNextStep(adventure, child);
     return;
   }
   if (nextIndex % 2 === 0) {
@@ -446,8 +465,26 @@ export async function prefetchForChoices(
     return;
   }
 
+  const key = `${adventure._id.toString()}:${nextIndex}:choices`;
+  if (pendingPrefetches.has(key)) {
+    console.log(`[prefetch] DEDUP prefetchForChoices already in flight adventure=${adventure._id.toString()} nextIndex=${nextIndex}`);
+    return;
+  }
+
   console.log(`[prefetch] START prefetchForChoices adventure=${adventure._id.toString()} nextIndex=${nextIndex} choices=${choices.length}`);
 
+  const promise = _doPrefetchForChoices(adventure, child, nextIndex, choices).finally(() =>
+    pendingPrefetches.delete(key),
+  );
+  pendingPrefetches.set(key, promise);
+}
+
+async function _doPrefetchForChoices(
+  adventure: IAdventureDocument,
+  child: IChildDocument,
+  nextIndex: number,
+  choices: string[],
+): Promise<void> {
   const pregeneratedChoiceSteps: (Record<string, unknown> | null)[] = Array(choices.length).fill(null);
 
   await Promise.all(
@@ -483,6 +520,8 @@ export async function prefetchForChoices(
     }),
   );
 
+  // Wrap DB write separately — a write failure must not reject the tracked promise
+  // (which would surface as a 500 to the user via `await pending` in the controller).
   try {
     await Adventure.updateOne(
       { _id: adventure._id },
@@ -499,29 +538,57 @@ export async function prefetchForChoices(
  * Fire-and-forget: pre-generates the next story_step after a math challenge resolves.
  * The next step (auto-continue) is always a story_step — pre-generate it now.
  * Never throws — errors are logged and the adventure continues normally.
+ *
+ * Registers the in-flight promise in `pendingPrefetches` so continueAdventure can
+ * await it on a fast click instead of starting a duplicate LLM call.
  */
-export async function prefetchNextStep(
+export function prefetchNextStep(
   adventure: IAdventureDocument,
   child: IChildDocument,
-): Promise<void> {
+): void {
   const nextIndex = adventure.currentStepIndex + 1;
-  // Skip pre-generation for end_story — its recap depends on final stats
-  if (nextIndex >= adventure.totalSteps - 1) {
-    console.log(`[prefetch] SKIP prefetchNextStep: nextIndex=${nextIndex} >= totalSteps-1=${adventure.totalSteps - 1}`);
+  // Only skip if nextIndex is completely out of bounds (should never happen in practice).
+  // end_story IS prefetchable — by the time we reach the last story_step, all math
+  // challenges are resolved and the stats used by buildEndStoryContext are final.
+  if (nextIndex > adventure.totalSteps - 1) {
+    console.log(`[prefetch] SKIP prefetchNextStep: nextIndex=${nextIndex} out of bounds`);
     return;
   }
 
-  const nextMode: StoryMode = nextIndex % 2 !== 0 ? 'math_question' : 'story_step';
+  const key = `${adventure._id.toString()}:${nextIndex}:step`;
+  if (pendingPrefetches.has(key)) {
+    console.log(`[prefetch] DEDUP prefetchNextStep already in flight adventure=${adventure._id.toString()} nextIndex=${nextIndex}`);
+    return;
+  }
+
+  const nextMode: StoryMode = nextIndex >= adventure.totalSteps - 1 ? 'end_story'
+    : nextIndex % 2 !== 0 ? 'math_question'
+    : 'story_step';
   console.log(`[prefetch] START prefetchNextStep adventure=${adventure._id.toString()} nextIndex=${nextIndex} mode=${nextMode}`);
 
+  const promise = _doPrefetchNextStep(adventure, child, nextIndex, nextMode).finally(() =>
+    pendingPrefetches.delete(key),
+  );
+  pendingPrefetches.set(key, promise);
+}
+
+async function _doPrefetchNextStep(
+  adventure: IAdventureDocument,
+  child: IChildDocument,
+  nextIndex: number,
+  nextMode: StoryMode,
+): Promise<void> {
   try {
     const state = buildAdventureState(adventure, child, nextMode);
     state.currentStepIndex = nextIndex;
 
-    let llmResponse: LLMStoryStepResponse | LLMMathQuestionResponse;
+    let llmResponse: LLMStoryStepResponse | LLMMathQuestionResponse | LLMEndStoryResponse;
     // strict=true: if Gemini fails, throw — don't cache a fallback response
     if (nextMode === 'math_question') {
       llmResponse = await llmService.generateMathQuestionFromState(state, true);
+    } else if (nextMode === 'end_story') {
+      // end_story doesn't use strict mode — no fallback schema for it
+      llmResponse = await llmService.generateEndStoryFromState(state);
     } else {
       llmResponse = await llmService.generateStoryStepFromState(state, true);
     }
