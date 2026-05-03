@@ -7,20 +7,26 @@ import logoImg from '@/assets/mathmagic-logo.png';
 
 const steps = [
   {
-    icon: <BookOpen size={24} aria-hidden="true" className="text-purple-wizzy" />,
+    id: 'choose-topic',
+    Icon: BookOpen,
     iconBg: 'bg-violet-100',
+    iconClassName: 'text-purple-wizzy',
     title: '1. Choose a Topic',
     desc: 'Select from addition, subtraction, multiplication, division, and more math adventures.',
   },
   {
-    icon: <Sparkles size={24} aria-hidden="true" className="text-purple-wizzy" />,
+    id: 'wizzy-world',
+    Icon: Sparkles,
     iconBg: 'bg-violet-100',
+    iconClassName: 'text-purple-wizzy',
     title: "2. Enter Wizzy's World",
     desc: 'Step into magical stories where Wizzy guides your child through enchanting learning experiences.',
   },
   {
-    icon: <Star size={24} aria-hidden="true" className="text-gold-magic" />,
+    id: 'earn-stars',
+    Icon: Star,
     iconBg: 'bg-amber-100',
+    iconClassName: 'text-gold-magic',
     title: '3. Learn & Earn Stars',
     desc: 'Solve challenges, make choices, and earn achievements while mastering math skills.',
   },
@@ -35,7 +41,10 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-parchment">
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center gap-8">
+      <section
+        aria-label="Hero"
+        className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center gap-8"
+      >
         <div className="flex-1">
           <img src={logoImg} alt="MathMagic logo" className="h-10 mb-8" />
           <p className="text-gold-magic text-sm font-medium mb-2">Wizzy makes math easy!</p>
@@ -64,21 +73,23 @@ export default function LandingPage() {
       </section>
 
       {/* What is MathMagic? */}
-      <section className="py-16 px-6">
+      <section aria-label="What is MathMagic" className="py-16 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">What is MathMagic?</h2>
           <div className="w-12 h-1 bg-purple-wizzy mx-auto mb-8 rounded-full" />
           <div className="bg-violet-50 rounded-2xl p-8 text-gray-700 leading-relaxed">
-            MathMagic transforms math learning into an enchanting adventure using generative AI.
-            Your child joins Wizzy on interactive journeys through magical worlds, where every math
-            problem becomes part of an exciting story. Learning is personalized, playful, and
-            designed to build confidence one adventure at a time.
+            <p>
+              MathMagic transforms math learning into an enchanting adventure using generative AI.
+              Your child joins Wizzy on interactive journeys through magical worlds, where every
+              math problem becomes part of an exciting story. Learning is personalized, playful, and
+              designed to build confidence one adventure at a time.
+            </p>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-16 px-6">
+      <section aria-label="How It Works" className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">How It Works</h2>
@@ -87,10 +98,12 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {steps.map((step) => (
               <div
-                key={step.title}
+                key={step.id}
                 className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center text-center gap-3"
               >
-                <div className={`${step.iconBg} p-3 rounded-xl`}>{step.icon}</div>
+                <div className={`${step.iconBg} p-3 rounded-xl`}>
+                  <step.Icon size={24} aria-hidden="true" className={step.iconClassName} />
+                </div>
                 <h3 className="font-bold text-gray-800">{step.title}</h3>
                 <p className="text-gray-500 text-sm">{step.desc}</p>
               </div>
