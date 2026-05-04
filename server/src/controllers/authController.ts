@@ -46,7 +46,9 @@ function issueAuthResponse(user: IUser, res: Response): void {
 }
 
 export async function register(req: Request, res: Response): Promise<void> {
-  const user = await registerLocalUser(req.body as { username: string; email: string; password: string });
+  const user = await registerLocalUser(
+    req.body as { username: string; email: string; password: string }
+  );
   issueAuthResponse(user, res);
 }
 

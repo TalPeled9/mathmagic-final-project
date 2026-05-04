@@ -121,9 +121,11 @@ export default function AddFirstChildPage() {
             disabled={isLoading}
             className="w-full mt-4 flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3.5 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
           >
-            {isLoading
-              ? <GradientRing size={18} thickness={2.5} label="" />
-              : <Sparkles size={18} className="text-gold-magic" />}
+            {isLoading ? (
+              <GradientRing size={18} thickness={2.5} label="" />
+            ) : (
+              <Sparkles size={18} className="text-gold-magic" />
+            )}
             {isLoading ? 'Creating profile...' : "Create Child's Profile"}
             {!isLoading && <Sparkles size={18} className="text-gold-magic" />}
           </button>

@@ -140,10 +140,7 @@ function fallbackByMode<K extends StoryMode>(
         narrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
         adventureNarrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
         wizzyDialogue: `Let's continue safely, ${ctx.childName}. Choose your next step!`,
-        storyChoices: [
-          'Follow the glowing trail',
-          'Visit the puzzle gate',
-        ],
+        storyChoices: ['Follow the glowing trail', 'Visit the puzzle gate'],
         imageDescription:
           'A bright and friendly cartoon scene of a child avatar with Wizzy near a glowing magical path.',
       };
@@ -234,12 +231,18 @@ class LLMService {
   }
 
   // AdventureState-based convenience methods (recommended for controllers)
-  async generateStoryStepFromState(state: AdventureState, strict = false): Promise<LLMStoryStepResponse> {
+  async generateStoryStepFromState(
+    state: AdventureState,
+    strict = false
+  ): Promise<LLMStoryStepResponse> {
     const ctx = buildStoryStepContext(state);
     return this.requestByMode('story_step', ctx, strict);
   }
 
-  async generateMathQuestionFromState(state: AdventureState, strict = false): Promise<LLMMathQuestionResponse> {
+  async generateMathQuestionFromState(
+    state: AdventureState,
+    strict = false
+  ): Promise<LLMMathQuestionResponse> {
     const ctx = buildMathQuestionContext(state);
     return this.requestByMode('math_question', ctx, strict);
   }

@@ -22,7 +22,13 @@ export function OrbitSpinner({
     <div
       role="status"
       aria-label={label}
-      style={{ width: size, height: size, position: 'relative', display: 'inline-block', flexShrink: 0 }}
+      style={{
+        width: size,
+        height: size,
+        position: 'relative',
+        display: 'inline-block',
+        flexShrink: 0,
+      }}
     >
       {/* glowing core */}
       <div

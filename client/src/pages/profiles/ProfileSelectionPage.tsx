@@ -125,7 +125,10 @@ export default function ProfileSelectionPage() {
               className="flex flex-col items-center justify-center gap-3 bg-white/60 rounded-2xl p-5 border-2 border-dashed border-gray-200 hover:border-purple-wizzy/40 hover:bg-purple-wizzy/5 transition-all group"
             >
               <div className="w-20 h-20 rounded-full bg-gray-100 group-hover:bg-purple-wizzy/10 flex items-center justify-center transition-colors">
-                <Plus size={28} className="text-gray-300 group-hover:text-purple-wizzy transition-colors" />
+                <Plus
+                  size={28}
+                  className="text-gray-300 group-hover:text-purple-wizzy transition-colors"
+                />
               </div>
               <p className="text-sm text-gray-400 group-hover:text-purple-wizzy transition-colors font-medium">
                 Add Child

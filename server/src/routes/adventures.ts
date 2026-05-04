@@ -19,14 +19,14 @@ router.get(
   '/children/:childId/available',
   requireAuth,
   validate({ params: childParamsSchema }),
-  adventureController.getAvailableAdventures,
+  adventureController.getAvailableAdventures
 );
 
 router.get(
   '/children/:childId',
   requireAuth,
   validate({ params: childParamsSchema }),
-  adventureController.getChildAdventures,
+  adventureController.getChildAdventures
 );
 
 router.post(
@@ -34,7 +34,7 @@ router.post(
   requireAuth,
   aiRateLimit,
   validate({ params: childParamsSchema, body: startAdventureSchema }),
-  adventureController.startAdventure,
+  adventureController.startAdventure
 );
 
 // Adventure-scoped routes
@@ -42,14 +42,14 @@ router.get(
   '/:adventureId/images/:stepIndex',
   requireAuth,
   validate({ params: imageParamsSchema }),
-  adventureController.getAdventureImage,
+  adventureController.getAdventureImage
 );
 
 router.get(
   '/:adventureId',
   requireAuth,
   validate({ params: adventureParamsSchema }),
-  adventureController.getAdventure,
+  adventureController.getAdventure
 );
 
 router.post(
@@ -57,14 +57,14 @@ router.post(
   requireAuth,
   aiRateLimit,
   validate({ params: adventureParamsSchema, body: continueAdventureSchema }),
-  adventureController.continueAdventure,
+  adventureController.continueAdventure
 );
 
 router.post(
   '/:adventureId/answer',
   requireAuth,
   validate({ params: adventureParamsSchema, body: answerChallengeSchema }),
-  adventureController.answerChallenge,
+  adventureController.answerChallenge
 );
 
 router.post(
@@ -72,14 +72,14 @@ router.post(
   requireAuth,
   aiRateLimit,
   validate({ params: adventureParamsSchema }),
-  adventureController.requestHint,
+  adventureController.requestHint
 );
 
 router.post(
   '/:adventureId/complete',
   requireAuth,
   validate({ params: adventureParamsSchema }),
-  adventureController.completeAdventure,
+  adventureController.completeAdventure
 );
 
 export default router;

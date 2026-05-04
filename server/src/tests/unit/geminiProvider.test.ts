@@ -49,14 +49,15 @@ describe('GeminiProvider', () => {
 
   it('propagates errors from GeminiJsonClient', async () => {
     vi.mocked(GeminiJsonClient).mockImplementation(
-      () => ({
-        generateJson: vi.fn().mockRejectedValue(new Error('rate limited')),
-      }) as unknown as GeminiJsonClient
+      () =>
+        ({
+          generateJson: vi.fn().mockRejectedValue(new Error('rate limited')),
+        }) as unknown as GeminiJsonClient
     );
 
     const provider = new GeminiProvider();
-    await expect(
-      provider.generateJson({ prompt: 'x', schema: {} })
-    ).rejects.toThrow('rate limited');
+    await expect(provider.generateJson({ prompt: 'x', schema: {} })).rejects.toThrow(
+      'rate limited'
+    );
   });
 });

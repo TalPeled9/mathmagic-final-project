@@ -71,10 +71,7 @@ const CSRF_VALUE = 'test-csrf-token';
 
 function buildCookies(userId: string): string[] {
   const accessToken = generateAccessToken(userId);
-  return [
-    `${ACCESS_TOKEN_COOKIE}=${accessToken}`,
-    `${CSRF_COOKIE}=${CSRF_VALUE}`,
-  ];
+  return [`${ACCESS_TOKEN_COOKIE}=${accessToken}`, `${CSRF_COOKIE}=${CSRF_VALUE}`];
 }
 
 function csrfHeader(): { 'x-csrf-token': string } {
@@ -492,9 +489,7 @@ describe('adventure routes integration', () => {
     it('GET without auth cookie returns 401', async () => {
       const fakeId = new mongoose.Types.ObjectId().toString();
 
-      await request(app)
-        .get(`/api/adventures/${fakeId}`)
-        .expect(401);
+      await request(app).get(`/api/adventures/${fakeId}`).expect(401);
     });
   });
 

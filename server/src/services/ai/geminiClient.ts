@@ -31,7 +31,9 @@ export class GeminiJsonClient {
 
     const ai = await this.getClient();
 
-    logger.debug(`\n─── Gemini prompt ───────────────────────────────────────\n${prompt}\n─────────────────────────────────────────────────────────\n`);
+    logger.debug(
+      `\n─── Gemini prompt ───────────────────────────────────────\n${prompt}\n─────────────────────────────────────────────────────────\n`
+    );
 
     const llmStart = Date.now();
     const response = await ai.models.generateContent({
@@ -52,7 +54,9 @@ export class GeminiJsonClient {
       throw new Error('Gemini returned an empty response body.');
     }
 
-    logger.debug(`⏱  LLM: ${(llmDurationMs / 1000).toFixed(1)}s\n─── Gemini response ──────────────────────────────────────\n${rawText}\n─────────────────────────────────────────────────────────\n`);
+    logger.debug(
+      `⏱  LLM: ${(llmDurationMs / 1000).toFixed(1)}s\n─── Gemini response ──────────────────────────────────────\n${rawText}\n─────────────────────────────────────────────────────────\n`
+    );
 
     return parseJsonResponse<T>(rawText);
   }

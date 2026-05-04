@@ -21,12 +21,8 @@ function sleep(ms: number): Promise<void> {
 }
 
 function buildCookies(userId: string): string[] {
-  return [
-    `${ACCESS_TOKEN_COOKIE}=${generateAccessToken(userId)}`,
-    `${CSRF_COOKIE}=${CSRF_VALUE}`,
-  ];
+  return [`${ACCESS_TOKEN_COOKIE}=${generateAccessToken(userId)}`, `${CSRF_COOKIE}=${CSRF_VALUE}`];
 }
-
 
 async function timedPost(options: {
   label: string;
@@ -67,7 +63,9 @@ async function timedPost(options: {
     }
   }
 
-  throw new Error(`${label} failed after retries. Last: ${JSON.stringify(lastResponse?.body ?? {})}`);
+  throw new Error(
+    `${label} failed after retries. Last: ${JSON.stringify(lastResponse?.body ?? {})}`
+  );
 }
 
 describe('Gemini live E2E — full adventure flow', () => {

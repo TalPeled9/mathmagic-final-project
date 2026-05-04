@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface IUser {
   _id: string;
@@ -11,14 +11,17 @@ export interface IUser {
   updatedAt: Date;
 }
 
-const userSchema = new mongoose.Schema<IUser>({
-  email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
-  username: { type: String, unique: true, sparse: true, trim: true, minlength: 3, maxlength: 50 },
-  googleId: { type: String, unique: true, sparse: true },
-  passwordHash: { type: String },
-  name:     { type: String, required: true, trim: true, maxlength: 100 },
-}, { timestamps: true });
+const userSchema = new mongoose.Schema<IUser>(
+  {
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    username: { type: String, unique: true, sparse: true, trim: true, minlength: 3, maxlength: 50 },
+    googleId: { type: String, unique: true, sparse: true },
+    passwordHash: { type: String },
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+  },
+  { timestamps: true }
+);
 
-const User = mongoose.model<IUser>("User", userSchema);
+const User = mongoose.model<IUser>('User', userSchema);
 
 export default User;

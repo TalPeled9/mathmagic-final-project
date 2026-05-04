@@ -33,4 +33,3 @@ export interface UpdateChildRequest {
   name?: string;
   gradeLevel?: GradeLevel;
 }
-

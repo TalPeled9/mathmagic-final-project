@@ -8,11 +8,7 @@ export default defineConfig([
   ignores,
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      ...tsBase,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
+    extends: [...tsBase, reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

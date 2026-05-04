@@ -15,7 +15,13 @@ export function GradientRing({ size = 48, thickness = 4, label = 'Loading' }: Gr
     <div
       role="status"
       aria-label={label}
-      style={{ width: size, height: size, display: 'inline-block', position: 'relative', flexShrink: 0 }}
+      style={{
+        width: size,
+        height: size,
+        display: 'inline-block',
+        position: 'relative',
+        flexShrink: 0,
+      }}
     >
       <svg
         viewBox="0 0 50 50"
