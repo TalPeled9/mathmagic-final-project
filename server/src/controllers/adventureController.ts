@@ -27,7 +27,12 @@ import {
   consumePregeneratedImage,
   getPendingPrefetch,
 } from '../services/adventureService';
-import type { StorySegment, LLMStoryStepResponse, LLMMathQuestionResponse, LLMEndStoryResponse } from '@mathmagic/types';
+import type {
+  StorySegment,
+  LLMStoryStepResponse,
+  LLMMathQuestionResponse,
+  LLMEndStoryResponse,
+} from '@mathmagic/types';
 
 // ─── GET /api/adventures/children/:childId/available ────────────────────────
 
@@ -67,7 +72,10 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
   const llmResponse = await llmService.generateStoryStepFromState(state);
   const segment: StorySegment = mapStartAdventureResponse(llmResponse);
 
-  const generatedImageUrl = await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '');
+  const generatedImageUrl = await generateSegmentImage(
+    segment.imageDescription,
+    child.avatarUrl ?? ''
+  );
   if (generatedImageUrl) {
     segment.imageUrl = generatedImageUrl;
     await AdventureImage.create({
@@ -103,7 +111,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     adventureImages.map((img) => [
       img.stepIndex,
       `/api/adventures/${adventure._id}/images/${img.stepIndex}`,
-    ]),
+    ])
   );
 
   const challenge = adventure.currentChallenge
@@ -185,16 +193,25 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
   // mode === 'math_question' → waiting on prefetchForChoices (keyed 'choices')
   // mode === 'story_step'    → waiting on prefetchNextStep   (keyed 'step')
   const prefetchType =
-    mode === 'math_question' ? 'choices'
-    : (mode === 'story_step' || mode === 'end_story') ? 'step'
-    : null;
+    mode === 'math_question'
+      ? 'choices'
+      : mode === 'story_step' || mode === 'end_story'
+        ? 'step'
+        : null;
   if (prefetchType) {
     const pending = getPendingPrefetch(adventureId, adventure.currentStepIndex, prefetchType);
     if (pending) {
-      console.log(`[cache] WAIT ${mode} prefetch in flight step=${adventure.currentStepIndex} adventure=${adventureId}`);
-      try { await pending; } catch { /* non-fatal — errors already logged inside the helper */ }
-      const refreshed = await Adventure.findById(adventureId)
-        .select('pregeneratedChoiceSteps pregeneratedStep');
+      console.log(
+        `[cache] WAIT ${mode} prefetch in flight step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
+      try {
+        await pending;
+      } catch {
+        /* non-fatal — errors already logged inside the helper */
+      }
+      const refreshed = await Adventure.findById(adventureId).select(
+        'pregeneratedChoiceSteps pregeneratedStep'
+      );
       if (refreshed) {
         adventure.pregeneratedChoiceSteps = refreshed.pregeneratedChoiceSteps;
         adventure.pregeneratedStep = refreshed.pregeneratedStep;
@@ -205,20 +222,32 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
   // ── Cache-hit: math_question (pre-generated per story choice) ──────────────
   if (mode === 'math_question') {
     const cachedByChoice = (adventure.pregeneratedChoiceSteps[choiceIndex] ?? null) as {
-      mode: string; llmResponse: Record<string, unknown>; imageUrl: string | null; imageDescription: string;
+      mode: string;
+      llmResponse: Record<string, unknown>;
+      imageUrl: string | null;
+      imageDescription: string;
     } | null;
     if (cachedByChoice) {
-      console.log(`[cache] HIT math_question choice[${choiceIndex}] step=${adventure.currentStepIndex} adventure=${adventureId}`);
+      console.log(
+        `[cache] HIT math_question choice[${choiceIndex}] step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
       const llmResp = cachedByChoice.llmResponse as unknown as LLMMathQuestionResponse;
       const segment = mapMathQuestionResponse(llmResp);
       adventure.currentChallenge = segment.challenge
-        ? { problemText: llmResp.problemText, correctAnswer: llmResp.correctAnswer, options: segment.challenge.options, hintLevel: 0, attemptsCount: 0 }
+        ? {
+            problemText: llmResp.problemText,
+            correctAnswer: llmResp.correctAnswer,
+            options: segment.challenge.options,
+            hintLevel: 0,
+            attemptsCount: 0,
+          }
         : null;
       adventure.totalChallenges += 1;
       // Consume pre-generated image from in-process cache (instant).
       // Fall back to inline generation only if the cache was cleared (e.g. server restart).
-      const pregenImage = consumePregeneratedImage(adventureId, adventure.currentStepIndex, choiceIndex)
-        ?? await generateSegmentImage(cachedByChoice.imageDescription, child.avatarUrl ?? '');
+      const pregenImage =
+        consumePregeneratedImage(adventureId, adventure.currentStepIndex, choiceIndex) ??
+        (await generateSegmentImage(cachedByChoice.imageDescription, child.avatarUrl ?? ''));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedChoiceSteps = [];
       adventure.lastChoices = segment.choices;
@@ -234,24 +263,31 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
           imageData: pregenImage,
           contentType: 'image/jpeg',
           imageDescription: cachedByChoice.imageDescription,
-        }).catch((err: unknown) => logger.warn({ err }, 'AdventureImage.create failed on cache-hit math_question'));
+        }).catch((err: unknown) =>
+          logger.warn({ err }, 'AdventureImage.create failed on cache-hit math_question')
+        );
       }
       return;
     }
-    console.log(`[cache] MISS math_question choice[${choiceIndex}] step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`);
+    console.log(
+      `[cache] MISS math_question choice[${choiceIndex}] step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`
+    );
   }
 
   // ── Cache-hit: story_step (single pre-generated step, used after auto-continue) ─
   if (mode === 'story_step') {
     const cached = adventure.pregeneratedStep;
     if (cached?.mode === 'story_step') {
-      console.log(`[cache] HIT story_step step=${adventure.currentStepIndex} adventure=${adventureId}`);
+      console.log(
+        `[cache] HIT story_step step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
       const llmResp = cached.llmResponse as unknown as LLMStoryStepResponse;
       const segment = mapStartAdventureResponse(llmResp);
       // Consume pre-generated image from in-process cache (instant).
       // Fall back to inline generation only if the cache was cleared (e.g. server restart).
-      const pregenImage = consumePregeneratedImage(adventureId, adventure.currentStepIndex)
-        ?? await generateSegmentImage(cached.imageDescription, child.avatarUrl ?? '');
+      const pregenImage =
+        consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
+        (await generateSegmentImage(cached.imageDescription, child.avatarUrl ?? ''));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedStep = null;
       adventure.lastChoices = segment.choices;
@@ -267,22 +303,29 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
           imageData: pregenImage,
           contentType: 'image/jpeg',
           imageDescription: cached.imageDescription,
-        }).catch((err: unknown) => logger.warn({ err }, 'AdventureImage.create failed on cache-hit story_step'));
+        }).catch((err: unknown) =>
+          logger.warn({ err }, 'AdventureImage.create failed on cache-hit story_step')
+        );
       }
       return;
     }
-    console.log(`[cache] MISS story_step step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`);
+    console.log(
+      `[cache] MISS story_step step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`
+    );
   }
 
   // ── Cache-hit: end_story (pre-generated after the last story_step) ───────────
   if (mode === 'end_story') {
     const cached = adventure.pregeneratedStep;
     if (cached?.mode === 'end_story') {
-      console.log(`[cache] HIT end_story step=${adventure.currentStepIndex} adventure=${adventureId}`);
+      console.log(
+        `[cache] HIT end_story step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
       const llmResp = cached.llmResponse as unknown as LLMEndStoryResponse;
       const segment = mapEndStoryResponse(llmResp);
-      const pregenImage = consumePregeneratedImage(adventureId, adventure.currentStepIndex)
-        ?? await generateSegmentImage(cached.imageDescription, child.avatarUrl ?? '');
+      const pregenImage =
+        consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
+        (await generateSegmentImage(cached.imageDescription, child.avatarUrl ?? ''));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedStep = null;
       adventure.lastChoices = [];
@@ -297,11 +340,15 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
           imageData: pregenImage,
           contentType: 'image/jpeg',
           imageDescription: cached.imageDescription,
-        }).catch((err: unknown) => logger.warn({ err }, 'AdventureImage.create failed on cache-hit end_story'));
+        }).catch((err: unknown) =>
+          logger.warn({ err }, 'AdventureImage.create failed on cache-hit end_story')
+        );
       }
       return;
     }
-    console.log(`[cache] MISS end_story step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`);
+    console.log(
+      `[cache] MISS end_story step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`
+    );
   }
 
   // ── Cache miss: call LLM normally ─────────────────────────────────────────
@@ -330,7 +377,10 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     segment = mapStartAdventureResponse(llmResponse);
   }
 
-  const generatedImageUrl = await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '');
+  const generatedImageUrl = await generateSegmentImage(
+    segment.imageDescription,
+    child.avatarUrl ?? ''
+  );
   if (generatedImageUrl) {
     segment.imageUrl = generatedImageUrl;
     await AdventureImage.create({

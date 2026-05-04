@@ -17,12 +17,12 @@ const adventureImageSchema = new Schema<IAdventureImageDocument>(
     contentType: { type: String, required: true, default: 'image/jpeg' },
     imageDescription: { type: String, required: true },
   },
-  { timestamps: { createdAt: true, updatedAt: false } },
+  { timestamps: { createdAt: true, updatedAt: false } }
 );
 
 adventureImageSchema.index({ adventureId: 1, stepIndex: 1 }, { unique: true });
 
 export const AdventureImage = mongoose.model<IAdventureImageDocument>(
   'AdventureImage',
-  adventureImageSchema,
+  adventureImageSchema
 );

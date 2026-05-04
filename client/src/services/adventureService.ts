@@ -24,8 +24,7 @@ export const adventureService = {
   start: (childId: string, body: StartAdventureRequest) =>
     api.post<StartAdventureResponse>(`/adventures/children/${childId}`, body),
 
-  get: (adventureId: string) =>
-    api.get<GetAdventureResponse>(`/adventures/${adventureId}`),
+  get: (adventureId: string) => api.get<GetAdventureResponse>(`/adventures/${adventureId}`),
 
   getImage: (adventureId: string, stepIndex: number) =>
     api.get<GetAdventureImageResponse>(`/adventures/${adventureId}/images/${stepIndex}`),
@@ -36,8 +35,7 @@ export const adventureService = {
   answer: (adventureId: string, body: AnswerChallengeRequest) =>
     api.post<AnswerChallengeResponse>(`/adventures/${adventureId}/answer`, body),
 
-  hint: (adventureId: string) =>
-    api.post<HintResponse>(`/adventures/${adventureId}/hint`, {}),
+  hint: (adventureId: string) => api.post<HintResponse>(`/adventures/${adventureId}/hint`, {}),
 
   complete: (adventureId: string) =>
     api.post<CompleteAdventureResponse>(`/adventures/${adventureId}/complete`, {}),

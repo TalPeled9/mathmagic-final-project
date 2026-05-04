@@ -120,9 +120,7 @@ export default function AdventureSelectionPage() {
         /* ── Step 1: Topic Grid ── */
         <div className="w-full max-w-3xl">
           {topics.length === 0 ? (
-            <p className="text-center text-gray-400 mt-16">
-              No topics available for your grade.
-            </p>
+            <p className="text-center text-gray-400 mt-16">No topics available for your grade.</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {topics.map((topic) => {

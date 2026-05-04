@@ -36,10 +36,7 @@ describe('FallbackLLMClient', () => {
   });
 
   it('throws when all providers fail', async () => {
-    const client = new FallbackLLMClient([
-      makeFailingProvider('p1'),
-      makeFailingProvider('p2'),
-    ]);
+    const client = new FallbackLLMClient([makeFailingProvider('p1'), makeFailingProvider('p2')]);
 
     await expect(client.generateJson(params)).rejects.toThrow('All LLM providers failed');
   });

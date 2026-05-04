@@ -106,22 +106,22 @@ describe('OllamaProvider', () => {
 
   it('throws with HTTP status when Ollama returns a non-OK response', async () => {
     mockFetch({}, false, 429);
-    await expect(
-      new OllamaProvider().generateJson({ prompt: 'test', schema })
-    ).rejects.toThrow('HTTP 429');
+    await expect(new OllamaProvider().generateJson({ prompt: 'test', schema })).rejects.toThrow(
+      'HTTP 429'
+    );
   });
 
   it('throws when response.response is empty', async () => {
     mockFetch({ response: '' });
-    await expect(
-      new OllamaProvider().generateJson({ prompt: 'test', schema })
-    ).rejects.toThrow('empty response body');
+    await expect(new OllamaProvider().generateJson({ prompt: 'test', schema })).rejects.toThrow(
+      'empty response body'
+    );
   });
 
   it('throws when response.response is not valid JSON', async () => {
     mockFetch({ response: 'not json at all' });
-    await expect(
-      new OllamaProvider().generateJson({ prompt: 'test', schema })
-    ).rejects.toThrow('invalid JSON');
+    await expect(new OllamaProvider().generateJson({ prompt: 'test', schema })).rejects.toThrow(
+      'invalid JSON'
+    );
   });
 });

@@ -53,40 +53,41 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-parchment">
       {/* Hero */}
-      <section
-        aria-label="Introduction"
-        className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center gap-8"
-      >
-        <div className="flex-1">
-          <img src={logoImg} alt="MathMagic logo" className="h-10 mb-8" />
-          <p className="text-gold-magic text-sm font-medium mb-2">Wizzy makes math easy!</p>
-          <h1 className="text-4xl font-bold text-gray-800 leading-tight mb-6">
-            Help your child discover the magic of mathematics through interactive stories and
-            playful adventures that are tailored for them.
-          </h1>
-          <div className="flex gap-3">
-            <Link
-              to="/register"
-              className="flex items-center gap-2 bg-purple-wizzy text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/90 transition-colors"
-            >
-              Get Started <ArrowRight size={16} aria-hidden="true" />
-            </Link>
-            <Link
-              to="/login"
-              className="flex items-center gap-2 border-2 border-purple-wizzy text-purple-wizzy px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/5 transition-colors"
-            >
-              Log In
-            </Link>
-          </div>
+      <section aria-label="Introduction" className="max-w-6xl mx-auto px-6 py-12">
+        <div className="flex justify-center mb-8">
+          <img src={logoImg} alt="MathMagic logo" className="h-30" />
         </div>
-        <div className="flex-shrink-0">
-          <img src={wizzyImg} alt="Wizzy the wizard" className="w-64 md:w-72 aspect-square" />
+        <div className="flex flex-col md:flex-row items-center gap-8">
+          <div className="flex-1">
+            <p className="text-gold-magic text-lg font-medium mb-2">Wizzy makes math easy!</p>
+            <h1 className="text-4xl font-bold text-gray-800 leading-tight mb-6">
+              Help your child discover the magic of mathematics through interactive stories and
+              playful adventures that are tailored for them.
+            </h1>
+            <div className="flex gap-3">
+              <Link
+                to="/register"
+                className="flex items-center gap-2 bg-purple-wizzy text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/90 transition-colors"
+              >
+                Get Started <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+              <Link
+                to="/login"
+                className="flex items-center gap-2 border-2 border-purple-wizzy text-purple-wizzy px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/5 transition-colors"
+              >
+                Log In
+              </Link>
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <img src={wizzyImg} alt="Wizzy the wizard" className="w-64 md:w-72 aspect-square" />
+          </div>
         </div>
       </section>
 
       {/* What is MathMagic? */}
       <section aria-label="What is MathMagic" className="py-16 px-6">
-        <div className="max-w-3xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">What is MathMagic?</h2>
           <div className="w-12 h-1 bg-purple-wizzy mx-auto mb-8 rounded-full" />
           <div className="bg-violet-50 rounded-2xl p-8 text-gray-700 leading-relaxed">
@@ -145,7 +146,7 @@ export default function LandingPage() {
                     <CheckCircle
                       size={16}
                       aria-hidden="true"
-                      className="text-purple-wizzy mt-0.5 flex-shrink-0"
+                      className="text-gold-magic mt-0.5 flex-shrink-0"
                     />
                     {item}
                   </li>
@@ -165,7 +166,7 @@ export default function LandingPage() {
                     <CheckCircle
                       size={16}
                       aria-hidden="true"
-                      className="text-purple-wizzy mt-0.5 flex-shrink-0"
+                      className="text-gold-magic mt-0.5 flex-shrink-0"
                     />
                     {item}
                   </li>
@@ -177,14 +178,24 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Banner */}
-      <section aria-label="Call to action" className="bg-purple-wizzy py-16 px-6 text-center">
+      <section aria-label="Call to action" className="relative bg-purple-wizzy py-16 px-6 text-center overflow-hidden">
+        <Star size={20} aria-hidden="true" className="absolute top-4 left-[6%] text-gold-magic opacity-90" />
+        <Star size={32} aria-hidden="true" className="absolute top-8 left-[18%] text-gold-magic opacity-75" />
+        <Star size={16} aria-hidden="true" className="absolute bottom-5 left-[12%] text-gold-magic opacity-90" />
+        <Star size={26} aria-hidden="true" className="absolute bottom-8 left-[30%] text-gold-magic opacity-80" />
+        <Star size={18} aria-hidden="true" className="absolute top-5 left-[42%] text-gold-magic opacity-70" />
+        <Star size={28} aria-hidden="true" className="absolute top-3 right-[8%] text-gold-magic opacity-85" />
+        <Star size={20} aria-hidden="true" className="absolute top-9 right-[22%] text-gold-magic opacity-90" />
+        <Star size={36} aria-hidden="true" className="absolute bottom-4 right-[14%] text-gold-magic opacity-75" />
+        <Star size={16} aria-hidden="true" className="absolute bottom-7 right-[33%] text-gold-magic opacity-80" />
+        <Star size={22} aria-hidden="true" className="absolute top-6 right-[40%] text-gold-magic opacity-70" />
         <h2 className="text-2xl font-bold text-white mb-2">Ready to Start the Adventure?</h2>
         <p className="text-white/75 mb-8">Join thousands of families making math magical</p>
         <Link
           to="/register"
           className="inline-flex items-center gap-2 bg-white text-purple-wizzy px-8 py-3 rounded-xl font-semibold hover:bg-violet-50 transition-colors"
         >
-          Get Started Free <ArrowRight size={16} aria-hidden="true" />
+          Get Started For Free <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </section>
 

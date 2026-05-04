@@ -63,7 +63,10 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
               <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <User
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="text"
                   value={username}
@@ -83,7 +86,10 @@ export default function RegisterPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Mail
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="email"
                   value={email}
@@ -99,7 +105,10 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Lock
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -126,9 +135,11 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors mt-2"
             >
-              {isLoading
-                ? <GradientRing size={18} thickness={2.5} label="" />
-                : <Sparkles className="text-gold-magic" size={18} />}
+              {isLoading ? (
+                <GradientRing size={18} thickness={2.5} label="" />
+              ) : (
+                <Sparkles className="text-gold-magic" size={18} />
+              )}
               {isLoading ? 'Creating account...' : 'Create Account'}
               {!isLoading && <Sparkles className="text-gold-magic" size={18} />}
             </button>

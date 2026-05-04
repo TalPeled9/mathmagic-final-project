@@ -4,7 +4,6 @@ import { requireAuth } from '../middleware/auth';
 import { validate } from '../middleware/validateRequest';
 import * as parentController from '../controllers/parentController';
 
-
 const MIN_CHILD_NAME_LENGTH = 1;
 const MAX_CHILD_NAME_LENGTH = 50;
 const MAX_AVATAR_DESC_LENGTH = 200;
@@ -38,9 +37,29 @@ const regenerateAvatarSchema = z.object({
 
 router.get('/profile', requireAuth, parentController.getProfile);
 router.get('/children', requireAuth, parentController.getChildren);
-router.post('/children', requireAuth, validate({ body: createChildSchema }), parentController.createChild);
-router.get('/children/:childId', requireAuth, validate({ params: childIdSchema }), parentController.getChild);
-router.put('/children/:childId', requireAuth, validate({ params: childIdSchema, body: updateChildSchema }), parentController.updateChild);
-router.post('/children/:childId/avatar', requireAuth, validate({ params: childIdSchema, body: regenerateAvatarSchema }), parentController.regenerateAvatar);
+router.post(
+  '/children',
+  requireAuth,
+  validate({ body: createChildSchema }),
+  parentController.createChild
+);
+router.get(
+  '/children/:childId',
+  requireAuth,
+  validate({ params: childIdSchema }),
+  parentController.getChild
+);
+router.put(
+  '/children/:childId',
+  requireAuth,
+  validate({ params: childIdSchema, body: updateChildSchema }),
+  parentController.updateChild
+);
+router.post(
+  '/children/:childId/avatar',
+  requireAuth,
+  validate({ params: childIdSchema, body: regenerateAvatarSchema }),
+  parentController.regenerateAvatar
+);
 
 export default router;

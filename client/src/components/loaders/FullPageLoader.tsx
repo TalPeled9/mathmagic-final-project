@@ -69,7 +69,11 @@ export function FullPageLoader({ message = 'Preparing magic…' }: FullPageLoade
         <img
           src={wizzyImg}
           alt=""
-          style={{ width: 160, height: 'auto', filter: 'drop-shadow(0 8px 18px rgba(139,92,246,.25))' }}
+          style={{
+            width: 160,
+            height: 'auto',
+            filter: 'drop-shadow(0 8px 18px rgba(139,92,246,.25))',
+          }}
         />
       </div>
 

@@ -39,7 +39,7 @@ const pendingPrefetches = new Map<string, Promise<void>>();
 export function getPendingPrefetch(
   adventureId: string,
   stepIndex: number,
-  type: 'choices' | 'step',
+  type: 'choices' | 'step'
 ): Promise<void> | undefined {
   return pendingPrefetches.get(`${adventureId}:${stepIndex}:${type}`);
 }
@@ -51,7 +51,7 @@ function imageCacheKey(adventureId: string, stepIndex: number, choiceIndex?: num
 export function consumePregeneratedImage(
   adventureId: string,
   stepIndex: number,
-  choiceIndex?: number,
+  choiceIndex?: number
 ): string | null {
   const key = imageCacheKey(adventureId, stepIndex, choiceIndex);
   const image = pregeneratedImageCache.get(key) ?? null;
@@ -100,13 +100,11 @@ export function buildAdventureState(
     .map((turn) => turn.content);
 
   // Rolling window of last 10 turns for full transcript
-  const conversationTurns = adventure.conversationHistory
-    .slice(-10)
-    .map((turn) => ({
-      role: turn.role as 'wizzy' | 'child' | 'system',
-      content: turn.content,
-      dialogue: turn.dialogue,
-    }));
+  const conversationTurns = adventure.conversationHistory.slice(-10).map((turn) => ({
+    role: turn.role as 'wizzy' | 'child' | 'system',
+    content: turn.content,
+    dialogue: turn.dialogue,
+  }));
 
   // Most recent child answer — fixes hint context bug where childAnswer was always ''
   const lastChildAnswer = [...adventure.conversationHistory]
@@ -398,7 +396,7 @@ const MAX_HISTORY = 100;
 export function appendToHistory(
   adventure: IAdventureDocument,
   role: 'wizzy' | 'child' | 'system',
-  content: string,
+  content: string
 ): void {
   adventure.conversationHistory.push({ role, content, timestamp: new Date() });
   if (adventure.conversationHistory.length > MAX_HISTORY) {
@@ -443,10 +441,7 @@ export async function updateTopicProgress(
  * Registers the in-flight promise in `pendingPrefetches` so continueAdventure can
  * await it on a fast click instead of starting a duplicate LLM call.
  */
-export function prefetchForChoices(
-  adventure: IAdventureDocument,
-  child: IChildDocument,
-): void {
+export function prefetchForChoices(adventure: IAdventureDocument, child: IChildDocument): void {
   const nextIndex = adventure.currentStepIndex + 1;
   // When the next step is end_story, there are no per-choice branches to pre-generate.
   // Delegate to prefetchNextStep which handles the single end_story response.
@@ -455,26 +450,34 @@ export function prefetchForChoices(
     return;
   }
   if (nextIndex % 2 === 0) {
-    console.log(`[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} is even (expected math step)`);
+    console.log(
+      `[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} is even (expected math step)`
+    );
     return;
   }
 
   const choices = adventure.lastChoices;
   if (choices.length === 0) {
-    console.log(`[prefetch] SKIP prefetchForChoices: no lastChoices on adventure=${adventure._id.toString()}`);
+    console.log(
+      `[prefetch] SKIP prefetchForChoices: no lastChoices on adventure=${adventure._id.toString()}`
+    );
     return;
   }
 
   const key = `${adventure._id.toString()}:${nextIndex}:choices`;
   if (pendingPrefetches.has(key)) {
-    console.log(`[prefetch] DEDUP prefetchForChoices already in flight adventure=${adventure._id.toString()} nextIndex=${nextIndex}`);
+    console.log(
+      `[prefetch] DEDUP prefetchForChoices already in flight adventure=${adventure._id.toString()} nextIndex=${nextIndex}`
+    );
     return;
   }
 
-  console.log(`[prefetch] START prefetchForChoices adventure=${adventure._id.toString()} nextIndex=${nextIndex} choices=${choices.length}`);
+  console.log(
+    `[prefetch] START prefetchForChoices adventure=${adventure._id.toString()} nextIndex=${nextIndex} choices=${choices.length}`
+  );
 
   const promise = _doPrefetchForChoices(adventure, child, nextIndex, choices).finally(() =>
-    pendingPrefetches.delete(key),
+    pendingPrefetches.delete(key)
   );
   pendingPrefetches.set(key, promise);
 }
@@ -483,9 +486,11 @@ async function _doPrefetchForChoices(
   adventure: IAdventureDocument,
   child: IChildDocument,
   nextIndex: number,
-  choices: string[],
+  choices: string[]
 ): Promise<void> {
-  const pregeneratedChoiceSteps: (Record<string, unknown> | null)[] = Array(choices.length).fill(null);
+  const pregeneratedChoiceSteps: (Record<string, unknown> | null)[] = Array(choices.length).fill(
+    null
+  );
 
   await Promise.all(
     choices.map(async (choiceText, choiceIndex) => {
@@ -499,11 +504,14 @@ async function _doPrefetchForChoices(
         const llmResponse = await llmService.generateMathQuestionFromState(state, true);
         // Generate image now (while user is on the previous step) and hold in
         // the in-process cache so cache-hit serves are instant.
-        const imageUrl = await generateSegmentImage(llmResponse.imageDescription, child.avatarUrl ?? '');
+        const imageUrl = await generateSegmentImage(
+          llmResponse.imageDescription,
+          child.avatarUrl ?? ''
+        );
         if (imageUrl) {
           pregeneratedImageCache.set(
             imageCacheKey(adventure._id.toString(), nextIndex, choiceIndex),
-            imageUrl,
+            imageUrl
           );
         }
         pregeneratedChoiceSteps[choiceIndex] = {
@@ -513,24 +521,31 @@ async function _doPrefetchForChoices(
           imageDescription: llmResponse.imageDescription,
         };
 
-        console.log(`[prefetch] OK choice[${choiceIndex}]="${choiceText.slice(0, 30)}" adventure=${adventure._id.toString()}`);
+        console.log(
+          `[prefetch] OK choice[${choiceIndex}]="${choiceText.slice(0, 30)}" adventure=${adventure._id.toString()}`
+        );
       } catch (err) {
-        console.warn(`[prefetch] FAIL choice[${choiceIndex}] adventure=${adventure._id.toString()}`, err);
+        console.warn(
+          `[prefetch] FAIL choice[${choiceIndex}] adventure=${adventure._id.toString()}`,
+          err
+        );
       }
-    }),
+    })
   );
 
   // Wrap DB write separately — a write failure must not reject the tracked promise
   // (which would surface as a 500 to the user via `await pending` in the controller).
   try {
-    await Adventure.updateOne(
-      { _id: adventure._id },
-      { $set: { pregeneratedChoiceSteps } },
-    );
+    await Adventure.updateOne({ _id: adventure._id }, { $set: { pregeneratedChoiceSteps } });
     const cached = pregeneratedChoiceSteps.filter(Boolean).length;
-    console.log(`[prefetch] SAVED prefetchForChoices adventure=${adventure._id.toString()} cached=${cached}/${choices.length}`);
+    console.log(
+      `[prefetch] SAVED prefetchForChoices adventure=${adventure._id.toString()} cached=${cached}/${choices.length}`
+    );
   } catch (err) {
-    console.warn(`[prefetch] DB WRITE FAILED prefetchForChoices adventure=${adventure._id.toString()}`, err);
+    console.warn(
+      `[prefetch] DB WRITE FAILED prefetchForChoices adventure=${adventure._id.toString()}`,
+      err
+    );
   }
 }
 
@@ -542,10 +557,7 @@ async function _doPrefetchForChoices(
  * Registers the in-flight promise in `pendingPrefetches` so continueAdventure can
  * await it on a fast click instead of starting a duplicate LLM call.
  */
-export function prefetchNextStep(
-  adventure: IAdventureDocument,
-  child: IChildDocument,
-): void {
+export function prefetchNextStep(adventure: IAdventureDocument, child: IChildDocument): void {
   const nextIndex = adventure.currentStepIndex + 1;
   // Only skip if nextIndex is completely out of bounds (should never happen in practice).
   // end_story IS prefetchable — by the time we reach the last story_step, all math
@@ -557,17 +569,24 @@ export function prefetchNextStep(
 
   const key = `${adventure._id.toString()}:${nextIndex}:step`;
   if (pendingPrefetches.has(key)) {
-    console.log(`[prefetch] DEDUP prefetchNextStep already in flight adventure=${adventure._id.toString()} nextIndex=${nextIndex}`);
+    console.log(
+      `[prefetch] DEDUP prefetchNextStep already in flight adventure=${adventure._id.toString()} nextIndex=${nextIndex}`
+    );
     return;
   }
 
-  const nextMode: StoryMode = nextIndex >= adventure.totalSteps - 1 ? 'end_story'
-    : nextIndex % 2 !== 0 ? 'math_question'
-    : 'story_step';
-  console.log(`[prefetch] START prefetchNextStep adventure=${adventure._id.toString()} nextIndex=${nextIndex} mode=${nextMode}`);
+  const nextMode: StoryMode =
+    nextIndex >= adventure.totalSteps - 1
+      ? 'end_story'
+      : nextIndex % 2 !== 0
+        ? 'math_question'
+        : 'story_step';
+  console.log(
+    `[prefetch] START prefetchNextStep adventure=${adventure._id.toString()} nextIndex=${nextIndex} mode=${nextMode}`
+  );
 
   const promise = _doPrefetchNextStep(adventure, child, nextIndex, nextMode).finally(() =>
-    pendingPrefetches.delete(key),
+    pendingPrefetches.delete(key)
   );
   pendingPrefetches.set(key, promise);
 }
@@ -576,7 +595,7 @@ async function _doPrefetchNextStep(
   adventure: IAdventureDocument,
   child: IChildDocument,
   nextIndex: number,
-  nextMode: StoryMode,
+  nextMode: StoryMode
 ): Promise<void> {
   try {
     const state = buildAdventureState(adventure, child, nextMode);
@@ -594,12 +613,12 @@ async function _doPrefetchNextStep(
     }
     // Generate image now (while user is solving math) and hold in the in-process
     // cache so cache-hit serves are instant.
-    const imageUrl = await generateSegmentImage(llmResponse.imageDescription, child.avatarUrl ?? '');
+    const imageUrl = await generateSegmentImage(
+      llmResponse.imageDescription,
+      child.avatarUrl ?? ''
+    );
     if (imageUrl) {
-      pregeneratedImageCache.set(
-        imageCacheKey(adventure._id.toString(), nextIndex),
-        imageUrl,
-      );
+      pregeneratedImageCache.set(imageCacheKey(adventure._id.toString(), nextIndex), imageUrl);
     }
 
     await Adventure.updateOne(
@@ -613,9 +632,11 @@ async function _doPrefetchNextStep(
             imageDescription: llmResponse.imageDescription,
           },
         },
-      },
+      }
     );
-    console.log(`[prefetch] SAVED prefetchNextStep adventure=${adventure._id.toString()} mode=${nextMode}`);
+    console.log(
+      `[prefetch] SAVED prefetchNextStep adventure=${adventure._id.toString()} mode=${nextMode}`
+    );
   } catch (err) {
     console.warn(`[prefetch] FAIL prefetchNextStep adventure=${adventure._id.toString()}`, err);
   }

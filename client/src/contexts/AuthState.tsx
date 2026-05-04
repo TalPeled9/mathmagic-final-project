@@ -1,4 +1,4 @@
-import type { IChild, IAuthUser } from "@mathmagic/types";
+import type { IChild, IAuthUser } from '@mathmagic/types';
 
 export interface AuthState {
   user: IAuthUser | null;

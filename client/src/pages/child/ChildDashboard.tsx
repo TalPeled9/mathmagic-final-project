@@ -5,13 +5,15 @@ import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'luc
 import { SkeletonCard } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
-import { WORLD_EMOJIS, type AdventureSummary, type CompleteAdventureResponse } from '@mathmagic/types';
+import {
+  WORLD_EMOJIS,
+  type AdventureSummary,
+  type CompleteAdventureResponse,
+} from '@mathmagic/types';
 
 // ── Static config (mirrors server/src/config/levelThresholds.ts) ─────────────
 
-const LEVEL_THRESHOLDS: readonly number[] = [
-  0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000,
-];
+const LEVEL_THRESHOLDS: readonly number[] = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
 
 const LEVEL_NAMES: readonly string[] = [
   'Beginner',
@@ -82,7 +84,10 @@ function getLevelName(level: number): string {
   return LEVEL_NAMES[Math.min(level - 1, LEVEL_NAMES.length - 1)] ?? 'Grand Wizard';
 }
 
-function getXPProgress(totalXP: number, currentLevel: number): { xpInLevel: number; xpNeeded: number } {
+function getXPProgress(
+  totalXP: number,
+  currentLevel: number
+): { xpInLevel: number; xpNeeded: number } {
   const levelIndex = currentLevel - 1;
   const currentThreshold = LEVEL_THRESHOLDS[levelIndex] ?? 0;
   const nextThreshold = LEVEL_THRESHOLDS[levelIndex + 1] ?? null;
@@ -99,8 +104,9 @@ export default function ChildDashboard() {
   const { activeChild, setActiveChild } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const recentCompletion = (location.state as { completionData?: CompleteAdventureResponse } | null)
-    ?.completionData ?? null;
+  const recentCompletion =
+    (location.state as { completionData?: CompleteAdventureResponse } | null)?.completionData ??
+    null;
 
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [isLoadingAdventures, setIsLoadingAdventures] = useState(true);
@@ -112,7 +118,8 @@ export default function ChildDashboard() {
   const currentLevel = activeChild?.currentLevel ?? 1;
   const isMaxLevel = currentLevel >= LEVEL_THRESHOLDS.length;
   const { xpInLevel, xpNeeded } = getXPProgress(totalXP, currentLevel);
-  const progressPercent = isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
+  const progressPercent =
+    isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
 
   useEffect(() => {
     if (!activeChild) return;
@@ -190,7 +197,8 @@ export default function ChildDashboard() {
               <div className="flex items-center gap-1.5 bg-yellow-50 rounded-xl px-4 py-2">
                 <Star size={16} className="text-yellow-400 fill-yellow-400" />
                 <span className="font-bold text-yellow-600">
-                  {recentCompletion.starsEarned} {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}
+                  {recentCompletion.starsEarned}{' '}
+                  {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}
                 </span>
               </div>
               {recentCompletion.newLevel && (
@@ -199,7 +207,9 @@ export default function ChildDashboard() {
                   style={{ animation: 'glow-pulse 2s ease-in-out infinite' }}
                 >
                   <Trophy size={16} className="text-gold-magic" />
-                  <span className="font-bold text-amber-700">Level {recentCompletion.newLevel}!</span>
+                  <span className="font-bold text-amber-700">
+                    Level {recentCompletion.newLevel}!
+                  </span>
                 </div>
               )}
             </div>
@@ -244,9 +254,7 @@ export default function ChildDashboard() {
                   <Zap size={11} className="text-gold-magic" />
                   {activeChild.totalXP} XP
                 </span>
-                {!isMaxLevel && (
-                  <span>{xpNeeded - xpInLevel} XP to next level</span>
-                )}
+                {!isMaxLevel && <span>{xpNeeded - xpInLevel} XP to next level</span>}
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -277,9 +285,7 @@ export default function ChildDashboard() {
                   className="flex items-center gap-2 bg-purple-wizzy/5 border border-purple-wizzy/10 rounded-xl px-3 py-2 text-sm"
                   title={badge.description}
                 >
-                  <span className="text-lg">
-                    {BADGE_EMOJIS[badge.badgeType] ?? '🏅'}
-                  </span>
+                  <span className="text-lg">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
                   <span className="font-medium text-gray-700">{badge.badgeName}</span>
                 </div>
               ))}
@@ -320,7 +326,8 @@ export default function ChildDashboard() {
                   {TOPIC_ICONS[inProgressAdventure!.mathTopic] ?? '📚'}{' '}
                   {TOPIC_NAMES[inProgressAdventure!.mathTopic] ?? inProgressAdventure!.mathTopic}
                   {' · '}
-                  Step {inProgressAdventure!.currentStepIndex + 1} of {inProgressAdventure!.totalSteps}
+                  Step {inProgressAdventure!.currentStepIndex + 1} of{' '}
+                  {inProgressAdventure!.totalSteps}
                 </p>
                 {/* Progress bar */}
                 <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mt-2">

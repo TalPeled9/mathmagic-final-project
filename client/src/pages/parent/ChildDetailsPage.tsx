@@ -56,7 +56,10 @@ export default function ChildDetailsPage() {
     if (!child) return;
     setIsRegenerating(true);
     try {
-      const updated = await childService.regenerateAvatar(child._id, avatarDescription.trim() || undefined);
+      const updated = await childService.regenerateAvatar(
+        child._id,
+        avatarDescription.trim() || undefined
+      );
       setChild(updated);
       toast.success('Avatar regenerated!');
     } catch {
@@ -95,7 +98,11 @@ export default function ChildDetailsPage() {
           <div className="flex flex-col items-center gap-3">
             <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-wizzy/20">
               {child.avatarUrl ? (
-                <img src={child.avatarUrl} alt={child.name} className="w-full h-full object-cover" />
+                <img
+                  src={child.avatarUrl}
+                  alt={child.name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
                   <span className="text-3xl font-bold text-purple-wizzy">
@@ -171,7 +178,9 @@ export default function ChildDetailsPage() {
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
               >
                 {GRADES.map((g) => (
-                  <option key={g} value={g}>Grade {g}</option>
+                  <option key={g} value={g}>
+                    Grade {g}
+                  </option>
                 ))}
               </select>
             </div>

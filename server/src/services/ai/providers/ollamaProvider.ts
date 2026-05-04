@@ -4,8 +4,7 @@ import type { LLMProvider, LLMProviderRequest } from './LLMProvider';
 const TIMEOUT_MS = 30_000;
 
 function buildJsonTemplate(schema: Record<string, unknown>): string {
-  const props =
-    (schema as { properties?: Record<string, { type?: string }> }).properties ?? {};
+  const props = (schema as { properties?: Record<string, { type?: string }> }).properties ?? {};
   const fields = Object.entries(props).map(([key, def]) => {
     if (def.type === 'array') return `  "${key}": ["<string>"]`;
     return `  "${key}": "<${def.type ?? 'string'}>"`;
@@ -13,10 +12,7 @@ function buildJsonTemplate(schema: Record<string, unknown>): string {
   return `{\n${fields.join(',\n')}\n}`;
 }
 
-function buildPromptWithJsonInstruction(
-  prompt: string,
-  schema: Record<string, unknown>
-): string {
+function buildPromptWithJsonInstruction(prompt: string, schema: Record<string, unknown>): string {
   return `${prompt}
 
 IMPORTANT: Respond with ONLY a valid JSON object — no explanation, no markdown, no code fences.

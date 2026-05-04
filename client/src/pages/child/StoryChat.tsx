@@ -39,7 +39,7 @@ const BADGE_EMOJIS: Record<string, string> = {
 const CONFETTI_COLORS = ['#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899'];
 const CONFETTI_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
   id: i,
-  x: 4 + (i * 6) % 92,
+  x: 4 + ((i * 6) % 92),
   delay: i * 55,
   color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
   size: 6 + (i % 3) * 3,
@@ -63,7 +63,7 @@ export default function StoryChat() {
   const [isLastStep, setIsLastStep] = useState(false);
   const [completionData, setCompletionData] = useState<CompleteAdventureResponse | null>(null);
   const [lastAnswerFeedback, setLastAnswerFeedback] = useState<AnswerChallengeResponse | null>(
-    null,
+    null
   );
   const [lastSubmittedAnswer, setLastSubmittedAnswer] = useState<string | null>(null);
   const [pendingContinue, setPendingContinue] = useState(false);
@@ -91,7 +91,7 @@ export default function StoryChat() {
       setLastSubmittedAnswer(null);
       setPendingContinue(false);
     },
-    [addMessage],
+    [addMessage]
   );
 
   // ── Mount: load adventure state (start or resume) ────────────────────────────
@@ -116,7 +116,7 @@ export default function StoryChat() {
             } catch {
               // image unavailable — render without it
             }
-          }),
+          })
         );
       }
 
@@ -195,7 +195,7 @@ export default function StoryChat() {
         setIsProcessing(false);
       }
     },
-    [adventureId, isProcessing, currentChoices, addMessage, applySegment],
+    [adventureId, isProcessing, currentChoices, addMessage, applySegment]
   );
 
   const handleAutoContinue = useCallback(async () => {
@@ -240,7 +240,7 @@ export default function StoryChat() {
         setIsProcessing(false);
       }
     },
-    [adventureId, isProcessing, addMessage, isLastStep],
+    [adventureId, isProcessing, addMessage, isLastStep]
   );
 
   const handleHint = useCallback(async () => {
@@ -254,9 +254,7 @@ export default function StoryChat() {
         : response.hintText;
       addMessage({ role: 'hint', text: hintText });
       setCurrentChallenge((prev) =>
-        prev
-          ? { ...prev, hintLevel: Math.min(prev.hintLevel + 1, 3) as 0 | 1 | 2 | 3 }
-          : null,
+        prev ? { ...prev, hintLevel: Math.min(prev.hintLevel + 1, 3) as 0 | 1 | 2 | 3 } : null
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to get hint');
@@ -337,8 +335,7 @@ export default function StoryChat() {
             </div>
             {adventureContext && (
               <span className="text-xs text-gray-400 capitalize">
-                {adventureContext.storyWorld.replace(/-/g, ' ')} ·{' '}
-                {adventureContext.mathTopic}
+                {adventureContext.storyWorld.replace(/-/g, ' ')} · {adventureContext.mathTopic}
               </span>
             )}
           </div>
@@ -353,24 +350,14 @@ export default function StoryChat() {
         <div className="max-w-2xl mx-auto space-y-4 pb-4">
           {messages.map((msg) => {
             if (msg.role === 'wizzy')
-              return (
-                <WizzyMessage key={msg.id} text={msg.text} imageUrl={msg.imageUrl} />
-              );
+              return <WizzyMessage key={msg.id} text={msg.text} imageUrl={msg.imageUrl} />;
             if (msg.role === 'child')
               return (
-                <ChildMessage
-                  key={msg.id}
-                  text={msg.text}
-                  avatarUrl={activeChild?.avatarUrl}
-                />
+                <ChildMessage key={msg.id} text={msg.text} avatarUrl={activeChild?.avatarUrl} />
               );
             if (msg.role === 'hint') return <HintMessage key={msg.id} text={msg.text} />;
             return (
-              <SystemMessage
-                key={msg.id}
-                text={msg.text}
-                isCorrect={msg.isCorrect ?? false}
-              />
+              <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
             );
           })}
 
@@ -551,20 +538,23 @@ interface ChallengePanelProps {
   lastSubmittedAnswer: string | null;
 }
 
-function ChallengePanel({ challenge, onAnswer, onHint, lastFeedback, lastSubmittedAnswer }: ChallengePanelProps) {
+function ChallengePanel({
+  challenge,
+  onAnswer,
+  onHint,
+  lastFeedback,
+  lastSubmittedAnswer,
+}: ChallengePanelProps) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
       <div className="flex items-center gap-2 justify-center mb-4">
         <span className="text-lg">🧮</span>
-        <p className="text-base font-semibold text-gray-800 text-center">
-          {challenge.problemText}
-        </p>
+        <p className="text-base font-semibold text-gray-800 text-center">{challenge.problemText}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         {challenge.options.map((option, i) => {
-          const wasWrong =
-            lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
+          const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
           return (
             <button
               key={i}
@@ -617,7 +607,7 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
     // Stars pop in one by one (earned only)
     for (let i = 1; i <= data.starsEarned; i++) {
       timers.push(
-        setTimeout(() => setAnimatedStars((prev) => new Set([...prev, i])), 500 + i * 320),
+        setTimeout(() => setAnimatedStars((prev) => new Set([...prev, i])), 500 + i * 320)
       );
     }
 
@@ -698,7 +688,9 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
                 className={lit ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'}
                 style={
                   lit
-                    ? { animation: 'star-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }
+                    ? {
+                        animation: 'star-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                      }
                     : {}
                 }
               />
