@@ -248,7 +248,21 @@
   }
 }
 
+@keyframes cursor-wand-glow {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.25); }
+}
+
+@keyframes cursor-sparkle-fade {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+}
+
 @layer base {
+  *, *::before, *::after {
+    cursor: none !important;
+  }
+
   body {
     @apply bg-amber-50 text-gray-900 font-medium leading-relaxed;
   }
