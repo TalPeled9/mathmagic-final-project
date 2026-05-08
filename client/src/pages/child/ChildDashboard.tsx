@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation, Link } from 'react-router';
 import { toast } from 'sonner';
 import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'lucide-react';
 import { SkeletonCard } from '@/components/loaders';
@@ -157,10 +157,10 @@ export default function ChildDashboard() {
     <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
       {/* Header */}
       <div className="w-full max-w-2xl flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <Sparkles className="text-gold-magic" size={24} />
           <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
-        </div>
+        </Link>
         <button
           onClick={handleSwitchProfile}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"

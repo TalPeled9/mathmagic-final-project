@@ -48,10 +48,10 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
+          <Link to="/" className="flex items-center justify-center gap-2 mb-3">
             <Sparkles className="text-gold-magic" size={36} />
             <h1 className="text-4xl font-bold text-purple-wizzy">MathMagic</h1>
-          </div>
+          </Link>
           <h2 className="text-2xl font-bold text-purple-wizzy">Create an Account</h2>
           <p className="text-gray-500 mt-1">Start your child's learning adventure</p>
         </div>

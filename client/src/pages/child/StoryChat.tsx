@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2 } from 'lucide-react';
 import { ParentLoader } from '@/components/loaders';
@@ -329,10 +329,10 @@ export default function StoryChat() {
           </button>
 
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1.5">
+            <Link to="/" className="flex items-center gap-1.5">
               <Sparkles className="text-gold-magic" size={18} />
               <span className="font-bold text-purple-wizzy">MathMagic</span>
-            </div>
+            </Link>
             {adventureContext && (
               <span className="text-xs text-gray-400 capitalize">
                 {adventureContext.storyWorld.replace(/-/g, ' ')} · {adventureContext.mathTopic}

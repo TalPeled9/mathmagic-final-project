@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { Users, Sparkles, Lightbulb } from 'lucide-react';
 import { GradientRing } from '@/components/loaders';
@@ -39,10 +39,10 @@ export default function AddFirstChildPage() {
       <div className="w-full max-w-lg">
         {/* Logo + heading */}
         <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-3">
+          <Link to="/" className="flex items-center justify-center gap-2 mb-3">
             <Sparkles className="text-gold-magic" size={32} />
             <span className="text-4xl font-bold text-purple-wizzy">MathMagic</span>
-          </div>
+          </Link>
           <h2 className="text-xl font-bold text-purple-wizzy">One last step!</h2>
           <p className="text-gray-500 text-sm mt-1">
             Set up your child's profile to begin their learning adventure
