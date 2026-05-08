@@ -278,8 +278,8 @@ export default function StoryChat() {
           totalXP: response.totalXP,
           totalStars: response.totalStars,
           currentLevel: response.newLevel ?? activeChild.currentLevel,
-          badges: response.newBadge
-            ? [...activeChild.badges, response.newBadge]
+          badges: response.newBadges?.length
+            ? [...activeChild.badges, ...response.newBadges]
             : activeChild.badges,
         });
       }
@@ -644,7 +644,7 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
     return () => cancelAnimationFrame(rafId);
   }, [showXP, data.xpEarned]);
 
-  const hasExtras = !!(data.newLevel || data.newBadge);
+  const hasExtras = !!(data.newLevel || data.newBadges?.length);
 
   // Stable confetti list (derived from module-level constant, no re-computation needed)
   const confetti = useMemo(() => CONFETTI_PARTICLES, []);
@@ -743,15 +743,15 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
                 </span>
               </div>
             )}
-            {data.newBadge && (
-              <div className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full border border-purple-wizzy/10">
-                <span className="text-2xl">{BADGE_EMOJIS[data.newBadge.badgeType] ?? '🏅'}</span>
+            {data.newBadges?.map((badge) => (
+              <div key={badge.badgeType} className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full border border-purple-wizzy/10">
+                <span className="text-2xl">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
                 <div>
-                  <p className="font-bold text-purple-wizzy text-sm">{data.newBadge.badgeName}</p>
-                  <p className="text-xs text-gray-500">{data.newBadge.description}</p>
+                  <p className="font-bold text-purple-wizzy text-sm">{badge.badgeName}</p>
+                  <p className="text-xs text-gray-500">{badge.description}</p>
                 </div>
               </div>
-            )}
+            ))}
           </div>
         )}
 

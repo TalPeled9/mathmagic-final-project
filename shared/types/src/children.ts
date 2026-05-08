@@ -33,3 +33,23 @@ export interface UpdateChildRequest {
   name?: string;
   gradeLevel?: GradeLevel;
 }
+
+/** Enriched topic progress record used in statistics endpoints */
+export interface TopicStat {
+  mathTopic: string;
+  name: string;
+  icon: string;
+  color: string;
+  totalChallenges: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  hintsUsed: number;
+  masteryLevel: number; // 0–100
+  lastPracticedAt?: string;
+}
+
+/** Single day entry for learning-time charts */
+export interface DailySessionStat {
+  date: string; // ISO date string (YYYY-MM-DD)
+  minutes: number;
+}

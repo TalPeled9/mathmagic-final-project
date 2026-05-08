@@ -19,6 +19,8 @@ export interface IChildDocument extends Document {
   totalStars: number;
   unlockedWorlds: string[];
   badges: IBadge[];
+  /** Consecutive completed adventures with 0 hints. Resets on any hint use. Used for hint-free-run badge. */
+  consecutiveHintFreeAdventures: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +35,7 @@ const childSchema = new Schema<IChildDocument>(
     totalXP: { type: Number, default: 0 },
     totalStars: { type: Number, default: 0 },
     unlockedWorlds: { type: [String], default: [] },
+    consecutiveHintFreeAdventures: { type: Number, default: 0, min: 0 },
     badges: {
       type: [
         new Schema(
