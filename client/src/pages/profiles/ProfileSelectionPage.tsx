@@ -69,7 +69,7 @@ export default function ProfileSelectionPage() {
       {isLoading ? (
         <ParentLoader message="Loading profiles…" />
       ) : (
-        <div className="flex flex-wrap justify-center gap-6 max-w-[720px]">
+        <div className="flex flex-wrap justify-center gap-10 max-w-[900px]">
           {children.length === 0 ? (
             <button
               onClick={() => navigate('/parent')}
