@@ -10,7 +10,7 @@ export default function ProfileCard({ child, onSelect }: ProfileCardProps) {
   return (
     <button
       onClick={() => onSelect(child)}
-      className="group w-40 flex flex-col items-center bg-white rounded-2xl shadow-sm overflow-hidden border-2 border-transparent hover:border-purple-wizzy/40 hover:scale-105 hover:shadow-lg hover:shadow-purple-300/40 transition-all duration-200"
+      className="group w-40 h-52 flex flex-col items-center bg-white rounded-2xl shadow-sm overflow-hidden border-2 border-transparent hover:border-purple-wizzy/40 hover:scale-105 hover:shadow-lg hover:shadow-purple-300/40 transition-all duration-200"
     >
       <div className="w-full h-40 overflow-hidden bg-purple-wizzy/5">
         <img
