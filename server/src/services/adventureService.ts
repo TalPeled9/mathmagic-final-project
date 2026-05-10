@@ -13,12 +13,13 @@ import type {
 import { Adventure, type IAdventureDocument } from '../models/Adventure';
 import { AdventureImage } from '../models/AdventureImage';
 import { Child, type IChildDocument } from '../models/Child';
-import { TopicProgress } from '../models/TopicProgress';
 import { generateStoryImage } from './ai/imageGenerationService';
 import { buildStorySummary } from './ai/storyContextBuilder';
 import { llmService } from './ai/llmService';
 import { getLevelForXP } from '../config/levelThresholds';
-import { BADGE_DEFINITIONS } from '../config/badges';
+import { calculateChallengeXP, calculateCompletionXP, type XPResult, type AdventureStats } from './gamification/xpService';
+import { updateTopicMastery } from './gamification/masteryService';
+import { checkAndAwardBadges, type BadgeContext } from './gamification/badgeService';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../lib/logger';
 
@@ -226,20 +227,9 @@ export async function generateSegmentImage(
 }
 
 // ─── XP Calculation ──────────────────────────────────────────────────────────
+// Delegates to gamification/xpService — re-exported for controller use
 
-export function calculateAnswerXP(correct: boolean, hintUsed: boolean): number {
-  if (!correct) return 2;
-  let xp = 10;
-  if (!hintUsed) xp += 5;
-  return xp;
-}
-
-export interface AdventureStats {
-  totalChallenges: number;
-  correctAnswers: number;
-  incorrectAnswers: number;
-  hintsUsed: number;
-}
+export { calculateChallengeXP, calculateCompletionXP, type XPResult, type AdventureStats };
 
 export function calculateAdventureRewards(stats: AdventureStats): { starsEarned: number } {
   const { totalChallenges, correctAnswers, hintsUsed } = stats;
@@ -247,9 +237,9 @@ export function calculateAdventureRewards(stats: AdventureStats): { starsEarned:
 
   const accuracy = correctAnswers / totalChallenges;
   let starsEarned: number;
-  if (accuracy > 0.9 && hintsUsed === 0) {
+  if (accuracy >= 0.9 && hintsUsed === 0) {
     starsEarned = 3;
-  } else if (accuracy > 0.7) {
+  } else if (accuracy >= 0.7) {
     starsEarned = 2;
   } else {
     starsEarned = 1;
@@ -259,13 +249,19 @@ export function calculateAdventureRewards(stats: AdventureStats): { starsEarned:
 
 // ─── Rewards Application ─────────────────────────────────────────────────────
 
+export interface RewardsContext {
+  currentStoryWorld: string;
+  adventureDurationMinutes: number;
+  totalCompletedAdventures: number;
+}
+
 export async function applyRewardsToChild(
   child: IChildDocument,
   xpEarned: number,
   starsEarned: number,
   stats: AdventureStats,
-  currentStoryWorld?: string
-): Promise<{ newLevel?: number; newBadge?: IBadge }> {
+  context: RewardsContext
+): Promise<{ newLevel?: number; newBadges: IBadge[] }> {
   const previousLevel = child.currentLevel;
   child.totalXP += xpEarned;
   child.totalStars += starsEarned;
@@ -277,116 +273,24 @@ export async function applyRewardsToChild(
     newLevel = levelInfo.level;
   }
 
-  const alreadyHas = (badgeType: string) => child.badges.some((b) => b.badgeType === badgeType);
-  let newBadge: IBadge | undefined;
-
-  // first-adventure: check BEFORE this adventure is marked completed
-  if (!alreadyHas('first-adventure')) {
-    const completedCount = await Adventure.countDocuments({
-      childId: child._id,
-      status: 'completed',
-    });
-    if (completedCount === 0) {
-      newBadge = pushBadge(child, 'first-adventure');
-    }
+  // Update hint-free streak counter BEFORE badge check so badge service sees the new value
+  if (stats.hintsUsed === 0) {
+    child.consecutiveHintFreeAdventures = (child.consecutiveHintFreeAdventures ?? 0) + 1;
+  } else {
+    child.consecutiveHintFreeAdventures = 0;
   }
 
-  // perfect-score: 100% accuracy with 0 hints (retries allowed)
-  if (
-    !newBadge &&
-    !alreadyHas('perfect-score') &&
-    stats.totalChallenges > 0 &&
-    stats.correctAnswers === stats.totalChallenges &&
-    stats.hintsUsed === 0
-  ) {
-    newBadge = pushBadge(child, 'perfect-score');
-  }
+  const badgeContext: BadgeContext = {
+    currentStoryWorld: context.currentStoryWorld,
+    adventureDurationMinutes: context.adventureDurationMinutes,
+    totalCompletedAdventures: context.totalCompletedAdventures,
+    consecutiveHintFreeAdventures: child.consecutiveHintFreeAdventures,
+  };
 
-  // speed-master: all correct on first attempt (no wrong answers, no hints)
-  if (
-    !newBadge &&
-    !alreadyHas('speed-master') &&
-    stats.totalChallenges > 0 &&
-    stats.incorrectAnswers === 0 &&
-    stats.hintsUsed === 0
-  ) {
-    newBadge = pushBadge(child, 'speed-master');
-  }
-
-  // 5-day-streak: completed adventures on 5 consecutive calendar days
-  if (!newBadge && !alreadyHas('5-day-streak')) {
-    const completedAdventures = await Adventure.find(
-      { childId: child._id, status: 'completed', completedAt: { $exists: true } },
-      { completedAt: 1, _id: 0 }
-    ).lean();
-
-    const daySet = new Set<string>();
-    const todayUTC = new Date().toISOString().slice(0, 10);
-    daySet.add(todayUTC);
-    for (const a of completedAdventures) {
-      if (a.completedAt) daySet.add(new Date(a.completedAt).toISOString().slice(0, 10));
-    }
-    const sortedDays = Array.from(daySet).sort().reverse(); // descending
-    let streak = 1;
-    for (let i = 1; i < sortedDays.length; i++) {
-      const prev = new Date(sortedDays[i - 1]).getTime();
-      const curr = new Date(sortedDays[i]).getTime();
-      if (prev - curr === 86400000) {
-        streak += 1;
-        if (streak >= 5) break;
-      } else {
-        break;
-      }
-    }
-    if (streak >= 5) newBadge = pushBadge(child, '5-day-streak');
-  }
-
-  // explorer: completed adventures in 3 different story worlds
-  if (!newBadge && !alreadyHas('explorer')) {
-    const distinctWorlds = await Adventure.distinct('storyWorld', {
-      childId: child._id,
-      status: 'completed',
-    });
-    const worldSet = new Set<string>(distinctWorlds);
-    if (currentStoryWorld) worldSet.add(currentStoryWorld);
-    if (worldSet.size >= 3) newBadge = pushBadge(child, 'explorer');
-  }
-
-  // topic-master: mastery >= 80% on a topic with at least 5 challenges
-  if (!newBadge && !alreadyHas('topic-master')) {
-    const masteredTopic = await TopicProgress.findOne({
-      childId: child._id,
-      masteryLevel: { $gte: 80 },
-      totalChallenges: { $gte: 5 },
-    }).lean();
-    if (masteredTopic) newBadge = pushBadge(child, 'topic-master');
-  }
+  const newBadges = await checkAndAwardBadges(child, stats, badgeContext);
 
   await child.save();
-  return { newLevel, newBadge };
-}
-
-function pushBadge(child: IChildDocument, badgeType: string): IBadge | undefined {
-  const def = BADGE_DEFINITIONS.find((b) => b.badgeType === badgeType);
-  if (!def) return undefined;
-
-  const earnedAt = new Date();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (child.badges as any[]).push({
-    badgeType: def.badgeType,
-    badgeName: def.badgeName,
-    description: def.description,
-    iconUrl: def.iconUrl,
-    earnedAt,
-  });
-
-  return {
-    badgeType: def.badgeType,
-    badgeName: def.badgeName,
-    description: def.description,
-    iconUrl: def.iconUrl,
-    earnedAt: earnedAt.toISOString(),
-  };
+  return { newLevel, newBadges };
 }
 
 // ─── Conversation History ────────────────────────────────────────────────────
@@ -404,31 +308,9 @@ export function appendToHistory(
   }
 }
 
-// ─── Topic Progress ──────────────────────────────────────────────────────────
+// ─── Topic Progress (delegates to masteryService) ───────────────────────────
 
-export async function updateTopicProgress(
-  childId: string,
-  mathTopic: string,
-  correct: boolean,
-  hintUsed: boolean
-): Promise<void> {
-  const inc: Record<string, number> = {
-    totalChallenges: 1,
-    ...(correct ? { correctAnswers: 1 } : { incorrectAnswers: 1 }),
-    ...(hintUsed ? { hintsUsed: 1 } : {}),
-  };
-
-  const doc = await TopicProgress.findOneAndUpdate(
-    { childId, mathTopic },
-    { $inc: inc, $set: { lastPracticedAt: new Date() } },
-    { upsert: true, new: true }
-  );
-
-  if (doc && doc.totalChallenges > 0) {
-    const masteryLevel = Math.round((doc.correctAnswers / doc.totalChallenges) * 100);
-    await TopicProgress.updateOne({ _id: doc._id }, { $set: { masteryLevel } });
-  }
-}
+export { updateTopicMastery as updateTopicProgress };
 
 // ─── Pre-generation ──────────────────────────────────────────────────────────
 

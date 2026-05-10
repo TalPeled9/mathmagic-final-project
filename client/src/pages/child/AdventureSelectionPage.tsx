@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { ArrowLeft, Sparkles, Wand2 } from 'lucide-react';
 import { SparkleSpinner, SkeletonCard, AILoader } from '@/components/loaders';
@@ -78,10 +78,10 @@ export default function AdventureSelectionPage() {
           <ArrowLeft size={15} />
           Dashboard
         </button>
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <Sparkles className="text-gold-magic" size={24} />
           <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
-        </div>
+        </Link>
         {/* Spacer to keep logo centred */}
         <div className="w-24" />
       </div>

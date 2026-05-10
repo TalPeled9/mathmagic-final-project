@@ -17,7 +17,8 @@ import {
   mapEndStoryResponse,
   mapHintResponse,
   generateSegmentImage,
-  calculateAnswerXP,
+  calculateChallengeXP,
+  calculateCompletionXP,
   calculateAdventureRewards,
   applyRewardsToChild,
   appendToHistory,
@@ -431,7 +432,11 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (isCorrect) {
     const hintUsed = adventure.currentChallenge.hintLevel > 0;
-    const xpEarned = calculateAnswerXP(true, hintUsed);
+
+    // Increment streak BEFORE calculating XP so the +10 bonus fires on the 3rd correct
+    adventure.consecutiveCorrect = (adventure.consecutiveCorrect ?? 0) + 1;
+
+    const { xpEarned, breakdown } = calculateChallengeXP(true, hintUsed, adventure.consecutiveCorrect);
 
     adventure.xpEarned += xpEarned;
     adventure.correctAnswers += 1;
@@ -442,7 +447,7 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
     await updateTopicProgress(child._id.toString(), adventure.mathTopic, true, hintUsed);
 
-    res.json({ correct: true, xpEarned, feedback: 'Great job! ✨' });
+    res.json({ correct: true, xpEarned, breakdown, feedback: 'Great job! ✨' });
     return;
   }
 
@@ -452,7 +457,9 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (adventure.currentChallenge.attemptsCount >= 3) {
     const correctAnswer = adventure.currentChallenge.correctAnswer;
-    adventure.xpEarned += 2; // consolation XP
+    // Consolation XP for seeing the answer — streak resets on reveal
+    adventure.consecutiveCorrect = 0;
+    adventure.xpEarned += 2;
     appendToHistory(adventure, 'system', `The correct answer was ${correctAnswer}. Keep going!`);
     adventure.currentChallenge = null;
     adventure.currentHints = []; // reset hint memory for next challenge
@@ -531,19 +538,34 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
   const { starsEarned } = calculateAdventureRewards(stats);
   adventure.starsEarned = starsEarned;
 
+  // Completion XP is separate from per-challenge XP (scales with accuracy)
+  const completionXP = calculateCompletionXP(stats);
+  adventure.xpEarned += completionXP;
+
   await adventure.save();
 
-  const { newLevel, newBadge } = await applyRewardsToChild(
-    child,
-    adventure.xpEarned,
-    starsEarned,
-    stats,
-    adventure.storyWorld
-  );
+  // Count completed adventures AFTER saving so the count is accurate for badge checks
+  const totalCompletedAdventures = await Adventure.countDocuments({
+    childId: child._id,
+    status: 'completed',
+  });
 
   const durationMinutes = Math.round(
     (adventure.completedAt.getTime() - adventure.startedAt.getTime()) / 60000
   );
+
+  const { newLevel, newBadges } = await applyRewardsToChild(
+    child,
+    adventure.xpEarned,
+    starsEarned,
+    stats,
+    {
+      currentStoryWorld: adventure.storyWorld,
+      adventureDurationMinutes: durationMinutes,
+      totalCompletedAdventures,
+    }
+  );
+
   await LearningSession.findOneAndUpdate(
     { adventureId: adventure._id },
     { endTime: adventure.completedAt, duration: durationMinutes }
@@ -551,9 +573,10 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
 
   res.json({
     xpEarned: adventure.xpEarned,
+    completionXP,
     starsEarned,
     newLevel,
-    newBadge,
+    newBadges,
     totalXP: child.totalXP,
     totalStars: child.totalStars,
   });

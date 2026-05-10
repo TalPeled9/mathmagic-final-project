@@ -1,4 +1,4 @@
-import { Navigate, Link } from 'react-router';
+import { Link } from 'react-router';
 import { ArrowRight, BookOpen, Sparkles, Star, Users, Shield, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { FullPageLoader } from '@/components/loaders';
@@ -45,17 +45,18 @@ const childFeatures = [
 ];
 
 export default function LandingPage() {
-  const { user, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) return <FullPageLoader />;
-  if (user) return <Navigate to="/profiles" replace />;
 
   return (
     <div className="min-h-screen bg-parchment">
       {/* Hero */}
       <section aria-label="Introduction" className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex justify-center mb-8">
-          <img src={logoImg} alt="MathMagic logo" className="h-30" />
+          <Link to="/">
+            <img src={logoImg} alt="MathMagic logo" className="h-30" />
+          </Link>
         </div>
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="flex-1">
@@ -67,20 +68,22 @@ export default function LandingPage() {
             <div className="flex gap-3">
               <Link
                 to="/register"
-                className="flex items-center gap-2 bg-purple-wizzy text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/90 transition-colors"
+                className="flex items-center gap-2 bg-purple-wizzy text-white px-6 py-3 rounded-xl font-semibold shadow-sm hover:bg-purple-wizzy/90 hover:shadow-md hover:-translate-y-0.5 transition-all"
               >
                 Get Started <ArrowRight size={16} aria-hidden="true" />
               </Link>
               <Link
                 to="/login"
-                className="flex items-center gap-2 border-2 border-purple-wizzy text-purple-wizzy px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/5 transition-colors"
+                className="flex items-center gap-2 border-2 border-purple-wizzy text-purple-wizzy px-6 py-3 rounded-xl font-semibold hover:bg-purple-wizzy/5 hover:shadow-sm hover:-translate-y-0.5 transition-all"
               >
                 Log In
               </Link>
             </div>
           </div>
           <div className="flex-shrink-0">
-            <img src={wizzyImg} alt="Wizzy the wizard" className="w-64 md:w-72 aspect-square" />
+            <div style={{ animation: 'mm-float 2.8s ease-in-out infinite' }}>
+              <img src={wizzyImg} alt="Wizzy the wizard" className="w-64 md:w-72 aspect-square" />
+            </div>
           </div>
         </div>
       </section>
@@ -112,7 +115,7 @@ export default function LandingPage() {
             {steps.map((step) => (
               <div
                 key={step.id}
-                className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center text-center gap-3"
+                className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center text-center gap-3 hover:shadow-md hover:-translate-y-1 transition-all"
               >
                 <div className={`${step.iconBg} p-3 rounded-xl`}>
                   <step.Icon size={24} aria-hidden="true" className={step.iconClassName} />
@@ -133,7 +136,7 @@ export default function LandingPage() {
             <div className="w-12 h-1 bg-purple-wizzy mx-auto rounded-full" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-violet-50 rounded-2xl p-6">
+            <div className="bg-violet-50 rounded-2xl p-6 transition-all hover:shadow-sm hover:-translate-y-1">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-violet-100 p-2 rounded-xl">
                   <Users size={20} aria-hidden="true" className="text-purple-wizzy" />
@@ -153,7 +156,7 @@ export default function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-violet-50 rounded-2xl p-6">
+            <div className="bg-violet-50 rounded-2xl p-6 transition-all hover:shadow-sm hover:-translate-y-1">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-violet-100 p-2 rounded-xl">
                   <Shield size={20} aria-hidden="true" className="text-purple-wizzy" />
@@ -179,21 +182,21 @@ export default function LandingPage() {
 
       {/* CTA Banner */}
       <section aria-label="Call to action" className="relative bg-purple-wizzy py-16 px-6 text-center overflow-hidden">
-        <Star size={20} aria-hidden="true" className="absolute top-4 left-[6%] text-gold-magic opacity-90" />
-        <Star size={32} aria-hidden="true" className="absolute top-8 left-[18%] text-gold-magic opacity-75" />
-        <Star size={16} aria-hidden="true" className="absolute bottom-5 left-[12%] text-gold-magic opacity-90" />
-        <Star size={26} aria-hidden="true" className="absolute bottom-8 left-[30%] text-gold-magic opacity-80" />
-        <Star size={18} aria-hidden="true" className="absolute top-5 left-[42%] text-gold-magic opacity-70" />
-        <Star size={28} aria-hidden="true" className="absolute top-3 right-[8%] text-gold-magic opacity-85" />
-        <Star size={20} aria-hidden="true" className="absolute top-9 right-[22%] text-gold-magic opacity-90" />
-        <Star size={36} aria-hidden="true" className="absolute bottom-4 right-[14%] text-gold-magic opacity-75" />
-        <Star size={16} aria-hidden="true" className="absolute bottom-7 right-[33%] text-gold-magic opacity-80" />
-        <Star size={22} aria-hidden="true" className="absolute top-6 right-[40%] text-gold-magic opacity-70" />
+        <Star size={20} aria-hidden="true" className="absolute top-4 left-[6%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.8s ease-in-out infinite', animationDelay: '0s' }} />
+        <Star size={32} aria-hidden="true" className="absolute top-8 left-[18%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.2s ease-in-out infinite', animationDelay: '0.3s' }} />
+        <Star size={16} aria-hidden="true" className="absolute bottom-5 left-[12%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.6s ease-in-out infinite', animationDelay: '0.7s' }} />
+        <Star size={26} aria-hidden="true" className="absolute bottom-8 left-[30%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.4s ease-in-out infinite', animationDelay: '0.2s' }} />
+        <Star size={18} aria-hidden="true" className="absolute top-5 left-[42%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.0s ease-in-out infinite', animationDelay: '1.0s' }} />
+        <Star size={28} aria-hidden="true" className="absolute top-3 right-[8%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.9s ease-in-out infinite', animationDelay: '0.5s' }} />
+        <Star size={20} aria-hidden="true" className="absolute top-9 right-[22%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.3s ease-in-out infinite', animationDelay: '0.9s' }} />
+        <Star size={36} aria-hidden="true" className="absolute bottom-4 right-[14%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.7s ease-in-out infinite', animationDelay: '0.4s' }} />
+        <Star size={16} aria-hidden="true" className="absolute bottom-7 right-[33%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.1s ease-in-out infinite', animationDelay: '1.2s' }} />
+        <Star size={22} aria-hidden="true" className="absolute top-6 right-[40%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.6s ease-in-out infinite', animationDelay: '0.8s' }} />
         <h2 className="text-2xl font-bold text-white mb-2">Ready to Start the Adventure?</h2>
         <p className="text-white/75 mb-8">Join thousands of families making math magical</p>
         <Link
           to="/register"
-          className="inline-flex items-center gap-2 bg-white text-purple-wizzy px-8 py-3 rounded-xl font-semibold hover:bg-violet-50 transition-colors"
+          className="inline-flex items-center gap-2 bg-white text-purple-wizzy px-8 py-3 rounded-xl font-semibold shadow-sm hover:bg-violet-50 hover:shadow-md hover:-translate-y-0.5 transition-all"
         >
           Get Started For Free <ArrowRight size={16} aria-hidden="true" />
         </Link>

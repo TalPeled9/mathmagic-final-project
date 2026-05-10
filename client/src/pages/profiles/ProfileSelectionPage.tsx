@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { Plus, Sparkles, Settings, LogOut, Star, Zap } from 'lucide-react';
 import { ParentLoader } from '@/components/loaders';
@@ -39,10 +39,10 @@ export default function ProfileSelectionPage() {
     <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
       {/* Header */}
       <div className="w-full max-w-2xl flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <Sparkles className="text-gold-magic" size={24} />
           <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/parent')}

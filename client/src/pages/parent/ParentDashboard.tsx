@@ -64,10 +64,10 @@ export default function ParentDashboard() {
             <ArrowLeft size={15} />
             Back to Profiles
           </Link>
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <Sparkles className="text-gold-magic" size={20} />
             <span className="text-lg font-bold text-purple-wizzy">MathMagic</span>
-          </div>
+          </Link>
         </div>
 
         {/* Title */}

@@ -70,11 +70,18 @@ export interface AnswerChallengeRequest {
   answer: string;
 }
 
+export interface XPBreakdown {
+  base: number;
+  noHintBonus: number;
+  streakBonus: number;
+}
+
 export interface AnswerChallengeResponse {
   correct: boolean;
   xpEarned?: number; // only if correct
   feedback: string; // "Great job! ✨" or "Almost! Try again"
   correctAnswer?: string; // revealed after 3 failed attempts
+  breakdown?: XPBreakdown; // present when correct — useful for XP animation on client
 }
 
 export interface HintResponse {
@@ -85,9 +92,10 @@ export interface HintResponse {
 
 export interface CompleteAdventureResponse {
   xpEarned: number;
+  completionXP: number; // XP awarded for finishing (separate from per-challenge XP)
   starsEarned: number; // 1–3
   newLevel?: number; // if child leveled up
-  newBadge?: IBadge; // if a new badge was earned
+  newBadges: IBadge[]; // all badges earned this adventure (may be empty)
   totalXP: number; // child's updated total
   totalStars: number;
 }

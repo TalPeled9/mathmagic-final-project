@@ -1,6 +1,7 @@
 import wizzyImg from '../../assets/wizzy.png';
 import logoImg from '../../assets/mathmagic-logo.png';
 import { SparkleSpinner } from './SparkleSpinner';
+import { Link } from 'react-router';
 
 const MM = {
   purple: '#8B5CF6',
@@ -78,11 +79,9 @@ export function FullPageLoader({ message = 'Preparing magic…' }: FullPageLoade
       </div>
 
       {/* logo wordmark */}
-      <img
-        src={logoImg}
-        alt="MathMagic"
-        style={{ height: 38, marginBottom: 18, position: 'relative', zIndex: 1 }}
-      />
+      <Link to="/" style={{ position: 'relative', zIndex: 1, marginBottom: 18 }}>
+        <img src={logoImg} alt="MathMagic" style={{ height: 38, display: 'block' }} />
+      </Link>
 
       {/* message pill */}
       <div

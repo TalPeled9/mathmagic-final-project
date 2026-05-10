@@ -47,6 +47,8 @@ export interface IAdventureDocument extends Document {
   pregeneratedStep: IPregeneratedStep | null;
   /** Pre-generated math questions, one per story choice (index = choiceIndex). */
   pregeneratedChoiceSteps: (IPregeneratedStep | null)[];
+  /** Tracks correct-answer run within this adventure for streak XP calculation. */
+  consecutiveCorrect: number;
 }
 
 const pregeneratedStepSchema = new Schema<IPregeneratedStep>(
@@ -103,6 +105,7 @@ const adventureSchema = new Schema<IAdventureDocument>(
     hintsUsed: { type: Number, default: 0 },
     pregeneratedStep: { type: pregeneratedStepSchema, default: null },
     pregeneratedChoiceSteps: { type: [Schema.Types.Mixed], default: [] },
+    consecutiveCorrect: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );
