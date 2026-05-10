@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Lock, LogOut, Plus, Sparkles } from 'lucide-react';
+import { Lock, LogOut, Plus } from 'lucide-react';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { ParentLoader } from '@/components/loaders';
 import { ProfileCard } from '@/components/profiles';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,10 +42,7 @@ export default function ProfileSelectionPage() {
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
       <div className="w-full flex items-center justify-between mb-12">
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="text-gold-magic" size={24} />
-          <span className="text-2xl font-bold text-purple-wizzy">MathMagic</span>
-        </Link>
+        <img src={mathmagicLogo} alt="MathMagic" className="h-16 w-auto" />
         <div className="flex items-center gap-3">
           <Link
             to="/parent"
