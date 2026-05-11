@@ -132,7 +132,7 @@ describe('Gemini live E2E — full adventure flow', () => {
 
       const afterStart = await Adventure.findById(adventureId);
       expect(afterStart?.status).toBe('in-progress');
-      expect(afterStart?.lastChoices).toHaveLength(3);
+      expect(afterStart?.lastChoices).toHaveLength(2);
 
       // 2) Continue → math question (step 1 — odd steps are math)
       await sleep(SLEEP_MS);
@@ -172,7 +172,7 @@ describe('Gemini live E2E — full adventure flow', () => {
         timings,
       });
       expect(Array.isArray(storyRes.body.segment.choices)).toBe(true);
-      expect(storyRes.body.segment.choices).toHaveLength(3);
+      expect(storyRes.body.segment.choices).toHaveLength(2);
 
       // 5) Continue → second math question (step 3 — odd)
       await sleep(SLEEP_MS);
