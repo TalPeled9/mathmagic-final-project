@@ -35,7 +35,7 @@ export interface IChildDocument extends Document {
 const avatarSlotSchema = new Schema<IAvatarSlot>(
   {
     imageData: { type: String, required: true },
-    description: { type: String, required: true },
+    description: { type: String, default: '' },
     createdAt: { type: Date, required: true },
   },
   { _id: false }
