@@ -220,9 +220,9 @@ export default function ChildDashboard() {
         <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
           {/* Avatar */}
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-wizzy/20 flex-shrink-0">
-            {activeChild.avatarUrl ? (
+            {activeChild.avatars[activeChild.activeAvatarIndex]?.imageData ? (
               <img
-                src={activeChild.avatarUrl}
+                src={activeChild.avatars[activeChild.activeAvatarIndex].imageData}
                 alt={activeChild.name}
                 className="w-full h-full object-cover"
               />

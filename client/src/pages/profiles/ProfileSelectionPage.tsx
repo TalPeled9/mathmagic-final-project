@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Plus, Sparkles, Settings, LogOut, Star, Zap } from 'lucide-react';
+import { Plus, Sparkles, Settings, LogOut, Star, Zap, Pencil } from 'lucide-react';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { childService } from '../../services/childService';
@@ -75,49 +75,64 @@ export default function ProfileSelectionPage() {
       ) : (
         <div className="w-full max-w-2xl">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {children.map((child) => (
-              <button
-                key={child._id}
-                onClick={() => handleSelect(child)}
-                className="group flex flex-col items-center gap-3 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all border-2 border-transparent hover:border-purple-wizzy/30"
-              >
-                {/* Avatar */}
-                <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-wizzy/20 group-hover:border-purple-wizzy/50 transition-colors">
-                  {child.avatarUrl ? (
-                    <img
-                      src={child.avatarUrl}
-                      alt={child.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-purple-wizzy">
-                        {child.name[0].toUpperCase()}
+            {children.map((child) => {
+              const activeAvatar = child.avatars[child.activeAvatarIndex];
+              return (
+                <div key={child._id} className="relative group">
+                  <button
+                    onClick={() => handleSelect(child)}
+                    className="w-full flex flex-col items-center gap-3 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all border-2 border-transparent hover:border-purple-wizzy/30"
+                  >
+                    {/* Avatar */}
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-wizzy/20 group-hover:border-purple-wizzy/50 transition-colors">
+                      {activeAvatar ? (
+                        <img
+                          src={activeAvatar.imageData}
+                          alt={child.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-purple-wizzy">
+                            {child.name[0].toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="text-center">
+                      <p className="font-semibold text-gray-800 group-hover:text-purple-wizzy transition-colors">
+                        {child.name}
+                      </p>
+                      <p className="text-xs text-gray-400">Grade {child.gradeLevel}</p>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                      <span className="flex items-center gap-0.5">
+                        <Zap size={11} className="text-gold-magic" />
+                        {child.totalXP}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <Star size={11} className="text-yellow-400" />
+                        {child.totalStars}
                       </span>
                     </div>
-                  )}
-                </div>
+                  </button>
 
-                <div className="text-center">
-                  <p className="font-semibold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                    {child.name}
-                  </p>
-                  <p className="text-xs text-gray-400">Grade {child.gradeLevel}</p>
+                  {/* Edit avatar button — appears on hover */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profiles/avatar/${child._id}`);
+                    }}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-purple-wizzy/10 text-gray-400 hover:text-purple-wizzy transition-colors opacity-0 group-hover:opacity-100"
+                    title="Edit avatar"
+                  >
+                    <Pencil size={12} />
+                  </button>
                 </div>
-
-                {/* Mini stats */}
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span className="flex items-center gap-0.5">
-                    <Zap size={11} className="text-gold-magic" />
-                    {child.totalXP}
-                  </span>
-                  <span className="flex items-center gap-0.5">
-                    <Star size={11} className="text-yellow-400" />
-                    {child.totalStars}
-                  </span>
-                </div>
-              </button>
-            ))}
+              );
+            })}
 
             {/* Add child card */}
             <button

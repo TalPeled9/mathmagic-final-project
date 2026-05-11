@@ -6,6 +6,7 @@ import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ProfileSelectionPage from '../pages/profiles/ProfileSelectionPage';
+import EditAvatarPage from '../pages/profiles/EditAvatarPage';
 import ChildDashboard from '../pages/child/ChildDashboard';
 import AdventureSelectionPage from '../pages/child/AdventureSelectionPage';
 import StoryChat from '../pages/child/StoryChat';
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
     children: [
       { path: '/onboarding/add-child', element: <AddFirstChildPage /> },
       { path: '/profiles', element: <ProfileSelectionPage /> },
+      { path: '/profiles/avatar/:childId', element: <EditAvatarPage /> },
       { path: '/parent', element: <ParentDashboard /> },
       { path: '/parent/child/:childId', element: <ChildDetailsPage /> },
       {

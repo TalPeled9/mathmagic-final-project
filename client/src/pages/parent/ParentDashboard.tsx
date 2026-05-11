@@ -19,7 +19,6 @@ export default function ParentDashboard() {
   // Add-child form state
   const [newName, setNewName] = useState('');
   const [newGrade, setNewGrade] = useState<GradeLevel>(1);
-  const [newAvatarDesc, setNewAvatarDesc] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
@@ -37,13 +36,11 @@ export default function ParentDashboard() {
       const child = await childService.create({
         name: newName,
         gradeLevel: newGrade,
-        avatarDescription: newAvatarDesc.trim() || undefined,
       });
       setChildren((prev) => [...prev, child]);
       setShowAddForm(false);
       setNewName('');
       setNewGrade(1);
-      setNewAvatarDesc('');
       toast.success(`${child.name}'s profile created!`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create profile');
@@ -100,9 +97,9 @@ export default function ParentDashboard() {
               >
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-wizzy/20 shrink-0">
-                  {child.avatarUrl ? (
+                  {child.avatars[child.activeAvatarIndex]?.imageData ? (
                     <img
-                      src={child.avatarUrl}
+                      src={child.avatars[child.activeAvatarIndex].imageData}
                       alt={child.name}
                       className="w-full h-full object-cover"
                     />
@@ -190,20 +187,6 @@ export default function ParentDashboard() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">
-                  Avatar Description <span className="text-gray-400">(Optional)</span>
-                </label>
-                <textarea
-                  value={newAvatarDesc}
-                  onChange={(e) => setNewAvatarDesc(e.target.value)}
-                  placeholder="Describe the avatar look..."
-                  maxLength={200}
-                  rows={2}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                />
               </div>
 
               <div className="flex gap-2 pt-1">
