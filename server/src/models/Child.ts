@@ -47,7 +47,7 @@ const childSchema = new Schema<IChildDocument>(
     name: { type: String, required: true, trim: true },
     gradeLevel: { type: Number, required: true, min: 1, max: 6 },
     avatars: { type: [avatarSlotSchema], default: [] },
-    activeAvatarIndex: { type: Number, default: 0, min: 0, max: 2 },
+    activeAvatarIndex: { type: Number, default: 0, min: 0, max: 3 },
     generationTimestamps: { type: [Date], default: [] },
     currentLevel: { type: Number, default: 1 },
     totalXP: { type: Number, default: 0 },
