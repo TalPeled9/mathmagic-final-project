@@ -10,18 +10,10 @@ export interface GeneratedAvatarSlot {
 
 function buildImagePrompt(name: string, gradeLevel: number, description: string): string {
   return (
-    `A cartoon avatar for a child named ${name}. ` +
-    `MOST IMPORTANT: ${description}. ` +
+    `Create an avatar for a child according to the following description: ` +
+    `${description}. ` +
     `Style: friendly expression, bright cheerful colors, simple clean illustration, ` +
     `white background, square composition.`
-  );
-}
-
-function buildDefaultPrompt(name: string, gradeLevel: number): string {
-  return (
-    `A cute, colorful cartoon wizard avatar for a child named ${name} in grade ${gradeLevel}. ` +
-    `Friendly expression, magical pointy hat, holding a glowing star wand. ` +
-    `Bright cheerful colors, simple clean illustration, white background, square composition.`
   );
 }
 
@@ -81,9 +73,4 @@ export async function generateAvatar(
       generateFallbackAvatar(name)
     : generateFallbackAvatar(name);
   return { imageData, description: validation.correctedDescription };
-}
-
-export async function generateDefaultAvatar(name: string, gradeLevel: number): Promise<string> {
-  if (!config.gemini.apiKey) return generateFallbackAvatar(name);
-  return (await callGeminiImage(buildDefaultPrompt(name, gradeLevel))) ?? generateFallbackAvatar(name);
 }

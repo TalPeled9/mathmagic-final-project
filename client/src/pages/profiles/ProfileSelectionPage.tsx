@@ -6,6 +6,7 @@ import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { childService } from '../../services/childService';
 import type { IChild } from '@mathmagic/types';
+import defaultAvatar from '@/assets/default_avatar.png';
 
 export default function ProfileSelectionPage() {
   const { user, setActiveChild, logout } = useAuth();
@@ -85,18 +86,14 @@ export default function ProfileSelectionPage() {
                   >
                     {/* Avatar */}
                     <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-wizzy/20 group-hover:border-purple-wizzy/50 transition-colors">
-                      {activeAvatar ? (
+                      {activeAvatar?.imageData ? (
                         <img
                           src={activeAvatar.imageData}
                           alt={child.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-purple-wizzy">
-                            {child.name[0].toUpperCase()}
-                          </span>
-                        </div>
+                        <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
                       )}
                     </div>
 

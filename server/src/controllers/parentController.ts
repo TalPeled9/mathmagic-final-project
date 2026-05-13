@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import User from '../model/User';
 import { Child } from '../models/Child';
 import { ApiError } from '../utils/ApiError';
-import { generateAvatar, generateDefaultAvatar } from '../services/avatarService';
+import { generateAvatar } from '../services/avatarService';
 import type { GradeLevel } from '@mathmagic/types';
 
 const MAX_WEEKLY_GENERATIONS = 3;
@@ -66,12 +66,11 @@ export async function createChild(req: Request, res: Response): Promise<void> {
   const count = await Child.countDocuments({ parentId });
   if (count >= 10) throw ApiError.badRequest('Maximum of 10 child profiles allowed');
 
-  const imageData = await generateDefaultAvatar(name, gradeLevel);
   const child = await Child.create({
     parentId,
     name,
     gradeLevel,
-    avatars: [{ imageData, description: '', createdAt: new Date() }],
+    avatars: [{ imageData: '', description: '', createdAt: new Date() }],
     activeAvatarIndex: 0,
     generationTimestamps: [],
   });

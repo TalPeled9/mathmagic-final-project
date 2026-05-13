@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Star, Zap, Trophy } from 'lucide-react';
 import { ParentLoader, GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
+import defaultAvatar from '@/assets/default_avatar.png';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
 
@@ -78,18 +79,14 @@ export default function ChildDetailsPage() {
           {/* Avatar section */}
           <div className="flex flex-col items-center gap-3">
             <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-wizzy/20">
-              {child.avatars[child.activeAvatarIndex] ? (
+              {child.avatars[child.activeAvatarIndex]?.imageData ? (
                 <img
                   src={child.avatars[child.activeAvatarIndex].imageData}
                   alt={child.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
-                  <span className="text-3xl font-bold text-purple-wizzy">
-                    {child.name[0].toUpperCase()}
-                  </span>
-                </div>
+                <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
               )}
             </div>
             <Link

@@ -3,6 +3,7 @@ import { RefreshCw, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { childService } from '../../services/childService';
 import type { IChild, AvatarSlot } from '@mathmagic/types';
+import defaultAvatar from '@/assets/default_avatar.png';
 
 interface AvatarManagerProps {
   child: IChild;
@@ -85,7 +86,7 @@ export function AvatarManager({ child, onChildUpdated }: AvatarManagerProps) {
             >
               {slot ? (
                 <img
-                  src={slot.imageData}
+                  src={slot.imageData || defaultAvatar}
                   alt={`Avatar ${index + 1}`}
                   className="w-full h-full object-cover"
                 />

@@ -6,6 +6,7 @@ import { ParentLoader, GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
+import defaultAvatar from '@/assets/default_avatar.png';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
 
@@ -104,11 +105,7 @@ export default function ParentDashboard() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
-                      <span className="text-xl font-bold text-purple-wizzy">
-                        {child.name[0].toUpperCase()}
-                      </span>
-                    </div>
+                    <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
                   )}
                 </div>
 
