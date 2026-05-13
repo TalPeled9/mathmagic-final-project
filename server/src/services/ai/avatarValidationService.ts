@@ -1,4 +1,6 @@
 import { OllamaProvider } from './providers/ollamaProvider';
+import { GeminiProvider } from './providers/geminiProvider';
+import { logger } from '../../lib/logger';
 import { ApiError } from '../../utils/ApiError';
 
 export interface ValidationResult {
@@ -30,32 +32,49 @@ Rules:
 - For invalid descriptions: correctedDescription must be an empty string.`;
 }
 
+function parseResult(raw: { valid: boolean; correctedDescription: string; rejectionReason?: string }): ValidationResult {
+  const valid = raw.valid === true;
+  const validReasons = ['unsafe', 'gibberish', 'unrelated'];
+  return {
+    valid,
+    correctedDescription: valid ? (raw.correctedDescription ?? '') : '',
+    rejectionReason: !valid && validReasons.includes(raw.rejectionReason ?? '')
+      ? (raw.rejectionReason as ValidationResult['rejectionReason'])
+      : undefined,
+  };
+}
+
 export async function validateDescription(
   description: string,
   provider?: InstanceType<typeof OllamaProvider>
 ): Promise<ValidationResult> {
-  const llmProvider = provider ?? new OllamaProvider();
+  const request = {
+    prompt: buildPrompt(description),
+    schema: VALIDATION_SCHEMA,
+    temperature: 0.1,
+    maxOutputTokens: 256,
+  };
+
+  const primaryProvider = provider ?? new OllamaProvider();
   try {
-    const raw = await llmProvider.generateJson<{
+    const raw = await primaryProvider.generateJson<{
       valid: boolean;
       correctedDescription: string;
       rejectionReason?: string;
-    }>({
-      prompt: buildPrompt(description),
-      schema: VALIDATION_SCHEMA,
-      temperature: 0.1,
-      maxOutputTokens: 256,
-    });
+    }>(request);
+    return parseResult(raw);
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    logger.warn({ err }, 'Ollama validation failed, falling back to Gemini');
+  }
 
-    const valid = raw.valid === true;
-    const validReasons = ['unsafe', 'gibberish', 'unrelated'];
-    return {
-      valid,
-      correctedDescription: valid ? (raw.correctedDescription ?? '') : '',
-      rejectionReason: !valid && validReasons.includes(raw.rejectionReason ?? '')
-        ? (raw.rejectionReason as ValidationResult['rejectionReason'])
-        : undefined,
-    };
+  try {
+    const raw = await new GeminiProvider().generateJson<{
+      valid: boolean;
+      correctedDescription: string;
+      rejectionReason?: string;
+    }>(request);
+    return parseResult(raw);
   } catch (err) {
     if (err instanceof ApiError) throw err;
     throw new ApiError(503, 'Avatar validation is temporarily unavailable. Please try again.');
