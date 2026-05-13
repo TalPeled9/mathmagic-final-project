@@ -1,25 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Plus, Sparkles, Settings, LogOut, Star, Zap, Pencil } from 'lucide-react';
+import { Lock, LogOut, Plus, Pencil } from 'lucide-react';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { ParentLoader } from '@/components/loaders';
+import { ProfileCard } from '@/components/profiles';
 import { useAuth } from '@/hooks/useAuth';
-import { childService } from '../../services/childService';
+import { childService } from '@/services/childService';
 import type { IChild } from '@mathmagic/types';
-import defaultAvatar from '@/assets/default_avatar.png';
 
 export default function ProfileSelectionPage() {
-  const { user, setActiveChild, logout } = useAuth();
+  const { setActiveChild, logout } = useAuth();
   const navigate = useNavigate();
   const [children, setChildren] = useState<IChild[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     childService
       .getAll()
-      .then(setChildren)
-      .catch(() => toast.error('Failed to load profiles'))
-      .finally(() => setIsLoading(false));
+      .then((data) => { if (active) setChildren(data); })
+      .catch(() => { if (active) toast.error('Failed to load profiles'); })
+      .finally(() => { if (active) setIsLoading(false); });
+    return () => { active = false; };
   }, []);
 
   const handleSelect = (child: IChild) => {
@@ -38,117 +41,75 @@ export default function ProfileSelectionPage() {
 
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
-      {/* Header */}
-      <div className="w-full max-w-2xl flex items-center justify-between mb-8">
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="text-gold-magic" size={24} />
-          <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate('/parent')}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"
+      <div className="w-full flex items-center justify-between mb-12">
+        <img src={mathmagicLogo} alt="MathMagic" className="h-16 w-auto" />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/parent"
+            className="flex items-center gap-1.5 bg-purple-wizzy text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-purple-wizzy/90 transition-colors"
           >
-            <Settings size={15} />
-            Manage
-          </button>
+            <Lock size={14} />
+            Parent Dashboard
+          </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition-colors px-3 py-2 rounded-full hover:bg-red-50"
           >
-            <LogOut size={15} />
+            <LogOut size={14} />
             Sign Out
           </button>
         </div>
       </div>
 
-      {/* Greeting */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-purple-wizzy">
-          Welcome back{user?.name ? `, ${user.name}` : ''}!
-        </h1>
-        <p className="text-gray-500 mt-1">Who's ready for a math adventure today?</p>
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-bold text-purple-wizzy">Who is learning today?</h1>
+        <p className="text-gray-500 mt-2">Choose a profile to continue the adventure</p>
       </div>
 
-      {/* Profiles grid */}
       {isLoading ? (
         <ParentLoader message="Loading profiles…" />
       ) : (
-        <div className="w-full max-w-2xl">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {children.map((child) => {
-              const activeAvatar = child.avatars[child.activeAvatarIndex];
-              return (
-                <div key={child._id} className="relative group">
-                  <button
-                    onClick={() => handleSelect(child)}
-                    className="w-full flex flex-col items-center gap-3 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all border-2 border-transparent hover:border-purple-wizzy/30"
-                  >
-                    {/* Avatar */}
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-wizzy/20 group-hover:border-purple-wizzy/50 transition-colors">
-                      {activeAvatar?.imageData ? (
-                        <img
-                          src={activeAvatar.imageData}
-                          alt={child.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
-                      )}
-                    </div>
-
-                    <div className="text-center">
-                      <p className="font-semibold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                        {child.name}
-                      </p>
-                      <p className="text-xs text-gray-400">Grade {child.gradeLevel}</p>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span className="flex items-center gap-0.5">
-                        <Zap size={11} className="text-gold-magic" />
-                        {child.totalXP}
-                      </span>
-                      <span className="flex items-center gap-0.5">
-                        <Star size={11} className="text-yellow-400" />
-                        {child.totalStars}
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Edit avatar button — appears on hover */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/profiles/avatar/${child._id}`);
-                    }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-purple-wizzy/10 text-gray-400 hover:text-purple-wizzy transition-colors opacity-0 group-hover:opacity-100"
-                    title="Edit avatar"
-                  >
-                    <Pencil size={12} />
-                  </button>
-                </div>
-              );
-            })}
-
-            {/* Add child card */}
+        <div className="flex flex-wrap justify-center gap-10 max-w-[900px]">
+          {children.length === 0 ? (
             <button
               onClick={() => navigate('/parent')}
-              className="flex flex-col items-center justify-center gap-3 bg-white/60 rounded-2xl p-5 border-2 border-dashed border-gray-200 hover:border-purple-wizzy/40 hover:bg-purple-wizzy/5 transition-all group"
+              className="group w-40 flex flex-col items-center justify-center bg-white/60 rounded-2xl border-2 border-dashed border-gray-200 hover:border-purple-wizzy/40 hover:bg-purple-wizzy/5 transition-all h-52"
             >
-              <div className="w-20 h-20 rounded-full bg-gray-100 group-hover:bg-purple-wizzy/10 flex items-center justify-center transition-colors">
-                <Plus
-                  size={28}
-                  className="text-gray-300 group-hover:text-purple-wizzy transition-colors"
-                />
+              <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-purple-wizzy/10 flex items-center justify-center transition-colors mb-3">
+                <Plus size={28} className="text-gray-300 group-hover:text-purple-wizzy transition-colors" />
               </div>
               <p className="text-sm text-gray-400 group-hover:text-purple-wizzy transition-colors font-medium">
                 Add Child
               </p>
             </button>
-          </div>
+          ) : (
+            children.map((child) => (
+              <div key={child._id} className="relative group">
+                <ProfileCard child={child} onSelect={handleSelect} />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/profiles/avatar/${child._id}`);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-purple-wizzy/10 text-gray-400 hover:text-purple-wizzy transition-colors opacity-0 group-hover:opacity-100"
+                  title="Edit avatar"
+                >
+                  <Pencil size={12} />
+                </button>
+              </div>
+            ))
+          )}
         </div>
       )}
+
+      <div className="mt-10">
+        <Link
+          to="/parent"
+          className="text-sm text-gray-400 hover:text-purple-wizzy underline transition-colors"
+        >
+          Manage Profiles
+        </Link>
+      </div>
     </div>
   );
 }
