@@ -216,7 +216,7 @@ export default function EditAvatarPage() {
                       <img
                         src={imgSrc!}
                         alt={isDefault ? 'Default avatar' : `Avatar ${avatarIndex}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover mix-blend-multiply"
                       />
                       {isActive && (
                         <div className="absolute bottom-2 right-2 bg-purple-wizzy rounded-full p-1 shadow">

@@ -10,10 +10,8 @@ export interface GeneratedAvatarSlot {
 
 function buildImagePrompt(name: string, gradeLevel: number, description: string): string {
   return (
-    `Create an avatar for a child according to the following description: ` +
-    `${description}. ` +
-    `Style: friendly expression, bright cheerful colors, simple clean illustration, ` +
-    `white background, square composition.`
+    `Create an avatar for a child according to the following description: ${description}. ` +
+    `Style: Chibi character design, soft digital hand-drawn illustration style, thick and smooth brushwork, gentle cell shading, glowing magical highlights, friendly and warm expression, big expressive sparkling eyes, vibrant and saturated colors, clean white background, center-aligned square composition.`
   );
 }
 
