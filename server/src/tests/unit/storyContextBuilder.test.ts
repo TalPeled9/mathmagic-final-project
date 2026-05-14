@@ -1,6 +1,6 @@
 // server/src/tests/unit/storyContextBuilder.test.ts
 import { describe, it, expect } from 'vitest';
-import { buildMathQuestionContext, buildStorySummary } from '../../services/ai/storyContextBuilder';
+import { buildMathQuestionContext, buildStorySummary, buildHintContext } from '../../services/ai/storyContextBuilder';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {
@@ -59,7 +59,7 @@ describe('buildMathQuestionContext', () => {
     const state = { ...baseState, mathTopic: 'g1_addition_subtraction', currentDifficulty: 'easy' as const };
     const ctx = buildMathQuestionContext(state);
     expect(typeof ctx.difficultyDescription).toBe('string');
-    expect(ctx.difficultyDescription!.length).toBeGreaterThan(0);
+    expect(ctx.difficultyDescription).toBeTruthy();
   });
 
   it('returns empty string for difficultyDescription when topic is unknown', () => {
@@ -87,5 +87,18 @@ describe('buildStorySummary — hint mode', () => {
   it('still includes recent story events', () => {
     const summary = buildStorySummary({ ...baseState, mode: 'hint' });
     expect(summary).toContain('found a glowing chest');
+  });
+});
+
+describe('buildHintContext', () => {
+  it('includes currentDifficulty from state', () => {
+    const ctx = buildHintContext({ ...baseState, currentDifficulty: 'hard' });
+    expect(ctx.currentDifficulty).toBe('hard');
+  });
+
+  it('includes difficultyDescription from curriculum config', () => {
+    const state = { ...baseState, mathTopic: 'g1_addition_subtraction', currentDifficulty: 'easy' as const };
+    const ctx = buildHintContext(state);
+    expect(ctx.difficultyDescription).toBeTruthy();
   });
 });
