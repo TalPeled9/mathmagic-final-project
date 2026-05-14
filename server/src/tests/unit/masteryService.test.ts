@@ -9,21 +9,26 @@ vi.mock('../../models/TopicProgress', () => ({
   },
 }));
 
-// ── Mock MATH_TOPICS config ─────────────────────────────────────────────────
-vi.mock('../../config/mathTopics', () => ({
-  MATH_TOPICS: [
+// ── Mock CURRICULUM_TOPICS config ───────────────────────────────────────────
+vi.mock('../../config/curriculumTopics', () => ({
+  CURRICULUM_TOPICS: [
     {
-      id: 'addition',
-      name: 'Addition',
+      id: 'g2_addition_subtraction',
+      name: 'Addition & Subtraction up to 1,000',
       icon: 'Plus',
-      gradeRange: { min: 1, max: 3 },
-      description: 'Adding numbers',
+      grade: 2,
+      description: 'Adding and subtracting',
       color: 'from-emerald-400 to-teal-500',
+      difficulty: {
+        easy: 'No regrouping',
+        medium: 'With regrouping',
+        hard: 'Two steps',
+      },
     },
   ],
 }));
 
-import { updateTopicMastery, getTopicStats } from '../../services/gamification/masteryService';
+import { updateTopicMastery, getTopicStats, updateTopicDifficulty } from '../../services/gamification/masteryService';
 import { TopicProgress } from '../../models/TopicProgress';
 
 const mockFindOneAndUpdate = vi.mocked(TopicProgress.findOneAndUpdate);
@@ -40,10 +45,10 @@ describe('updateTopicMastery', () => {
     mockFindOneAndUpdate.mockResolvedValue(fakeDoc as never);
     mockUpdateOne.mockResolvedValue({} as never);
 
-    await updateTopicMastery('child1', 'addition', true, false);
+    await updateTopicMastery('child1', 'g2_addition_subtraction', true, false);
 
     expect(mockFindOneAndUpdate).toHaveBeenCalledWith(
-      { childId: 'child1', mathTopic: 'addition' },
+      { childId: 'child1', mathTopic: 'g2_addition_subtraction' },
       expect.objectContaining({ $inc: expect.objectContaining({ totalChallenges: 1, correctAnswers: 1 }) }),
       expect.any(Object)
     );
@@ -54,7 +59,7 @@ describe('updateTopicMastery', () => {
     mockFindOneAndUpdate.mockResolvedValue(fakeDoc as never);
     mockUpdateOne.mockResolvedValue({} as never);
 
-    await updateTopicMastery('child1', 'addition', false, true);
+    await updateTopicMastery('child1', 'g2_addition_subtraction', false, true);
 
     expect(mockFindOneAndUpdate).toHaveBeenCalledWith(
       expect.any(Object),
@@ -71,7 +76,7 @@ describe('updateTopicMastery', () => {
       mockFindOneAndUpdate.mockResolvedValue(fakeDoc as never);
       mockUpdateOne.mockResolvedValue({} as never);
 
-      await updateTopicMastery('child1', 'addition', true, false);
+      await updateTopicMastery('child1', 'g2_addition_subtraction', true, false);
 
       expect(mockUpdateOne).toHaveBeenCalledWith(
         { _id: 'doc1' },
@@ -85,7 +90,7 @@ describe('updateTopicMastery', () => {
       mockFindOneAndUpdate.mockResolvedValue(fakeDoc as never);
       mockUpdateOne.mockResolvedValue({} as never);
 
-      await updateTopicMastery('child1', 'addition', true, false);
+      await updateTopicMastery('child1', 'g2_addition_subtraction', true, false);
 
       expect(mockUpdateOne).toHaveBeenCalledWith(
         { _id: 'doc1' },
@@ -99,7 +104,7 @@ describe('updateTopicMastery', () => {
       mockFindOneAndUpdate.mockResolvedValue(fakeDoc as never);
       mockUpdateOne.mockResolvedValue({} as never);
 
-      await updateTopicMastery('child1', 'addition', false, false);
+      await updateTopicMastery('child1', 'g2_addition_subtraction', false, false);
 
       expect(mockUpdateOne).toHaveBeenCalledWith(
         { _id: 'doc1' },
@@ -113,7 +118,7 @@ describe('updateTopicMastery', () => {
       mockFindOneAndUpdate.mockResolvedValue(fakeDoc as never);
       mockUpdateOne.mockResolvedValue({} as never);
 
-      await updateTopicMastery('child1', 'addition', true, true);
+      await updateTopicMastery('child1', 'g2_addition_subtraction', true, true);
 
       expect(mockUpdateOne).toHaveBeenCalledWith(
         { _id: 'doc1' },
@@ -124,15 +129,16 @@ describe('updateTopicMastery', () => {
 });
 
 describe('getTopicStats', () => {
-  it('enriches docs with name/icon/color from config', async () => {
+  it('enriches docs with name/icon/color from curriculum config', async () => {
     const fakeDocs = [
       {
-        mathTopic: 'addition',
+        mathTopic: 'g2_addition_subtraction',
         totalChallenges: 5,
         correctAnswers: 4,
         incorrectAnswers: 1,
         hintsUsed: 1,
         masteryLevel: 75,
+        currentDifficulty: 'medium',
         lastPracticedAt: new Date('2026-05-01'),
       },
     ];
@@ -142,12 +148,31 @@ describe('getTopicStats', () => {
 
     expect(stats).toHaveLength(1);
     expect(stats[0]).toMatchObject({
-      mathTopic: 'addition',
-      name: 'Addition',
+      mathTopic: 'g2_addition_subtraction',
+      name: 'Addition & Subtraction up to 1,000',
       icon: 'Plus',
       color: 'from-emerald-400 to-teal-500',
       masteryLevel: 75,
+      currentDifficulty: 'medium',
     });
+  });
+
+  it('defaults currentDifficulty to easy for docs without it', async () => {
+    const fakeDocs = [
+      {
+        mathTopic: 'g2_addition_subtraction',
+        totalChallenges: 2,
+        correctAnswers: 1,
+        incorrectAnswers: 1,
+        hintsUsed: 0,
+        masteryLevel: 50,
+        // no currentDifficulty field
+      },
+    ];
+    mockFind.mockReturnValue({ lean: () => Promise.resolve(fakeDocs) } as never);
+
+    const stats = await getTopicStats('child1');
+    expect(stats[0].currentDifficulty).toBe('easy');
   });
 
   it('uses fallback name/icon/color for unknown topics', async () => {
@@ -159,12 +184,12 @@ describe('getTopicStats', () => {
         incorrectAnswers: 1,
         hintsUsed: 0,
         masteryLevel: 50,
+        currentDifficulty: 'easy',
       },
     ];
     mockFind.mockReturnValue({ lean: () => Promise.resolve(fakeDocs) } as never);
 
     const stats = await getTopicStats('child1');
-
     expect(stats[0].name).toBe('unknown-topic');
     expect(stats[0].icon).toBe('BookOpen');
     expect(stats[0].color).toBe('from-gray-400 to-gray-500');

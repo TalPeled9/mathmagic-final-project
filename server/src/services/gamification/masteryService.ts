@@ -1,6 +1,7 @@
 import type { TopicStat } from '@mathmagic/types';
+import type { Difficulty } from '../ai/difficultyEngine';
 import { TopicProgress } from '../../models/TopicProgress';
-import { MATH_TOPICS } from '../../config/mathTopics';
+import { CURRICULUM_TOPICS } from '../../config/curriculumTopics';
 
 /**
  * Upserts a TopicProgress record and recalculates mastery.
@@ -35,15 +36,27 @@ export async function updateTopicMastery(
   }
 }
 
+export async function updateTopicDifficulty(
+  childId: string,
+  mathTopic: string,
+  difficulty: Difficulty
+): Promise<void> {
+  await TopicProgress.updateOne(
+    { childId, mathTopic },
+    { $set: { currentDifficulty: difficulty } },
+    { upsert: true }
+  );
+}
+
 /**
  * Returns all topic progress records for a child, enriched with display metadata
- * from MATH_TOPICS config (name, icon, color).
+ * from CURRICULUM_TOPICS config (name, icon, color).
  */
 export async function getTopicStats(childId: string): Promise<TopicStat[]> {
   const docs = await TopicProgress.find({ childId }).lean();
 
   return docs.map((doc) => {
-    const config = MATH_TOPICS.find((t) => t.id === doc.mathTopic);
+    const config = CURRICULUM_TOPICS.find((t) => t.id === doc.mathTopic);
     return {
       mathTopic: doc.mathTopic,
       name: config?.name ?? doc.mathTopic,
@@ -54,6 +67,7 @@ export async function getTopicStats(childId: string): Promise<TopicStat[]> {
       incorrectAnswers: doc.incorrectAnswers,
       hintsUsed: doc.hintsUsed,
       masteryLevel: doc.masteryLevel,
+      currentDifficulty: (doc.currentDifficulty ?? 'easy') as 'easy' | 'medium' | 'hard',
       lastPracticedAt: doc.lastPracticedAt?.toISOString(),
     };
   });
