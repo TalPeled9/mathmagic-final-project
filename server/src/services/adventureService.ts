@@ -130,6 +130,8 @@ export function buildAdventureState(
     attemptCount: adventure.currentChallenge?.attemptsCount ?? 0,
     hintLevel: (adventure.currentChallenge?.hintLevel ?? 0) as 0 | 1 | 2 | 3,
     hintUsed: (adventure.currentChallenge?.hintLevel ?? 0) > 0,
+    currentDifficulty: (adventure.currentDifficulty ?? 'easy') as 'easy' | 'medium' | 'hard',
+    recentPerformanceScores: adventure.recentPerformanceScores ?? [],
     storySummary: '',
   };
 

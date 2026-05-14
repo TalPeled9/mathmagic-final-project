@@ -21,6 +21,8 @@ const baseState: AdventureState = {
   attemptCount: 0,
   hintLevel: 0,
   hintUsed: false,
+  currentDifficulty: 'easy',
+  recentPerformanceScores: [],
   storySummary: '',
   lastProblemText: 'What is 2 + 3?',
   lastChildAnswer: '4',
@@ -46,6 +48,23 @@ describe('buildMathQuestionContext', () => {
   it('defaults selectedChoice to "adventure begins" when selectedChoices is empty', () => {
     const ctx = buildMathQuestionContext({ ...baseState, selectedChoices: [] });
     expect(ctx.selectedChoice).toBe('adventure begins');
+  });
+
+  it('includes currentDifficulty from state', () => {
+    const ctx = buildMathQuestionContext({ ...baseState, currentDifficulty: 'medium' });
+    expect(ctx.currentDifficulty).toBe('medium');
+  });
+
+  it('includes difficultyDescription from curriculum config', () => {
+    const state = { ...baseState, mathTopic: 'g1_addition_subtraction', currentDifficulty: 'easy' as const };
+    const ctx = buildMathQuestionContext(state);
+    expect(typeof ctx.difficultyDescription).toBe('string');
+    expect(ctx.difficultyDescription!.length).toBeGreaterThan(0);
+  });
+
+  it('returns empty string for difficultyDescription when topic is unknown', () => {
+    const ctx = buildMathQuestionContext({ ...baseState, mathTopic: 'nonexistent-topic' });
+    expect(ctx.difficultyDescription).toBe('');
   });
 });
 
