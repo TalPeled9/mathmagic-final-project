@@ -32,6 +32,8 @@ export interface AdventureState {
   attemptCount: number;
   hintLevel: 0 | 1 | 2 | 3;
   hintUsed: boolean;
+  currentDifficulty: 'easy' | 'medium' | 'hard';
+  recentPerformanceScores: number[];
 
   storySummary: string;
 }
@@ -109,9 +111,14 @@ export interface MathTopicConfig {
   id: string;
   name: string;
   icon: string;
-  gradeRange: { min: number; max: number };
+  grade: number;
   description: string;
   color: string;
+  difficulty: {
+    easy: string;
+    medium: string;
+    hard: string;
+  };
 }
 
 export interface StoryWorldConfig {
