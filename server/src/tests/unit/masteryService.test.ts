@@ -128,6 +128,24 @@ describe('updateTopicMastery', () => {
   });
 });
 
+describe('updateTopicDifficulty', () => {
+  it('calls updateOne with the correct filter and $set', async () => {
+    mockUpdateOne.mockResolvedValue({ modifiedCount: 1 } as never);
+    await updateTopicDifficulty('child1', 'g2_addition_subtraction', 'hard');
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+      { childId: 'child1', mathTopic: 'g2_addition_subtraction' },
+      { $set: { currentDifficulty: 'hard' } },
+      { upsert: true }
+    );
+  });
+
+  it('resolves without returning a value', async () => {
+    mockUpdateOne.mockResolvedValue({ modifiedCount: 1 } as never);
+    const result = await updateTopicDifficulty('child1', 'g2_addition_subtraction', 'medium');
+    expect(result).toBeUndefined();
+  });
+});
+
 describe('getTopicStats', () => {
   it('enriches docs with name/icon/color from curriculum config', async () => {
     const fakeDocs = [

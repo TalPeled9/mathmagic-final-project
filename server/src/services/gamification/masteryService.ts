@@ -67,6 +67,7 @@ export async function getTopicStats(childId: string): Promise<TopicStat[]> {
       incorrectAnswers: doc.incorrectAnswers,
       hintsUsed: doc.hintsUsed,
       masteryLevel: doc.masteryLevel,
+      // lean() widens the Mongoose enum to string; schema + default guarantee the value is valid
       currentDifficulty: (doc.currentDifficulty ?? 'easy') as 'easy' | 'medium' | 'hard',
       lastPracticedAt: doc.lastPracticedAt?.toISOString(),
     };
