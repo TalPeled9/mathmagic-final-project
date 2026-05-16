@@ -485,6 +485,13 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (adventure.currentChallenge.attemptsCount >= 3) {
     const correctAnswer = adventure.currentChallenge.correctAnswer;
+    const score = scoreChallenge(false, 3, false);
+    const updatedScores = [...adventure.recentPerformanceScores, score].slice(-3);
+    adventure.recentPerformanceScores = updatedScores;
+    adventure.currentDifficulty = adjustDifficulty(
+      adventure.currentDifficulty as 'easy' | 'medium' | 'hard',
+      updatedScores
+    );
     // Consolation XP for seeing the answer — streak resets on reveal
     adventure.consecutiveCorrect = 0;
     adventure.xpEarned += 2;
