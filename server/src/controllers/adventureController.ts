@@ -464,7 +464,11 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
     // Increment streak BEFORE calculating XP so the +10 bonus fires on the 3rd correct
     adventure.consecutiveCorrect = (adventure.consecutiveCorrect ?? 0) + 1;
 
-    const { xpEarned, breakdown } = calculateChallengeXP(true, hintUsed, adventure.consecutiveCorrect);
+    const { xpEarned, breakdown } = calculateChallengeXP(
+      true,
+      hintUsed,
+      adventure.consecutiveCorrect
+    );
 
     adventure.xpEarned += xpEarned;
     adventure.correctAnswers += 1;
@@ -579,11 +583,13 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
 
   await adventure.save();
 
-  await updateTopicDifficulty(
+  updateTopicDifficulty(
     child._id.toString(),
     adventure.mathTopic,
     adventure.currentDifficulty as 'easy' | 'medium' | 'hard'
-  );
+  ).catch((err: unknown) => {
+    console.warn('updateTopicDifficulty failed on completeAdventure', err);
+  });
 
   // Count completed adventures AFTER saving so the count is accurate for badge checks
   const totalCompletedAdventures = await Adventure.countDocuments({

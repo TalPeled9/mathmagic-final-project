@@ -10,9 +10,17 @@ CHILD CONTEXT:
 - Story world / theme: ${ctx.storyWorld}
 - Selected story choice: ${ctx.selectedChoice}
 - Story summary so far: ${ctx.storySummary ?? 'Not provided'}
+- Difficulty level: ${(ctx.currentDifficulty ?? 'easy').toUpperCase()}
+- What this means for this topic: ${ctx.difficultyDescription ?? ''}
 
 STORY RULES:
 - Continue naturally from the selected choice.
+
+DIFFICULTY RULES:
+- Generate a problem that exactly matches the difficulty description above.
+- Wrong answer options must reflect realistic student mistakes for this level:
+  off-by-one errors, wrong operation, misplaced digit, forgetting order of operations.
+- Do not make the problem easier or harder than the described level.
 
 MATH RULES:
 - Include exactly one clear, solvable math problem in problemText.

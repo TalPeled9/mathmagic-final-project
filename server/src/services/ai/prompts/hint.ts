@@ -8,6 +8,8 @@ CHILD CONTEXT:
 - Child grade level: ${ctx.gradeLevel}
 - Math topic: ${ctx.mathTopic}
 - Story world / theme: ${ctx.storyWorld}
+- Difficulty level: ${(ctx.currentDifficulty ?? 'easy').toUpperCase()}
+- What this means for this topic: ${ctx.difficultyDescription ?? ''}
 
 PROBLEM CONTEXT:
 - Problem text: ${ctx.problemText}
