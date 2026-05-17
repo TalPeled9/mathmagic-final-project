@@ -56,7 +56,7 @@ describe('buildMathQuestionContext', () => {
   });
 
   it('includes difficultyDescription from curriculum config', () => {
-    const state = { ...baseState, mathTopic: 'g1_addition_subtraction', currentDifficulty: 'easy' as const };
+    const state = { ...baseState, mathTopic: 'g1_addition', currentDifficulty: 'easy' as const };
     const ctx = buildMathQuestionContext(state);
     expect(typeof ctx.difficultyDescription).toBe('string');
     expect(ctx.difficultyDescription).toBeTruthy();
@@ -97,7 +97,7 @@ describe('buildHintContext', () => {
   });
 
   it('includes difficultyDescription from curriculum config', () => {
-    const state = { ...baseState, mathTopic: 'g1_addition_subtraction', currentDifficulty: 'easy' as const };
+    const state = { ...baseState, mathTopic: 'g1_addition', currentDifficulty: 'easy' as const };
     const ctx = buildHintContext(state);
     expect(ctx.difficultyDescription).toBeTruthy();
   });
