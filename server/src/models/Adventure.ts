@@ -51,6 +51,7 @@ export interface IAdventureDocument extends Document {
   consecutiveCorrect: number;
   currentDifficulty: 'easy' | 'medium' | 'hard';
   recentPerformanceScores: number[];
+  previousProblemTexts: string[];
 }
 
 const pregeneratedStepSchema = new Schema<IPregeneratedStep>(
@@ -114,6 +115,7 @@ const adventureSchema = new Schema<IAdventureDocument>(
       default: 'easy',
     },
     recentPerformanceScores: { type: [Number], default: [] },
+    previousProblemTexts: { type: [String], default: [] },
   },
   { timestamps: true }
 );
