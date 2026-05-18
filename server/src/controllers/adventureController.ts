@@ -263,6 +263,10 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
             attemptsCount: 0,
           }
         : null;
+      adventure.previousProblemTexts = [
+        ...(adventure.previousProblemTexts ?? []),
+        llmResp.problemText,
+      ];
       adventure.totalChallenges += 1;
       // Consume pre-generated image from in-process cache (instant).
       // Fall back to inline generation only if the cache was cleared (e.g. server restart).
@@ -389,6 +393,10 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
           attemptsCount: 0,
         }
       : null;
+    adventure.previousProblemTexts = [
+      ...(adventure.previousProblemTexts ?? []),
+      llmResponse.problemText,
+    ];
     adventure.totalChallenges += 1;
   } else if (mode === 'end_story') {
     const llmResponse = await llmService.generateEndStoryFromState(state);
