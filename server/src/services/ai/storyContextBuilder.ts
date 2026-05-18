@@ -95,6 +95,7 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     selectedChoice: state.selectedChoices[state.selectedChoices.length - 1] || 'adventure begins',
     currentDifficulty: state.currentDifficulty,
     difficultyDescription,
+    previousProblemTexts: state.previousProblemTexts ?? [],
   };
 }
 
