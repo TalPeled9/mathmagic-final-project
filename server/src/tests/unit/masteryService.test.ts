@@ -28,7 +28,11 @@ vi.mock('../../config/curriculumTopics', () => ({
   ],
 }));
 
-import { updateTopicMastery, getTopicStats, updateTopicDifficulty } from '../../services/gamification/masteryService';
+import {
+  updateTopicMastery,
+  getTopicStats,
+  updateTopicDifficulty,
+} from '../../services/gamification/masteryService';
 import { TopicProgress } from '../../models/TopicProgress';
 
 const mockFindOneAndUpdate = vi.mocked(TopicProgress.findOneAndUpdate);
@@ -49,7 +53,9 @@ describe('updateTopicMastery', () => {
 
     expect(mockFindOneAndUpdate).toHaveBeenCalledWith(
       { childId: 'child1', mathTopic: 'g2_addition_subtraction' },
-      expect.objectContaining({ $inc: expect.objectContaining({ totalChallenges: 1, correctAnswers: 1 }) }),
+      expect.objectContaining({
+        $inc: expect.objectContaining({ totalChallenges: 1, correctAnswers: 1 }),
+      }),
       expect.any(Object)
     );
   });
@@ -78,10 +84,7 @@ describe('updateTopicMastery', () => {
 
       await updateTopicMastery('child1', 'g2_addition_subtraction', true, false);
 
-      expect(mockUpdateOne).toHaveBeenCalledWith(
-        { _id: 'doc1' },
-        { $set: { masteryLevel: 100 } }
-      );
+      expect(mockUpdateOne).toHaveBeenCalledWith({ _id: 'doc1' }, { $set: { masteryLevel: 100 } });
     });
 
     it('applies hint penalty: 5 pts per hint', async () => {
@@ -92,10 +95,7 @@ describe('updateTopicMastery', () => {
 
       await updateTopicMastery('child1', 'g2_addition_subtraction', true, false);
 
-      expect(mockUpdateOne).toHaveBeenCalledWith(
-        { _id: 'doc1' },
-        { $set: { masteryLevel: 80 } }
-      );
+      expect(mockUpdateOne).toHaveBeenCalledWith({ _id: 'doc1' }, { $set: { masteryLevel: 80 } });
     });
 
     it('floors mastery at 0 (never negative)', async () => {
@@ -106,10 +106,7 @@ describe('updateTopicMastery', () => {
 
       await updateTopicMastery('child1', 'g2_addition_subtraction', false, false);
 
-      expect(mockUpdateOne).toHaveBeenCalledWith(
-        { _id: 'doc1' },
-        { $set: { masteryLevel: 0 } }
-      );
+      expect(mockUpdateOne).toHaveBeenCalledWith({ _id: 'doc1' }, { $set: { masteryLevel: 0 } });
     });
 
     it('floors mastery result (no rounding up)', async () => {
@@ -120,10 +117,7 @@ describe('updateTopicMastery', () => {
 
       await updateTopicMastery('child1', 'g2_addition_subtraction', true, true);
 
-      expect(mockUpdateOne).toHaveBeenCalledWith(
-        { _id: 'doc1' },
-        { $set: { masteryLevel: 70 } }
-      );
+      expect(mockUpdateOne).toHaveBeenCalledWith({ _id: 'doc1' }, { $set: { masteryLevel: 70 } });
     });
   });
 });

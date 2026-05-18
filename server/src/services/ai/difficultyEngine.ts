@@ -6,17 +6,14 @@ const STREAK_THRESHOLD = 2;
 export function scoreChallenge(
   correct: boolean,
   attemptNumber: number,
-  hintUsed: boolean,
+  hintUsed: boolean
 ): 0 | 1 | 2 {
   if (!correct) return 0;
   if (attemptNumber === 1 && !hintUsed) return 2;
   return 1;
 }
 
-export function adjustDifficulty(
-  current: Difficulty,
-  recentScores: number[],
-): Difficulty {
+export function adjustDifficulty(current: Difficulty, recentScores: number[]): Difficulty {
   const last = recentScores.slice(-STREAK_THRESHOLD);
   if (last.length === STREAK_THRESHOLD && last.every((s) => s === 2)) {
     return bumpUp(current);

@@ -65,13 +65,24 @@ describe('checkAndAwardBadges', () => {
   describe('first-adventure', () => {
     it('awards badge when totalCompletedAdventures is 1', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, totalCompletedAdventures: 1 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        totalCompletedAdventures: 1,
+      });
       expect(badges.some((b) => b.badgeType === 'first-adventure')).toBe(true);
     });
 
     it('does NOT re-award if already owned', async () => {
       const child = makeChild({
-        badges: [{ badgeType: 'first-adventure', badgeName: 'First Adventure', description: '', iconUrl: '', earnedAt: new Date() }] as never,
+        badges: [
+          {
+            badgeType: 'first-adventure',
+            badgeName: 'First Adventure',
+            description: '',
+            iconUrl: '',
+            earnedAt: new Date(),
+          },
+        ] as never,
       });
       const badges = await checkAndAwardBadges(child, baseStats, baseContext);
       expect(badges.some((b) => b.badgeType === 'first-adventure')).toBe(false);
@@ -79,7 +90,10 @@ describe('checkAndAwardBadges', () => {
 
     it('does NOT award when totalCompletedAdventures is 0', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, totalCompletedAdventures: 0 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        totalCompletedAdventures: 0,
+      });
       expect(badges.some((b) => b.badgeType === 'first-adventure')).toBe(false);
     });
   });
@@ -99,7 +113,11 @@ describe('checkAndAwardBadges', () => {
 
     it('does NOT award when not all correct', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, { ...baseStats, correctAnswers: 2, incorrectAnswers: 1 }, baseContext);
+      const badges = await checkAndAwardBadges(
+        child,
+        { ...baseStats, correctAnswers: 2, incorrectAnswers: 1 },
+        baseContext
+      );
       expect(badges.some((b) => b.badgeType === 'perfect-score')).toBe(false);
     });
   });
@@ -107,13 +125,21 @@ describe('checkAndAwardBadges', () => {
   describe('speed-master', () => {
     it('awards badge when 0 incorrect and 0 hints', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, { ...baseStats, incorrectAnswers: 0, hintsUsed: 0 }, baseContext);
+      const badges = await checkAndAwardBadges(
+        child,
+        { ...baseStats, incorrectAnswers: 0, hintsUsed: 0 },
+        baseContext
+      );
       expect(badges.some((b) => b.badgeType === 'speed-master')).toBe(true);
     });
 
     it('does NOT award when there were wrong attempts', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, { ...baseStats, incorrectAnswers: 1 }, baseContext);
+      const badges = await checkAndAwardBadges(
+        child,
+        { ...baseStats, incorrectAnswers: 1 },
+        baseContext
+      );
       expect(badges.some((b) => b.badgeType === 'speed-master')).toBe(false);
     });
   });
@@ -122,21 +148,29 @@ describe('checkAndAwardBadges', () => {
     it('awards badge when 3 distinct worlds (including current)', async () => {
       mockDistinct.mockResolvedValue(['fantasy', 'ocean']);
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, currentStoryWorld: 'space' });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        currentStoryWorld: 'space',
+      });
       expect(badges.some((b) => b.badgeType === 'explorer')).toBe(true);
     });
 
     it('does NOT award when only 2 distinct worlds', async () => {
       mockDistinct.mockResolvedValue(['fantasy']);
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, currentStoryWorld: 'space' });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        currentStoryWorld: 'space',
+      });
       expect(badges.some((b) => b.badgeType === 'explorer')).toBe(false);
     });
   });
 
   describe('topic-master', () => {
     it('awards badge when a topic has 80%+ mastery and 5+ challenges', async () => {
-      mockFindOne.mockReturnValue({ lean: () => Promise.resolve({ masteryLevel: 85, totalChallenges: 6 }) } as never);
+      mockFindOne.mockReturnValue({
+        lean: () => Promise.resolve({ masteryLevel: 85, totalChallenges: 6 }),
+      } as never);
       const child = makeChild();
       const badges = await checkAndAwardBadges(child, baseStats, baseContext);
       expect(badges.some((b) => b.badgeType === 'topic-master')).toBe(true);
@@ -153,13 +187,19 @@ describe('checkAndAwardBadges', () => {
   describe('math-veteran', () => {
     it('awards badge at 25 completed adventures', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, totalCompletedAdventures: 25 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        totalCompletedAdventures: 25,
+      });
       expect(badges.some((b) => b.badgeType === 'math-veteran')).toBe(true);
     });
 
     it('does NOT award at 24 adventures', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, totalCompletedAdventures: 24 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        totalCompletedAdventures: 24,
+      });
       expect(badges.some((b) => b.badgeType === 'math-veteran')).toBe(false);
     });
   });
@@ -167,19 +207,40 @@ describe('checkAndAwardBadges', () => {
   describe('world-conqueror', () => {
     it('awards badge when all 10 worlds completed', async () => {
       mockDistinct.mockResolvedValue([
-        'fantasy', 'ocean', 'jungle', 'pirates', 'robots', 'candy', 'magic-school', 'ancient-temple', 'dinosaur',
+        'fantasy',
+        'ocean',
+        'jungle',
+        'pirates',
+        'robots',
+        'candy',
+        'magic-school',
+        'ancient-temple',
+        'dinosaur',
       ]);
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, currentStoryWorld: 'space' });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        currentStoryWorld: 'space',
+      });
       expect(badges.some((b) => b.badgeType === 'world-conqueror')).toBe(true);
     });
 
     it('does NOT award when only 9 worlds', async () => {
       mockDistinct.mockResolvedValue([
-        'fantasy', 'ocean', 'jungle', 'pirates', 'robots', 'candy', 'magic-school', 'ancient-temple',
+        'fantasy',
+        'ocean',
+        'jungle',
+        'pirates',
+        'robots',
+        'candy',
+        'magic-school',
+        'ancient-temple',
       ]);
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, currentStoryWorld: 'space' });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        currentStoryWorld: 'space',
+      });
       expect(badges.some((b) => b.badgeType === 'world-conqueror')).toBe(false);
     });
   });
@@ -187,13 +248,19 @@ describe('checkAndAwardBadges', () => {
   describe('hint-free-run', () => {
     it('awards badge at 3 consecutive hint-free adventures', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, consecutiveHintFreeAdventures: 3 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        consecutiveHintFreeAdventures: 3,
+      });
       expect(badges.some((b) => b.badgeType === 'hint-free-run')).toBe(true);
     });
 
     it('does NOT award at 2 consecutive', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, consecutiveHintFreeAdventures: 2 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        consecutiveHintFreeAdventures: 2,
+      });
       expect(badges.some((b) => b.badgeType === 'hint-free-run')).toBe(false);
     });
   });
@@ -202,7 +269,10 @@ describe('checkAndAwardBadges', () => {
     it('can award first-adventure, perfect-score, and speed-master simultaneously', async () => {
       const child = makeChild();
       const stats = { totalChallenges: 3, correctAnswers: 3, incorrectAnswers: 0, hintsUsed: 0 };
-      const badges = await checkAndAwardBadges(child, stats, { ...baseContext, totalCompletedAdventures: 1 });
+      const badges = await checkAndAwardBadges(child, stats, {
+        ...baseContext,
+        totalCompletedAdventures: 1,
+      });
 
       const types = badges.map((b) => b.badgeType);
       expect(types).toContain('first-adventure');
@@ -217,7 +287,13 @@ describe('checkAndAwardBadges', () => {
     it('skips badge if already in child.badges', async () => {
       const child = makeChild({
         badges: [
-          { badgeType: 'perfect-score', badgeName: 'Perfect Score', description: '', iconUrl: '', earnedAt: new Date() },
+          {
+            badgeType: 'perfect-score',
+            badgeName: 'Perfect Score',
+            description: '',
+            iconUrl: '',
+            earnedAt: new Date(),
+          },
         ] as never,
       });
       const stats = { totalChallenges: 3, correctAnswers: 3, incorrectAnswers: 0, hintsUsed: 0 };
@@ -229,7 +305,10 @@ describe('checkAndAwardBadges', () => {
   describe('badge shape', () => {
     it('returned badges have required IBadge fields', async () => {
       const child = makeChild();
-      const badges = await checkAndAwardBadges(child, baseStats, { ...baseContext, totalCompletedAdventures: 1 });
+      const badges = await checkAndAwardBadges(child, baseStats, {
+        ...baseContext,
+        totalCompletedAdventures: 1,
+      });
       for (const badge of badges) {
         expect(badge).toHaveProperty('badgeType');
         expect(badge).toHaveProperty('badgeName');

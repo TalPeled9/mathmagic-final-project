@@ -101,10 +101,7 @@ export async function checkAndAwardBadges(
   }
 
   // ── hint-free-run: 3 consecutive hint-free adventures ─────────────────────
-  if (
-    !alreadyHas('hint-free-run') &&
-    context.consecutiveHintFreeAdventures >= 3
-  ) {
+  if (!alreadyHas('hint-free-run') && context.consecutiveHintFreeAdventures >= 3) {
     toAward.push('hint-free-run');
   }
 

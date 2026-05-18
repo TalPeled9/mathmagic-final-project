@@ -744,7 +744,10 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
               </div>
             )}
             {data.newBadges?.map((badge) => (
-              <div key={badge.badgeType} className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full border border-purple-wizzy/10">
+              <div
+                key={badge.badgeType}
+                className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full border border-purple-wizzy/10"
+              >
                 <span className="text-2xl">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
                 <div>
                   <p className="font-bold text-purple-wizzy text-sm">{badge.badgeName}</p>

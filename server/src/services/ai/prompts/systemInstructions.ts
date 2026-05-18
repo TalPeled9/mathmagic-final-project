@@ -52,5 +52,4 @@ DIFFICULTY LEVELS:
 - Easy: simple, concrete problems with small numbers and single steps.
 - Medium: moderate complexity, may involve regrouping or two-step reasoning.
 - Hard: multi-step problems, larger numbers, or abstract reasoning.
-- Match your vocabulary, encouragement depth, and hint scaffolding to the difficulty level.
 - A child on Easy needs more concrete guidance; a child on Hard can handle more abstract nudges.`;
