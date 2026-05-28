@@ -49,6 +49,8 @@ export interface IAdventureDocument extends Document {
   pregeneratedChoiceSteps: (IPregeneratedStep | null)[];
   /** Tracks correct-answer run within this adventure for streak XP calculation. */
   consecutiveCorrect: number;
+  currentDifficulty: 'easy' | 'medium' | 'hard';
+  recentPerformanceScores: number[];
 }
 
 const pregeneratedStepSchema = new Schema<IPregeneratedStep>(
@@ -106,6 +108,12 @@ const adventureSchema = new Schema<IAdventureDocument>(
     pregeneratedStep: { type: pregeneratedStepSchema, default: null },
     pregeneratedChoiceSteps: { type: [Schema.Types.Mixed], default: [] },
     consecutiveCorrect: { type: Number, default: 0, min: 0 },
+    currentDifficulty: {
+      type: String,
+      enum: ['easy', 'medium', 'hard'],
+      default: 'easy',
+    },
+    recentPerformanceScores: { type: [Number], default: [] },
   },
   { timestamps: true }
 );

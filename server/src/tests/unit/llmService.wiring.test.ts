@@ -19,6 +19,8 @@ const baseState: AdventureState = {
   hintLevel: 0,
   hintUsed: false,
   storySummary: '',
+  currentDifficulty: 'easy',
+  recentPerformanceScores: [],
 };
 
 afterEach(() => {

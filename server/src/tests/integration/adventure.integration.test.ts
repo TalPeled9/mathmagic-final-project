@@ -153,10 +153,9 @@ describe('adventure routes integration', () => {
 
       expect(response.body.topics).toBeDefined();
       expect(Array.isArray(response.body.topics)).toBe(true);
-      // Grade 2 child should get topics that cover grade 2
+      // Grade 2 child should only get grade-2 topics
       for (const topic of response.body.topics) {
-        expect(topic.gradeRange.min).toBeLessThanOrEqual(2);
-        expect(topic.gradeRange.max).toBeGreaterThanOrEqual(2);
+        expect(topic.grade).toBe(2);
       }
     });
   });
@@ -169,7 +168,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       expect(typeof response.body.adventureId).toBe('string');
@@ -186,7 +185,7 @@ describe('adventure routes integration', () => {
       // Verify DB document was created
       const adventure = await Adventure.findById(response.body.adventureId);
       expect(adventure).not.toBeNull();
-      expect(adventure?.mathTopic).toBe('addition');
+      expect(adventure?.mathTopic).toBe('g2_addition_subtraction');
       expect(adventure?.storyWorld).toBe('space');
       expect(adventure?.conversationHistory.length).toBeGreaterThan(0);
     });
@@ -207,7 +206,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(otherParentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(403);
     });
   });
@@ -221,7 +220,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;
@@ -232,7 +231,7 @@ describe('adventure routes integration', () => {
         .expect(200);
 
       expect(response.body.adventureId).toBe(adventureId);
-      expect(response.body.mathTopic).toBe('addition');
+      expect(response.body.mathTopic).toBe('g2_addition_subtraction');
       expect(response.body.storyWorld).toBe('space');
       expect(response.body.status).toBe('in-progress');
       expect(Array.isArray(response.body.conversationHistory)).toBe(true);
@@ -257,7 +256,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;
@@ -286,7 +285,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;
@@ -375,7 +374,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       await request(app)
@@ -396,7 +395,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;
@@ -432,7 +431,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;
@@ -461,7 +460,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;
@@ -501,7 +500,7 @@ describe('adventure routes integration', () => {
         .post(`/api/adventures/children/${childId}`)
         .set('Cookie', buildCookies(parentId))
         .set(csrfHeader())
-        .send({ mathTopic: 'addition', storyWorld: 'space' })
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
         .expect(201);
 
       const { adventureId } = startRes.body;

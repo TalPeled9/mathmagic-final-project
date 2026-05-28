@@ -8,6 +8,8 @@ export interface LLMStoryPromptContext {
   storySummary?: string;
   conversationTranscript?: string; // formatted turn-by-turn history window
   selectedChoice?: string;
+  currentDifficulty?: 'easy' | 'medium' | 'hard';
+  difficultyDescription?: string;
 }
 
 export interface LLMMathQuestionContext extends LLMStoryPromptContext {

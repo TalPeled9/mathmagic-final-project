@@ -60,7 +60,8 @@ export interface TopicStat {
   correctAnswers: number;
   incorrectAnswers: number;
   hintsUsed: number;
-  masteryLevel: number;
+  masteryLevel: number; // 0–100
+  currentDifficulty: 'easy' | 'medium' | 'hard';
   lastPracticedAt?: string;
 }
 

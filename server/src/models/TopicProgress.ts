@@ -9,6 +9,7 @@ export interface ITopicProgressDocument extends Document {
   hintsUsed: number;
   masteryLevel: number;
   lastPracticedAt?: Date;
+  currentDifficulty: 'easy' | 'medium' | 'hard';
 }
 
 const topicProgressSchema = new Schema<ITopicProgressDocument>(
@@ -21,6 +22,11 @@ const topicProgressSchema = new Schema<ITopicProgressDocument>(
     hintsUsed: { type: Number, default: 0 },
     masteryLevel: { type: Number, default: 0, min: 0, max: 100 },
     lastPracticedAt: { type: Date },
+    currentDifficulty: {
+      type: String,
+      enum: ['easy', 'medium', 'hard'],
+      default: 'easy',
+    },
   },
   { timestamps: true }
 );

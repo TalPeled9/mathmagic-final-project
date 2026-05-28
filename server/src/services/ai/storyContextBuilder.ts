@@ -6,6 +6,7 @@ import type {
   LLMMathQuestionContext,
   LLMStoryPromptContext,
 } from '@mathmagic/types';
+import { getCurriculumTopicById } from '../../config/curriculumTopics';
 
 /**
  * Formats the rolling conversation window into a readable transcript for
@@ -83,6 +84,8 @@ export function buildStoryStepContext(state: AdventureState): LLMStoryPromptCont
  * Extends base context with math-specific fields.
  */
 export function buildMathQuestionContext(state: AdventureState): LLMMathQuestionContext {
+  const topic = getCurriculumTopicById(state.mathTopic);
+  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
@@ -90,6 +93,8 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
     selectedChoice: state.selectedChoices[state.selectedChoices.length - 1] || 'adventure begins',
+    currentDifficulty: state.currentDifficulty,
+    difficultyDescription,
   };
 }
 
@@ -98,6 +103,8 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
  * Extends base context with hint-specific fields.
  */
 export function buildHintContext(state: AdventureState): LLMHintContext {
+  const topic = getCurriculumTopicById(state.mathTopic);
+  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
@@ -109,6 +116,8 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
     childAnswer: state.lastChildAnswer || '',
     hintLevel: state.hintLevel,
     previousHints: state.previousHints ?? [],
+    currentDifficulty: state.currentDifficulty,
+    difficultyDescription,
   };
 }
 

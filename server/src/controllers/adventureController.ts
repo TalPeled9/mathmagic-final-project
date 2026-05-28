@@ -4,7 +4,10 @@ import { AdventureImage } from '../models/AdventureImage';
 import { logger } from '../lib/logger';
 import { LearningSession } from '../models/LearningSession';
 import { ApiError } from '../utils/ApiError';
-import { MATH_TOPICS, getMathTopicById } from '../config/mathTopics';
+import { getTopicsForGrade, getCurriculumTopicById } from '../config/curriculumTopics';
+import { scoreChallenge, adjustDifficulty } from '../services/ai/difficultyEngine';
+import { TopicProgress } from '../models/TopicProgress';
+import { updateTopicDifficulty } from '../services/gamification/masteryService';
 import { STORY_WORLDS, getStoryWorldById } from '../config/storyWorlds';
 import { llmService } from '../services/ai/llmService';
 import {
@@ -43,9 +46,7 @@ export async function getAvailableAdventures(req: Request, res: Response): Promi
 
   const child = await verifyChildOwnership(userId, childId);
 
-  const topics = MATH_TOPICS.filter(
-    (t) => t.gradeRange.min <= child.gradeLevel && t.gradeRange.max >= child.gradeLevel
-  );
+  const topics = getTopicsForGrade(child.gradeLevel);
 
   res.json({ topics, worlds: STORY_WORLDS });
 }
@@ -59,14 +60,33 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
 
   const child = await verifyChildOwnership(userId, childId);
 
-  if (!getMathTopicById(mathTopic)) {
+  const topic = getCurriculumTopicById(mathTopic);
+  if (!topic) {
     throw ApiError.badRequest(`Unknown math topic: ${mathTopic}`);
+  }
+  if (topic.grade !== child.gradeLevel) {
+    throw ApiError.badRequest(`Topic ${mathTopic} is not available for grade ${child.gradeLevel}`);
   }
   if (!getStoryWorldById(storyWorld)) {
     throw ApiError.badRequest(`Unknown story world: ${storyWorld}`);
   }
 
-  const adventure = await Adventure.create({ childId, mathTopic, storyWorld });
+  const existingProgress = await TopicProgress.findOne({
+    childId,
+    mathTopic,
+  }).lean();
+  const initialDifficulty = (existingProgress?.currentDifficulty ?? 'easy') as
+    | 'easy'
+    | 'medium'
+    | 'hard';
+
+  const adventure = await Adventure.create({
+    childId,
+    mathTopic,
+    storyWorld,
+    currentDifficulty: initialDifficulty,
+    recentPerformanceScores: [],
+  });
   await LearningSession.create({ childId, adventureId: adventure._id });
 
   const state = buildAdventureState(adventure, child, 'story_step');
@@ -433,10 +453,22 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
   if (isCorrect) {
     const hintUsed = adventure.currentChallenge.hintLevel > 0;
 
+    const score = scoreChallenge(true, adventure.currentChallenge.attemptsCount + 1, hintUsed);
+    const updatedScores = [...adventure.recentPerformanceScores, score].slice(-3);
+    adventure.recentPerformanceScores = updatedScores;
+    adventure.currentDifficulty = adjustDifficulty(
+      adventure.currentDifficulty as 'easy' | 'medium' | 'hard',
+      updatedScores
+    );
+
     // Increment streak BEFORE calculating XP so the +10 bonus fires on the 3rd correct
     adventure.consecutiveCorrect = (adventure.consecutiveCorrect ?? 0) + 1;
 
-    const { xpEarned, breakdown } = calculateChallengeXP(true, hintUsed, adventure.consecutiveCorrect);
+    const { xpEarned, breakdown } = calculateChallengeXP(
+      true,
+      hintUsed,
+      adventure.consecutiveCorrect
+    );
 
     adventure.xpEarned += xpEarned;
     adventure.correctAnswers += 1;
@@ -457,6 +489,13 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (adventure.currentChallenge.attemptsCount >= 3) {
     const correctAnswer = adventure.currentChallenge.correctAnswer;
+    const score = scoreChallenge(false, 3, false);
+    const updatedScores = [...adventure.recentPerformanceScores, score].slice(-3);
+    adventure.recentPerformanceScores = updatedScores;
+    adventure.currentDifficulty = adjustDifficulty(
+      adventure.currentDifficulty as 'easy' | 'medium' | 'hard',
+      updatedScores
+    );
     // Consolation XP for seeing the answer — streak resets on reveal
     adventure.consecutiveCorrect = 0;
     adventure.xpEarned += 2;
@@ -543,6 +582,14 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
   adventure.xpEarned += completionXP;
 
   await adventure.save();
+
+  updateTopicDifficulty(
+    child._id.toString(),
+    adventure.mathTopic,
+    adventure.currentDifficulty as 'easy' | 'medium' | 'hard'
+  ).catch((err: unknown) => {
+    console.warn('updateTopicDifficulty failed on completeAdventure', err);
+  });
 
   // Count completed adventures AFTER saving so the count is accurate for badge checks
   const totalCompletedAdventures = await Adventure.countDocuments({
