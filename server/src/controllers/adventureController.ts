@@ -75,7 +75,7 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
 
   const generatedImageUrl = await generateSegmentImage(
     segment.imageDescription,
-    child.avatarUrl ?? ''
+    child.avatars[child.activeAvatarIndex]?.imageData ?? ''
   );
   if (generatedImageUrl) {
     segment.imageUrl = generatedImageUrl;
@@ -248,7 +248,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
       // Fall back to inline generation only if the cache was cleared (e.g. server restart).
       const pregenImage =
         consumePregeneratedImage(adventureId, adventure.currentStepIndex, choiceIndex) ??
-        (await generateSegmentImage(cachedByChoice.imageDescription, child.avatarUrl ?? ''));
+        (await generateSegmentImage(cachedByChoice.imageDescription, child.avatars[child.activeAvatarIndex]?.imageData ?? ''));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedChoiceSteps = [];
       adventure.lastChoices = segment.choices;
@@ -288,7 +288,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
       // Fall back to inline generation only if the cache was cleared (e.g. server restart).
       const pregenImage =
         consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
-        (await generateSegmentImage(cached.imageDescription, child.avatarUrl ?? ''));
+        (await generateSegmentImage(cached.imageDescription, child.avatars[child.activeAvatarIndex]?.imageData ?? ''));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedStep = null;
       adventure.lastChoices = segment.choices;
@@ -326,7 +326,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
       const segment = mapEndStoryResponse(llmResp);
       const pregenImage =
         consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
-        (await generateSegmentImage(cached.imageDescription, child.avatarUrl ?? ''));
+        (await generateSegmentImage(cached.imageDescription, child.avatars[child.activeAvatarIndex]?.imageData ?? ''));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedStep = null;
       adventure.lastChoices = [];
@@ -380,7 +380,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
 
   const generatedImageUrl = await generateSegmentImage(
     segment.imageDescription,
-    child.avatarUrl ?? ''
+    child.avatars[child.activeAvatarIndex]?.imageData ?? ''
   );
   if (generatedImageUrl) {
     segment.imageUrl = generatedImageUrl;
