@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2 } from 'lucide-react';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
+import defaultAvatar from '@/assets/default_avatar.png';
 import { adventureService } from '@/services/adventureService';
 import type {
   ICurrentChallenge,
@@ -353,7 +354,7 @@ export default function StoryChat() {
               return <WizzyMessage key={msg.id} text={msg.text} imageUrl={msg.imageUrl} />;
             if (msg.role === 'child')
               return (
-                <ChildMessage key={msg.id} text={msg.text} avatarUrl={activeChild?.avatarUrl} />
+                <ChildMessage key={msg.id} text={msg.text} avatarUrl={activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar} />
               );
             if (msg.role === 'hint') return <HintMessage key={msg.id} text={msg.text} />;
             return (

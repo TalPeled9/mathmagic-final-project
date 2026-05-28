@@ -390,7 +390,7 @@ async function _doPrefetchForChoices(
         // the in-process cache so cache-hit serves are instant.
         const imageUrl = await generateSegmentImage(
           llmResponse.imageDescription,
-          child.avatarUrl ?? ''
+          child.avatars[child.activeAvatarIndex]?.imageData ?? ''
         );
         if (imageUrl) {
           pregeneratedImageCache.set(
@@ -499,7 +499,7 @@ async function _doPrefetchNextStep(
     // cache so cache-hit serves are instant.
     const imageUrl = await generateSegmentImage(
       llmResponse.imageDescription,
-      child.avatarUrl ?? ''
+      child.avatars[child.activeAvatarIndex]?.imageData ?? ''
     );
     if (imageUrl) {
       pregeneratedImageCache.set(imageCacheKey(adventure._id.toString(), nextIndex), imageUrl);
