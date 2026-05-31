@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Plus, ArrowLeft, Star, Zap, Trophy, Edit2, X, Users } from 'lucide-react';
+import { Sparkles, Plus, ArrowLeft, Star, Zap, Trophy, Clock, Edit2, X, Users } from 'lucide-react';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -133,6 +133,10 @@ export default function ParentDashboard() {
                     <span className="flex items-center gap-0.5">
                       <Trophy size={11} className="text-purple-wizzy" />
                       Lv {child.currentLevel}
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <Clock size={11} className="text-blue-400" />
+                      {child.weeklyLearningMinutes} min this week
                     </span>
                   </div>
                 </div>

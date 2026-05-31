@@ -313,17 +313,19 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
 
   await adventure.save();
 
+  const durationMinutes = Math.round(
+    (adventure.completedAt.getTime() - adventure.startedAt.getTime()) / 60000
+  );
+
   const { newLevel, newBadge } = await applyRewardsToChild(
     child,
     adventure.xpEarned,
     starsEarned,
     stats,
-    adventure.storyWorld
+    adventure.storyWorld,
+    durationMinutes
   );
 
-  const durationMinutes = Math.round(
-    (adventure.completedAt.getTime() - adventure.startedAt.getTime()) / 60000
-  );
   await LearningSession.findOneAndUpdate(
     { adventureId: adventure._id },
     { endTime: adventure.completedAt, duration: durationMinutes }

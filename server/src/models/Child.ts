@@ -17,6 +17,8 @@ export interface IChildDocument extends Document {
   currentLevel: number;
   totalXP: number;
   totalStars: number;
+  weeklyLearningMinutes: number;
+  weekStart: Date;
   unlockedWorlds: string[];
   badges: IBadge[];
   createdAt: Date;
@@ -32,6 +34,8 @@ const childSchema = new Schema<IChildDocument>(
     currentLevel: { type: Number, default: 1 },
     totalXP: { type: Number, default: 0 },
     totalStars: { type: Number, default: 0 },
+    weeklyLearningMinutes: { type: Number, default: 0 },
+    weekStart: { type: Date, default: () => new Date(0) },
     unlockedWorlds: { type: [String], default: [] },
     badges: {
       type: [

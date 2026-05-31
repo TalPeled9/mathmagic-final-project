@@ -17,6 +17,7 @@ export interface IChild {
   currentLevel: number;
   totalXP: number;
   totalStars: number;
+  weeklyLearningMinutes: number;
   unlockedWorlds: string[];
   badges: IBadge[];
   createdAt: string;

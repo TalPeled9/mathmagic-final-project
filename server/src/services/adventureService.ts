@@ -184,6 +184,15 @@ export async function generateSegmentImage(
   }
 }
 
+// ─── Weekly Reset Helper ─────────────────────────────────────────────────────
+
+export function getWeekStart(date: Date): Date {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay();
+  d.setUTCDate(d.getUTCDate() - (day === 0 ? 6 : day - 1));
+  return d;
+}
+
 // ─── XP Calculation ──────────────────────────────────────────────────────────
 
 export function calculateAnswerXP(correct: boolean, hintUsed: boolean): number {
@@ -223,7 +232,8 @@ export async function applyRewardsToChild(
   xpEarned: number,
   starsEarned: number,
   stats: AdventureStats,
-  currentStoryWorld?: string
+  currentStoryWorld?: string,
+  durationMinutes = 0
 ): Promise<{ newLevel?: number; newBadge?: IBadge }> {
   const previousLevel = child.currentLevel;
   child.totalXP += xpEarned;
@@ -320,6 +330,13 @@ export async function applyRewardsToChild(
     }).lean();
     if (masteredTopic) newBadge = pushBadge(child, 'topic-master');
   }
+
+  const currentWeekStart = getWeekStart(new Date());
+  if (!child.weekStart || child.weekStart < currentWeekStart) {
+    child.weeklyLearningMinutes = 0;
+    child.weekStart = currentWeekStart;
+  }
+  child.weeklyLearningMinutes += durationMinutes;
 
   await child.save();
   return { newLevel, newBadge };
