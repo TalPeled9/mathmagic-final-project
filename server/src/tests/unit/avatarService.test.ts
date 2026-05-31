@@ -83,6 +83,3 @@ describe('generateAvatar', () => {
   });
 });
 
-describe.skip('generateDefaultAvatar (removed)', () => {
-  it('placeholder', () => {});
-});
