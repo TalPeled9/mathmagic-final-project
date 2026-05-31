@@ -7,6 +7,9 @@
 
   --animate-float: float 3s ease-in-out infinite;
   --animate-sparkle: sparkle 1.5s ease-in-out infinite;
+  --animate-pop-in: pop-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  --animate-slide-up-fade: slide-up-fade 0.4s ease-out forwards;
+  --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
 }
 
 @keyframes float {
@@ -29,7 +32,237 @@
   }
 }
 
+@keyframes pop-in {
+  0% {
+    transform: scale(0.85) translateY(24px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes star-pop {
+  0% {
+    transform: scale(0.4) rotate(-20deg);
+  }
+  65% {
+    transform: scale(1.4) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes slide-up-fade {
+  0% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes confetti-rise {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110px) rotate(600deg) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.65);
+  }
+}
+
+/* ── MathMagic loader keyframes ──────────────────────────── */
+@keyframes mm-ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mm-sparkle-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mm-sparkle-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes mm-sparkle-pulse-b {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+}
+
+@keyframes mm-orbit-rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mm-orbit-counter {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes mm-core-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes mm-wand-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mm-wand-trail {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+
+@keyframes mm-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+@keyframes mm-bg-twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes mm-dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@keyframes mm-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mm-ai-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+@keyframes mm-wizzy-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+}
+
+@keyframes mm-msg-swap {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mm-skel-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+@keyframes cursor-wand-glow {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.25); }
+}
+
+@keyframes cursor-sparkle-fade {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+}
+
 @layer base {
+  *, *::before, *::after {
+    cursor: none !important;
+  }
+
   body {
     @apply bg-amber-50 text-gray-900 font-medium leading-relaxed;
   }

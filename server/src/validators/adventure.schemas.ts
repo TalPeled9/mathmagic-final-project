@@ -6,7 +6,7 @@ export const startAdventureSchema = z.object({
 });
 
 export const continueAdventureSchema = z.object({
-  choiceIndex: z.number().int().min(0).max(2),
+  choiceIndex: z.number().int().min(0).max(1),
 });
 
 export const answerChallengeSchema = z.object({
@@ -15,6 +15,11 @@ export const answerChallengeSchema = z.object({
 
 export const adventureParamsSchema = z.object({
   adventureId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Adventure ID must be a valid ObjectId'),
+});
+
+export const imageParamsSchema = z.object({
+  adventureId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Adventure ID must be a valid ObjectId'),
+  stepIndex: z.coerce.number().int().min(0),
 });
 
 export const childParamsSchema = z.object({

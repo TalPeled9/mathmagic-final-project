@@ -1,10 +1,19 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import type { StoryMode } from '@mathmagic/types';
 
 interface IConversationEntry {
-  role: 'wizzy' | 'child' | 'system' | 'image';
+  role: 'wizzy' | 'child' | 'system';
   content: string;
+  dialogue?: string;
   imageUrl?: string;
   timestamp: Date;
+}
+
+interface IPregeneratedStep {
+  mode: StoryMode;
+  llmResponse: Record<string, unknown>;
+  imageUrl: string | null;
+  imageDescription: string;
 }
 
 interface ICurrentChallengeSubdoc {
@@ -35,7 +44,24 @@ export interface IAdventureDocument extends Document {
   correctAnswers: number;
   incorrectAnswers: number;
   hintsUsed: number;
+  pregeneratedStep: IPregeneratedStep | null;
+  /** Pre-generated math questions, one per story choice (index = choiceIndex). */
+  pregeneratedChoiceSteps: (IPregeneratedStep | null)[];
+  /** Tracks correct-answer run within this adventure for streak XP calculation. */
+  consecutiveCorrect: number;
+  currentDifficulty: 'easy' | 'medium' | 'hard';
+  recentPerformanceScores: number[];
 }
+
+const pregeneratedStepSchema = new Schema<IPregeneratedStep>(
+  {
+    mode: { type: String, required: true },
+    llmResponse: { type: Schema.Types.Mixed, required: true },
+    imageUrl: { type: String, default: null },
+    imageDescription: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const currentChallengeSchema = new Schema<ICurrentChallengeSubdoc>(
   {
@@ -50,8 +76,9 @@ const currentChallengeSchema = new Schema<ICurrentChallengeSubdoc>(
 
 const conversationEntrySchema = new Schema<IConversationEntry>(
   {
-    role: { type: String, enum: ['wizzy', 'child', 'system', 'image'], required: true },
+    role: { type: String, enum: ['wizzy', 'child', 'system'], required: true },
     content: { type: String, required: true },
+    dialogue: { type: String },
     imageUrl: { type: String },
     timestamp: { type: Date, default: Date.now },
   },
@@ -78,10 +105,28 @@ const adventureSchema = new Schema<IAdventureDocument>(
     correctAnswers: { type: Number, default: 0 },
     incorrectAnswers: { type: Number, default: 0 },
     hintsUsed: { type: Number, default: 0 },
+    pregeneratedStep: { type: pregeneratedStepSchema, default: null },
+    pregeneratedChoiceSteps: { type: [Schema.Types.Mixed], default: [] },
+    consecutiveCorrect: { type: Number, default: 0, min: 0 },
+    currentDifficulty: {
+      type: String,
+      enum: ['easy', 'medium', 'hard'],
+      default: 'easy',
+    },
+    recentPerformanceScores: { type: [Number], default: [] },
   },
   { timestamps: true }
 );
 
 adventureSchema.index({ childId: 1, status: 1 });
+
+// Strip base64 imageUrls from conversation history before every save to prevent
+// MongoDB documents from exceeding the 16 MB limit. Images are stored in the
+// AdventureImage collection and served from there; history entries need only text.
+adventureSchema.pre('save', function () {
+  for (const entry of this.conversationHistory) {
+    entry.imageUrl = undefined;
+  }
+});
 
 export const Adventure = mongoose.model<IAdventureDocument>('Adventure', adventureSchema);

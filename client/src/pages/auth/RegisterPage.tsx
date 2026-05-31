@@ -3,6 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Lock, Mail, User, Sparkles } from 'lucide-react';
+import { GradientRing } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterPage() {
@@ -47,10 +48,10 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
+          <Link to="/" className="flex items-center justify-center gap-2 mb-3">
             <Sparkles className="text-gold-magic" size={36} />
             <h1 className="text-4xl font-bold text-purple-wizzy">MathMagic</h1>
-          </div>
+          </Link>
           <h2 className="text-2xl font-bold text-purple-wizzy">Create an Account</h2>
           <p className="text-gray-500 mt-1">Start your child's learning adventure</p>
         </div>
@@ -62,7 +63,10 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
               <div className="relative">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <User
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="text"
                   value={username}
@@ -82,7 +86,10 @@ export default function RegisterPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Mail
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="email"
                   value={email}
@@ -98,7 +105,10 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
-                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Lock
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -125,9 +135,13 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors mt-2"
             >
-              <Sparkles className="text-gold-magic" size={18} />
+              {isLoading ? (
+                <GradientRing size={18} thickness={2.5} label="" />
+              ) : (
+                <Sparkles className="text-gold-magic" size={18} />
+              )}
               {isLoading ? 'Creating account...' : 'Create Account'}
-              <Sparkles className="text-gold-magic" size={18} />
+              {!isLoading && <Sparkles className="text-gold-magic" size={18} />}
             </button>
 
             <div className="relative py-1">

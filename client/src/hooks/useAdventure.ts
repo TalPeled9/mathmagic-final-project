@@ -26,28 +26,33 @@ interface UseAdventureReturn {
 export function useAdventure(): UseAdventureReturn {
   const [adventureId, setAdventureId] = useState<string | null>(null);
   const [segments, setSegments] = useState<StorySegment[]>([]);
-  const [lastAnswerFeedback, setLastAnswerFeedback] = useState<AnswerChallengeResponse | null>(null);
+  const [lastAnswerFeedback, setLastAnswerFeedback] = useState<AnswerChallengeResponse | null>(
+    null
+  );
   const [hints, setHints] = useState<HintResponse[]>([]);
   const [completionData, setCompletionData] = useState<CompleteAdventureResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const startAdventure = useCallback(async (childId: string, mathTopic: string, storyWorld: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await adventureService.start(childId, { mathTopic, storyWorld });
-      setAdventureId(response.adventureId);
-      setSegments([response.segment]);
-      setLastAnswerFeedback(null);
-      setHints([]);
-      setCompletionData(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start adventure');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const startAdventure = useCallback(
+    async (childId: string, mathTopic: string, storyWorld: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await adventureService.start(childId, { mathTopic, storyWorld });
+        setAdventureId(response.adventureId);
+        setSegments([response.segment]);
+        setLastAnswerFeedback(null);
+        setHints([]);
+        setCompletionData(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to start adventure');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   const resumeAdventure = useCallback(async (id: string) => {
     setIsLoading(true);
@@ -66,38 +71,44 @@ export function useAdventure(): UseAdventureReturn {
     }
   }, []);
 
-  const sendChoice = useCallback(async (choiceIndex: number) => {
-    if (!adventureId) return;
-    setIsLoading(true);
-    setError(null);
-    setLastAnswerFeedback(null);
-    setHints([]);
-    try {
-      const response = await adventureService.continue(adventureId, { choiceIndex });
-      setSegments((prev) => [...prev, response.segment]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to continue adventure');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adventureId]);
+  const sendChoice = useCallback(
+    async (choiceIndex: number) => {
+      if (!adventureId) return;
+      setIsLoading(true);
+      setError(null);
+      setLastAnswerFeedback(null);
+      setHints([]);
+      try {
+        const response = await adventureService.continue(adventureId, { choiceIndex });
+        setSegments((prev) => [...prev, response.segment]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to continue adventure');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [adventureId]
+  );
 
-  const submitAnswer = useCallback(async (answer: string): Promise<AnswerChallengeResponse> => {
-    if (!adventureId) throw new Error('No active adventure');
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await adventureService.answer(adventureId, { answer });
-      setLastAnswerFeedback(response);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to submit answer';
-      setError(message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adventureId]);
+  const submitAnswer = useCallback(
+    async (answer: string): Promise<AnswerChallengeResponse> => {
+      if (!adventureId) throw new Error('No active adventure');
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await adventureService.answer(adventureId, { answer });
+        setLastAnswerFeedback(response);
+        return response;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to submit answer';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [adventureId]
+  );
 
   const requestHint = useCallback(async () => {
     if (!adventureId) return;

@@ -45,4 +45,12 @@ OUTPUT RULES:
 CONSISTENCY:
 - Follow the prompt instructions for the current mode exactly.
 - If the current step does not require a challenge, challenge must be null.
-- If the current step requires encouragement, make it short, warm, and natural.`;
+- If the current step requires encouragement, make it short, warm, and natural.
+
+DIFFICULTY LEVELS:
+- Math problems have three difficulty levels: Easy, Medium, and Hard.
+- Easy: simple, concrete problems with small numbers and single steps.
+- Medium: moderate complexity, may involve regrouping or two-step reasoning.
+- Hard: multi-step problems, larger numbers, or abstract reasoning.
+- Match your vocabulary, encouragement depth, and hint scaffolding to the difficulty level.
+- A child on Easy needs more concrete guidance; a child on Hard can handle more abstract nudges.`;

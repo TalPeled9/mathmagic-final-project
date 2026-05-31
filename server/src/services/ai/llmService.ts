@@ -9,25 +9,27 @@ import type {
   LLMModeContextMap,
   LLMModeResponseMap,
   LLMStoryPromptContext,
-  LLMStartAdventureResponse,
+  LLMStoryStepResponse,
   StoryMode,
 } from '@mathmagic/types';
 import { config } from '../../config';
+import { logger } from '../../lib/logger';
 import {
   buildEndStoryContext,
   buildHintContext,
   buildMathQuestionContext,
-  buildStartAdventureContext,
+  buildStoryStepContext,
 } from './storyContextBuilder';
-import { GeminiJsonClient, type GeminiResponseSchema } from './geminiClient';
+import type { GeminiResponseSchema } from './geminiClient';
+import { FallbackLLMClient } from './fallbackLLMClient';
+import { GeminiProvider } from './providers/geminiProvider';
+import { OllamaProvider } from './providers/ollamaProvider';
+import type { LLMProvider } from './providers/LLMProvider';
 import { sanitizeAndValidateAIResponse } from './contentFilter';
 import { buildEndStoryPrompt } from './prompts/endStory';
 import { buildHintPrompt } from './prompts/hint';
 import { buildMathQuestionPrompt } from './prompts/mathQuestion';
-import { buildStartAdventurePrompt } from './prompts/startAdventure';
-import { systemInstructions } from './prompts/systemInstructions';
-
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+import { buildStoryStepPrompt } from './prompts/storyStep';
 
 const JSON_SCHEMA = {
   OBJECT: 'object',
@@ -35,7 +37,7 @@ const JSON_SCHEMA = {
   STRING: 'string',
 } as const;
 
-const startAdventureSchema: GeminiResponseSchema = {
+const storyStepSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
   required: ['adventureNarrative', 'wizzyDialogue', 'storyChoices', 'imageDescription'],
   properties: {
@@ -43,8 +45,8 @@ const startAdventureSchema: GeminiResponseSchema = {
     wizzyDialogue: { type: JSON_SCHEMA.STRING },
     storyChoices: {
       type: JSON_SCHEMA.ARRAY,
-      minItems: 3,
-      maxItems: 3,
+      minItems: 2,
+      maxItems: 2,
       items: { type: JSON_SCHEMA.STRING },
     },
     imageDescription: { type: JSON_SCHEMA.STRING },
@@ -104,9 +106,9 @@ type ModeDefinitionMap = {
 };
 
 const modeDefinitions: ModeDefinitionMap = {
-  start_adventure: {
-    schema: startAdventureSchema,
-    buildPrompt: buildStartAdventurePrompt,
+  story_step: {
+    schema: storyStepSchema,
+    buildPrompt: buildStoryStepPrompt,
   },
   math_question: {
     schema: mathQuestionSchema,
@@ -131,18 +133,14 @@ function fallbackByMode<K extends StoryMode>(
   ctx: LLMModeContextMap[K]
 ): LLMModeResponseMap[K] {
   switch (mode) {
-    case 'start_adventure': {
+    case 'story_step': {
       const response = {
-        stepType: 'start_adventure',
+        stepType: 'story_step',
         isLastStep: false,
         narrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
         adventureNarrative: `Wizzy smiles at ${ctx.childName}. The magical path is glowing and ready for a new challenge. A kind breeze sparkles around you as the journey begins.`,
         wizzyDialogue: `Let's continue safely, ${ctx.childName}. Choose your next step!`,
-        storyChoices: [
-          'Follow the glowing trail',
-          'Visit the puzzle gate',
-          'Ask Wizzy for a quick warm-up',
-        ],
+        storyChoices: ['Follow the glowing trail', 'Visit the puzzle gate'],
         imageDescription:
           'A bright and friendly cartoon scene of a child avatar with Wizzy near a glowing magical path.',
       };
@@ -158,7 +156,7 @@ function fallbackByMode<K extends StoryMode>(
         problemText: `What is 2 + 3?`,
         expectedAnswerType: 'number',
         answerFormatHint: 'Choose the number that equals 2 + 3.',
-        storyChoices: ['Try the puzzle', 'Ask for a hint', 'Review the last step'],
+        storyChoices: ['Try the puzzle', 'Ask for a hint'],
         answerOptions: ['4', '5', '6', '7'],
         correctAnswer: '5',
         imageDescription:
@@ -205,11 +203,19 @@ function fallbackByMode<K extends StoryMode>(
 }
 
 class LLMService {
-  private readonly client = new GeminiJsonClient(config.gemini.apiKey, systemInstructions);
+  private readonly client: FallbackLLMClient;
+
+  constructor() {
+    const providers: LLMProvider[] = [new GeminiProvider()];
+    if (config.ollama.baseUrl) {
+      providers.push(new OllamaProvider());
+    }
+    this.client = new FallbackLLMClient(providers);
+  }
 
   // Direct context-based methods (legacy/flexible)
-  async generateStartAdventure(ctx: LLMStoryPromptContext): Promise<LLMStartAdventureResponse> {
-    return this.requestByMode('start_adventure', ctx);
+  async generateStoryStep(ctx: LLMStoryPromptContext): Promise<LLMStoryStepResponse> {
+    return this.requestByMode('story_step', ctx);
   }
 
   async generateMathQuestion(ctx: LLMMathQuestionContext): Promise<LLMMathQuestionResponse> {
@@ -225,14 +231,20 @@ class LLMService {
   }
 
   // AdventureState-based convenience methods (recommended for controllers)
-  async generateStartAdventureFromState(state: AdventureState): Promise<LLMStartAdventureResponse> {
-    const ctx = buildStartAdventureContext(state);
-    return this.generateStartAdventure(ctx);
+  async generateStoryStepFromState(
+    state: AdventureState,
+    strict = false
+  ): Promise<LLMStoryStepResponse> {
+    const ctx = buildStoryStepContext(state);
+    return this.requestByMode('story_step', ctx, strict);
   }
 
-  async generateMathQuestionFromState(state: AdventureState): Promise<LLMMathQuestionResponse> {
+  async generateMathQuestionFromState(
+    state: AdventureState,
+    strict = false
+  ): Promise<LLMMathQuestionResponse> {
     const ctx = buildMathQuestionContext(state);
-    return this.generateMathQuestion(ctx);
+    return this.requestByMode('math_question', ctx, strict);
   }
 
   async generateHintFromState(state: AdventureState): Promise<LLMHintResponse> {
@@ -247,26 +259,31 @@ class LLMService {
 
   private async requestByMode<K extends StoryMode>(
     mode: K,
-    ctx: LLMModeContextMap[K]
+    ctx: LLMModeContextMap[K],
+    strict = false
   ): Promise<LLMModeResponseMap[K]> {
     const definition = modeDefinitions[mode];
 
-    const response = await this.client.generateJson<LLMModeResponseMap[K]>({
-      model: DEFAULT_MODEL,
-      schema: definition.schema,
-      prompt: definition.buildPrompt(ctx),
-      temperature: mode === 'hint' ? 0.4 : 0.8,
-      maxOutputTokens: 2048,
-    });
+    let response: LLMModeResponseMap[K];
+    try {
+      response = await this.client.generateJson<LLMModeResponseMap[K]>({
+        schema: definition.schema,
+        prompt: definition.buildPrompt(ctx),
+        temperature: mode === 'hint' ? 0.4 : 0.8,
+        maxOutputTokens: 2048,
+      });
+    } catch (err) {
+      if (strict) throw err; // prefetch path: let caller handle, don't cache fallback
+      logger.warn({ err }, `All providers failed for mode=${mode}; using fallback.`);
+      return fallbackByMode(mode, ctx);
+    }
 
     try {
       return sanitizeAndValidateAIResponse(response);
     } catch (err) {
       if (isUnsafeContentError(err)) {
-        console.warn(
-          `[llmService] Unsafe AI response blocked for mode=${mode}; using fallback.`,
-          err
-        );
+        if (strict) throw err;
+        logger.warn({ err }, `Unsafe AI response blocked for mode=${mode}; using fallback.`);
         return fallbackByMode(mode, ctx);
       }
 

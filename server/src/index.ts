@@ -3,15 +3,16 @@ import mongoose from 'mongoose';
 import app from './app';
 import { config } from './config/index';
 import { connectDB } from './config/database';
+import { logger } from './lib/logger';
 
 connectDB()
   .then(() => {
     const server = app.listen(config.port, () => {
-      console.log(`Server running on port ${config.port}`);
+      logger.info(`Server running on port ${config.port}`);
     });
 
     function shutdown(signal: string) {
-      console.log(`[${signal}] Shutting down gracefully...`);
+      logger.info(`[${signal}] Shutting down gracefully...`);
       server.close(async () => {
         await mongoose.connection.close();
         process.exit(0);
@@ -22,6 +23,6 @@ connectDB()
     process.on('SIGINT', () => shutdown('SIGINT'));
   })
   .catch((err) => {
-    console.error('Failed to connect to MongoDB:', err);
+    logger.error({ err }, 'Failed to connect to MongoDB');
     process.exit(1);
   });

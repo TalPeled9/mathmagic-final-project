@@ -6,6 +6,7 @@ import type {
   LLMMathQuestionContext,
   LLMStoryPromptContext,
 } from '@mathmagic/types';
+import { getCurriculumTopicById } from '../../config/curriculumTopics';
 
 /**
  * Formats the rolling conversation window into a readable transcript for
@@ -22,7 +23,8 @@ export function buildConversationTranscript(turns: ConversationTurn[]): string {
   if (!turns || turns.length === 0) return '';
   const lines = turns.map((t) => {
     const speaker = t.role.charAt(0).toUpperCase() + t.role.slice(1);
-    return `${speaker}: ${t.content}`;
+    const text = t.role === 'wizzy' && t.dialogue ? t.dialogue : t.content;
+    return `${speaker}: ${text}`;
   });
   return lines.join('\n');
 }
@@ -57,17 +59,6 @@ export function buildStorySummary(state: AdventureState): string {
       const recentChoices = state.selectedChoices.slice(-2);
       parts.push(`The child chose to ${recentChoices.join(', then ')}.`);
     }
-
-    // Current challenge context (especially important in hint mode)
-    if (state.lastProblemText) {
-      const context = `Challenge: "${state.lastProblemText}"`;
-      if (state.mode === 'hint') {
-        parts.push(
-          `${context} Child answered: "${state.lastChildAnswer}". ` +
-            `Attempt ${state.attemptCount} of 3.`
-        );
-      }
-    }
   }
 
   return parts.join(' ');
@@ -75,9 +66,9 @@ export function buildStorySummary(state: AdventureState): string {
 
 /**
  * Build the complete LLMStoryPromptContext from AdventureState.
- * Used as base context for start_adventure mode.
+ * Used as base context for story_step mode.
  */
-export function buildStartAdventureContext(state: AdventureState): LLMStoryPromptContext {
+export function buildStoryStepContext(state: AdventureState): LLMStoryPromptContext {
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
@@ -93,15 +84,17 @@ export function buildStartAdventureContext(state: AdventureState): LLMStoryPromp
  * Extends base context with math-specific fields.
  */
 export function buildMathQuestionContext(state: AdventureState): LLMMathQuestionContext {
+  const topic = getCurriculumTopicById(state.mathTopic);
+  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
     storySummary: buildStorySummary(state),
-    conversationTranscript: buildConversationTranscript(state.conversationTurns),
     selectedChoice: state.selectedChoices[state.selectedChoices.length - 1] || 'adventure begins',
-    previousEvents: state.recentEvents.slice(-3),
+    currentDifficulty: state.currentDifficulty,
+    difficultyDescription,
   };
 }
 
@@ -110,6 +103,8 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
  * Extends base context with hint-specific fields.
  */
 export function buildHintContext(state: AdventureState): LLMHintContext {
+  const topic = getCurriculumTopicById(state.mathTopic);
+  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
@@ -121,6 +116,8 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
     childAnswer: state.lastChildAnswer || '',
     hintLevel: state.hintLevel,
     previousHints: state.previousHints ?? [],
+    currentDifficulty: state.currentDifficulty,
+    difficultyDescription,
   };
 }
 

@@ -1,3 +1,5 @@
+import { logger } from '../../lib/logger';
+
 export type GeminiResponseSchema = Record<string, unknown>;
 
 interface GenerateJsonParams {
@@ -29,6 +31,11 @@ export class GeminiJsonClient {
 
     const ai = await this.getClient();
 
+    logger.debug(
+      `\n─── Gemini prompt ───────────────────────────────────────\n${prompt}\n─────────────────────────────────────────────────────────\n`
+    );
+
+    const llmStart = Date.now();
     const response = await ai.models.generateContent({
       model,
       config: {
@@ -40,11 +47,16 @@ export class GeminiJsonClient {
       },
       contents: prompt,
     });
+    const llmDurationMs = Date.now() - llmStart;
 
     const rawText = response.text;
     if (!rawText) {
       throw new Error('Gemini returned an empty response body.');
     }
+
+    logger.debug(
+      `⏱  LLM: ${(llmDurationMs / 1000).toFixed(1)}s\n─── Gemini response ──────────────────────────────────────\n${rawText}\n─────────────────────────────────────────────────────────\n`
+    );
 
     return parseJsonResponse<T>(rawText);
   }

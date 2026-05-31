@@ -5,11 +5,11 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import app from '../app';
-import { googleOAuthClient } from '../config/auth';
-import User from '../model/User';
-import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../utils/cookieOptions';
-import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../utils/jwt';
+import app from '../../app';
+import { googleOAuthClient } from '../../config/auth';
+import User from '../../model/User';
+import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../../utils/cookieOptions';
+import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../../utils/jwt';
 
 function extractCookieValue(
   setCookieHeader: string | string[] | undefined,

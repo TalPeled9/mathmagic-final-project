@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Sparkles, RefreshCw, Save, Star, Zap, Trophy } from 'lucide-react';
+import { ArrowLeft, Save, Star, Zap, Trophy } from 'lucide-react';
+import { ParentLoader, GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
+import defaultAvatar from '@/assets/default_avatar.png';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
 
@@ -17,8 +19,6 @@ export default function ChildDetailsPage() {
   const [name, setName] = useState('');
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(1);
   const [isSaving, setIsSaving] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [avatarDescription, setAvatarDescription] = useState('');
 
   useEffect(() => {
     if (!childId) return;
@@ -51,27 +51,10 @@ export default function ChildDetailsPage() {
     }
   };
 
-  const handleRegenerate = async () => {
-    if (!child) return;
-    setIsRegenerating(true);
-    try {
-      const updated = await childService.regenerateAvatar(child._id, avatarDescription.trim() || undefined);
-      setChild(updated);
-      toast.success('Avatar regenerated!');
-    } catch {
-      toast.error('Failed to regenerate avatar');
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
-        <div className="flex items-center gap-2 text-gray-400">
-          <Sparkles size={20} className="animate-pulse" />
-          <span>Loading...</span>
-        </div>
+        <ParentLoader message="Loading child profile…" />
       </div>
     );
   }
@@ -96,34 +79,22 @@ export default function ChildDetailsPage() {
           {/* Avatar section */}
           <div className="flex flex-col items-center gap-3">
             <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-wizzy/20">
-              {child.avatarUrl ? (
-                <img src={child.avatarUrl} alt={child.name} className="w-full h-full object-cover" />
+              {child.avatars[child.activeAvatarIndex]?.imageData ? (
+                <img
+                  src={child.avatars[child.activeAvatarIndex].imageData}
+                  alt={child.name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
-                  <span className="text-3xl font-bold text-purple-wizzy">
-                    {child.name[0].toUpperCase()}
-                  </span>
-                </div>
+                <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
               )}
             </div>
-            <div className="w-full space-y-2">
-              <textarea
-                value={avatarDescription}
-                onChange={(e) => setAvatarDescription(e.target.value)}
-                placeholder="Describe the avatar (e.g. 'a brave knight with a blue cape')…"
-                maxLength={200}
-                rows={2}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-              />
-              <button
-                onClick={handleRegenerate}
-                disabled={isRegenerating}
-                className="flex items-center justify-center gap-1.5 w-full text-sm text-purple-wizzy hover:text-purple-wizzy/80 disabled:opacity-50 transition-colors"
-              >
-                <RefreshCw size={13} className={isRegenerating ? 'animate-spin' : ''} />
-                {isRegenerating ? 'Regenerating...' : 'Regenerate Avatar'}
-              </button>
-            </div>
+            <Link
+              to={`/profiles/avatar/${child._id}`}
+              className="text-sm text-purple-wizzy hover:text-purple-wizzy/80 transition-colors font-medium"
+            >
+              Manage Avatars
+            </Link>
           </div>
 
           {/* Stats */}
@@ -173,7 +144,9 @@ export default function ChildDetailsPage() {
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
               >
                 {GRADES.map((g) => (
-                  <option key={g} value={g}>Grade {g}</option>
+                  <option key={g} value={g}>
+                    Grade {g}
+                  </option>
                 ))}
               </select>
             </div>
@@ -183,7 +156,7 @@ export default function ChildDetailsPage() {
               disabled={isSaving}
               className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
             >
-              <Save size={16} />
+              {isSaving ? <GradientRing size={18} thickness={2.5} label="" /> : <Save size={16} />}
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </form>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, ArrowLeft, Wand2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Wand2 } from 'lucide-react';
+import { SparkleSpinner, SkeletonCard, AILoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdventure } from '@/hooks/useAdventure';
 import { adventureService } from '@/services/adventureService';
@@ -55,6 +56,17 @@ export default function AdventureSelectionPage() {
     startAdventure(activeChild._id, selectedTopic, selectedWorld);
   };
 
+  // Show full-screen AI loader during story generation (the heavy Gemini call)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-parchment flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          <AILoader />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
       {/* Header */}
@@ -66,10 +78,10 @@ export default function AdventureSelectionPage() {
           <ArrowLeft size={15} />
           Dashboard
         </button>
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <Sparkles className="text-gold-magic" size={24} />
           <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
-        </div>
+        </Link>
         {/* Spacer to keep logo centred */}
         <div className="w-24" />
       </div>
@@ -99,17 +111,16 @@ export default function AdventureSelectionPage() {
 
       {/* Loading */}
       {isFetching ? (
-        <div className="flex items-center gap-2 text-gray-400 mt-16">
-          <Sparkles size={20} className="animate-pulse" />
-          <span>Loading adventures...</span>
+        <div className="flex flex-wrap gap-4 mt-8 justify-center">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonCard key={i} kind="adventure" />
+          ))}
         </div>
       ) : step === 'topic' ? (
         /* ── Step 1: Topic Grid ── */
         <div className="w-full max-w-3xl">
           {topics.length === 0 ? (
-            <p className="text-center text-gray-400 mt-16">
-              No topics available for your grade.
-            </p>
+            <p className="text-center text-gray-400 mt-16">No topics available for your grade.</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {topics.map((topic) => {
@@ -186,7 +197,7 @@ export default function AdventureSelectionPage() {
               >
                 {isLoading ? (
                   <>
-                    <Sparkles size={18} className="animate-pulse" />
+                    <SparkleSpinner size={18} label="" />
                     Creating your story...
                   </>
                 ) : (

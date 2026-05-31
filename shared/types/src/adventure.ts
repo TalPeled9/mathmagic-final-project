@@ -1,10 +1,11 @@
 import type { IBadge } from './children';
 
-export type StoryMode = 'start_adventure' | 'math_question' | 'hint' | 'end_story';
+export type StoryMode = 'story_step' | 'math_question' | 'hint' | 'end_story';
 
 export interface ConversationTurn {
   role: 'wizzy' | 'child' | 'system';
   content: string;
+  dialogue?: string; // Wizzy's spoken line only — excludes adventureNarrative/recap
 }
 
 export interface AdventureState {
@@ -31,6 +32,8 @@ export interface AdventureState {
   attemptCount: number;
   hintLevel: 0 | 1 | 2 | 3;
   hintUsed: boolean;
+  currentDifficulty: 'easy' | 'medium' | 'hard';
+  recentPerformanceScores: number[];
 
   storySummary: string;
 }
@@ -45,7 +48,7 @@ export interface ICurrentChallenge {
 export interface StorySegment {
   narrative: string; // Wizzy's story text
   wizzyDialogue: string; // Wizzy's spoken line
-  choices: string[]; // 2–4 options for child to pick
+  choices: string[]; // exactly 2 story choices
   challenge: ICurrentChallenge | null; // null if this segment is pure story
   imageDescription: string; // description for image generation
   imageUrl?: string; // generated image URL (set by server)
@@ -69,11 +72,18 @@ export interface AnswerChallengeRequest {
   answer: string;
 }
 
+export interface XPBreakdown {
+  base: number;
+  noHintBonus: number;
+  streakBonus: number;
+}
+
 export interface AnswerChallengeResponse {
   correct: boolean;
   xpEarned?: number; // only if correct
   feedback: string; // "Great job! ✨" or "Almost! Try again"
   correctAnswer?: string; // revealed after 3 failed attempts
+  breakdown?: XPBreakdown; // present when correct — useful for XP animation on client
 }
 
 export interface HintResponse {
@@ -84,9 +94,10 @@ export interface HintResponse {
 
 export interface CompleteAdventureResponse {
   xpEarned: number;
+  completionXP: number; // XP awarded for finishing (separate from per-challenge XP)
   starsEarned: number; // 1–3
   newLevel?: number; // if child leveled up
-  newBadge?: IBadge; // if a new badge was earned
+  newBadges: IBadge[]; // all badges earned this adventure (may be empty)
   totalXP: number; // child's updated total
   totalStars: number;
 }
@@ -100,9 +111,14 @@ export interface MathTopicConfig {
   id: string;
   name: string;
   icon: string;
-  gradeRange: { min: number; max: number };
+  grade: number;
   description: string;
   color: string;
+  difficulty: {
+    easy: string;
+    medium: string;
+    hard: string;
+  };
 }
 
 export interface StoryWorldConfig {
@@ -150,9 +166,9 @@ export interface GetChildAdventuresResponse {
 }
 
 export interface ConversationEntry {
-  role: 'wizzy' | 'child' | 'system' | 'image';
+  role: 'wizzy' | 'child' | 'system';
   content: string;
-  imageUrl?: string;
+  dialogue?: string;
 }
 
 export interface GetAdventureResponse {
@@ -168,4 +184,9 @@ export interface GetAdventureResponse {
   conversationHistory: ConversationEntry[];
   currentChallenge: ICurrentChallenge | null;
   lastChoices: string[];
+  stepImages: Record<number, string>;
+}
+
+export interface GetAdventureImageResponse {
+  imageUrl: string;
 }

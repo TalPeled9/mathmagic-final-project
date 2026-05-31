@@ -1,8 +1,13 @@
 import { Request, Response } from 'express';
 import { Adventure } from '../models/Adventure';
+import { AdventureImage } from '../models/AdventureImage';
+import { logger } from '../lib/logger';
 import { LearningSession } from '../models/LearningSession';
 import { ApiError } from '../utils/ApiError';
-import { MATH_TOPICS, getMathTopicById } from '../config/mathTopics';
+import { getTopicsForGrade, getCurriculumTopicById } from '../config/curriculumTopics';
+import { scoreChallenge, adjustDifficulty } from '../services/ai/difficultyEngine';
+import { TopicProgress } from '../models/TopicProgress';
+import { updateTopicDifficulty } from '../services/gamification/masteryService';
 import { STORY_WORLDS, getStoryWorldById } from '../config/storyWorlds';
 import { llmService } from '../services/ai/llmService';
 import {
@@ -15,13 +20,23 @@ import {
   mapEndStoryResponse,
   mapHintResponse,
   generateSegmentImage,
-  calculateAnswerXP,
+  calculateChallengeXP,
+  calculateCompletionXP,
   calculateAdventureRewards,
   applyRewardsToChild,
   appendToHistory,
   updateTopicProgress,
+  prefetchNextStep,
+  prefetchForChoices,
+  consumePregeneratedImage,
+  getPendingPrefetch,
 } from '../services/adventureService';
-import type { StorySegment } from '@mathmagic/types';
+import type {
+  StorySegment,
+  LLMStoryStepResponse,
+  LLMMathQuestionResponse,
+  LLMEndStoryResponse,
+} from '@mathmagic/types';
 
 // ─── GET /api/adventures/children/:childId/available ────────────────────────
 
@@ -31,9 +46,7 @@ export async function getAvailableAdventures(req: Request, res: Response): Promi
 
   const child = await verifyChildOwnership(userId, childId);
 
-  const topics = MATH_TOPICS.filter(
-    (t) => t.gradeRange.min <= child.gradeLevel && t.gradeRange.max >= child.gradeLevel
-  );
+  const topics = getTopicsForGrade(child.gradeLevel);
 
   res.json({ topics, worlds: STORY_WORLDS });
 }
@@ -47,28 +60,61 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
 
   const child = await verifyChildOwnership(userId, childId);
 
-  if (!getMathTopicById(mathTopic)) {
+  const topic = getCurriculumTopicById(mathTopic);
+  if (!topic) {
     throw ApiError.badRequest(`Unknown math topic: ${mathTopic}`);
+  }
+  if (topic.grade !== child.gradeLevel) {
+    throw ApiError.badRequest(`Topic ${mathTopic} is not available for grade ${child.gradeLevel}`);
   }
   if (!getStoryWorldById(storyWorld)) {
     throw ApiError.badRequest(`Unknown story world: ${storyWorld}`);
   }
 
-  const adventure = await Adventure.create({ childId, mathTopic, storyWorld });
+  const existingProgress = await TopicProgress.findOne({
+    childId,
+    mathTopic,
+  }).lean();
+  const initialDifficulty = (existingProgress?.currentDifficulty ?? 'easy') as
+    | 'easy'
+    | 'medium'
+    | 'hard';
+
+  const adventure = await Adventure.create({
+    childId,
+    mathTopic,
+    storyWorld,
+    currentDifficulty: initialDifficulty,
+    recentPerformanceScores: [],
+  });
   await LearningSession.create({ childId, adventureId: adventure._id });
 
-  const state = buildAdventureState(adventure, child, 'start_adventure');
-  const llmResponse = await llmService.generateStartAdventureFromState(state);
+  const state = buildAdventureState(adventure, child, 'story_step');
+  const llmResponse = await llmService.generateStoryStepFromState(state);
   const segment: StorySegment = mapStartAdventureResponse(llmResponse);
 
-  segment.imageUrl =
-    (await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '')) ?? undefined;
+  const generatedImageUrl = await generateSegmentImage(
+    segment.imageDescription,
+    child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+  );
+  if (generatedImageUrl) {
+    segment.imageUrl = generatedImageUrl;
+    await AdventureImage.create({
+      adventureId: adventure._id,
+      stepIndex: adventure.currentStepIndex,
+      imageData: generatedImageUrl,
+      contentType: 'image/jpeg',
+      imageDescription: segment.imageDescription,
+    });
+  }
 
   adventure.lastChoices = segment.choices;
-  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl);
+  appendToHistory(adventure, 'wizzy', segment.narrative);
   await adventure.save();
 
   res.status(201).json({ adventureId: adventure._id.toString(), segment });
+  // Pre-generate both math questions (one per story choice) in the background
+  void prefetchForChoices(adventure, child);
 }
 
 // ─── GET /api/adventures/:adventureId ───────────────────────────────────────
@@ -80,7 +126,14 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
   const { adventure } = await verifyAdventureAccess(userId, adventureId);
 
   const lastWizzy = [...adventure.conversationHistory].reverse().find((e) => e.role === 'wizzy');
-  const lastImage = [...adventure.conversationHistory].reverse().find((e) => e.role === 'image');
+
+  const adventureImages = await AdventureImage.find({ adventureId: adventure._id }).lean();
+  const stepImages: Record<number, string> = Object.fromEntries(
+    adventureImages.map((img) => [
+      img.stepIndex,
+      `/api/adventures/${adventure._id}/images/${img.stepIndex}`,
+    ])
+  );
 
   const challenge = adventure.currentChallenge
     ? {
@@ -96,7 +149,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     wizzyDialogue: lastWizzy?.content ?? '',
     choices: adventure.lastChoices,
     challenge,
-    imageUrl: lastImage?.imageUrl,
+    imageUrl: stepImages[adventure.currentStepIndex],
     imageDescription: '',
     isLastStep: adventure.currentStepIndex >= adventure.totalSteps - 1,
   };
@@ -115,6 +168,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     conversationHistory: adventure.conversationHistory,
     currentChallenge: challenge,
     lastChoices: adventure.lastChoices,
+    stepImages,
   });
 }
 
@@ -153,6 +207,172 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
   adventure.currentStepIndex += 1;
 
   const mode = determineNextMode(adventure);
+
+  // ── Wait for in-flight prefetch before checking cache ─────────────────────
+  // The user may have clicked before the fire-and-forget prefetch finished.
+  // Awaiting it here converts what would be a duplicate LLM call into a cache hit.
+  // mode === 'math_question' → waiting on prefetchForChoices (keyed 'choices')
+  // mode === 'story_step'    → waiting on prefetchNextStep   (keyed 'step')
+  const prefetchType =
+    mode === 'math_question'
+      ? 'choices'
+      : mode === 'story_step' || mode === 'end_story'
+        ? 'step'
+        : null;
+  if (prefetchType) {
+    const pending = getPendingPrefetch(adventureId, adventure.currentStepIndex, prefetchType);
+    if (pending) {
+      console.log(
+        `[cache] WAIT ${mode} prefetch in flight step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
+      try {
+        await pending;
+      } catch {
+        /* non-fatal — errors already logged inside the helper */
+      }
+      const refreshed = await Adventure.findById(adventureId).select(
+        'pregeneratedChoiceSteps pregeneratedStep'
+      );
+      if (refreshed) {
+        adventure.pregeneratedChoiceSteps = refreshed.pregeneratedChoiceSteps;
+        adventure.pregeneratedStep = refreshed.pregeneratedStep;
+      }
+    }
+  }
+
+  // ── Cache-hit: math_question (pre-generated per story choice) ──────────────
+  if (mode === 'math_question') {
+    const cachedByChoice = (adventure.pregeneratedChoiceSteps[choiceIndex] ?? null) as {
+      mode: string;
+      llmResponse: Record<string, unknown>;
+      imageUrl: string | null;
+      imageDescription: string;
+    } | null;
+    if (cachedByChoice) {
+      console.log(
+        `[cache] HIT math_question choice[${choiceIndex}] step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
+      const llmResp = cachedByChoice.llmResponse as unknown as LLMMathQuestionResponse;
+      const segment = mapMathQuestionResponse(llmResp);
+      adventure.currentChallenge = segment.challenge
+        ? {
+            problemText: llmResp.problemText,
+            correctAnswer: llmResp.correctAnswer,
+            options: segment.challenge.options,
+            hintLevel: 0,
+            attemptsCount: 0,
+          }
+        : null;
+      adventure.totalChallenges += 1;
+      // Consume pre-generated image from in-process cache (instant).
+      // Fall back to inline generation only if the cache was cleared (e.g. server restart).
+      const pregenImage =
+        consumePregeneratedImage(adventureId, adventure.currentStepIndex, choiceIndex) ??
+        (await generateSegmentImage(cachedByChoice.imageDescription, child.avatars[child.activeAvatarIndex]?.imageData ?? ''));
+      if (pregenImage) segment.imageUrl = pregenImage;
+      adventure.pregeneratedChoiceSteps = [];
+      adventure.lastChoices = segment.choices;
+      appendToHistory(adventure, 'wizzy', segment.narrative);
+      await adventure.save();
+      void prefetchNextStep(adventure, child);
+      res.json({ segment });
+      // Save to AdventureImage after responding so it's available for getAdventure.
+      if (pregenImage) {
+        void AdventureImage.create({
+          adventureId: adventure._id,
+          stepIndex: adventure.currentStepIndex,
+          imageData: pregenImage,
+          contentType: 'image/jpeg',
+          imageDescription: cachedByChoice.imageDescription,
+        }).catch((err: unknown) =>
+          logger.warn({ err }, 'AdventureImage.create failed on cache-hit math_question')
+        );
+      }
+      return;
+    }
+    console.log(
+      `[cache] MISS math_question choice[${choiceIndex}] step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`
+    );
+  }
+
+  // ── Cache-hit: story_step (single pre-generated step, used after auto-continue) ─
+  if (mode === 'story_step') {
+    const cached = adventure.pregeneratedStep;
+    if (cached?.mode === 'story_step') {
+      console.log(
+        `[cache] HIT story_step step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
+      const llmResp = cached.llmResponse as unknown as LLMStoryStepResponse;
+      const segment = mapStartAdventureResponse(llmResp);
+      // Consume pre-generated image from in-process cache (instant).
+      // Fall back to inline generation only if the cache was cleared (e.g. server restart).
+      const pregenImage =
+        consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
+        (await generateSegmentImage(cached.imageDescription, child.avatars[child.activeAvatarIndex]?.imageData ?? ''));
+      if (pregenImage) segment.imageUrl = pregenImage;
+      adventure.pregeneratedStep = null;
+      adventure.lastChoices = segment.choices;
+      appendToHistory(adventure, 'wizzy', segment.narrative);
+      await adventure.save();
+      void prefetchForChoices(adventure, child);
+      res.json({ segment });
+      // Save to AdventureImage after responding so it's available for getAdventure.
+      if (pregenImage) {
+        void AdventureImage.create({
+          adventureId: adventure._id,
+          stepIndex: adventure.currentStepIndex,
+          imageData: pregenImage,
+          contentType: 'image/jpeg',
+          imageDescription: cached.imageDescription,
+        }).catch((err: unknown) =>
+          logger.warn({ err }, 'AdventureImage.create failed on cache-hit story_step')
+        );
+      }
+      return;
+    }
+    console.log(
+      `[cache] MISS story_step step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`
+    );
+  }
+
+  // ── Cache-hit: end_story (pre-generated after the last story_step) ───────────
+  if (mode === 'end_story') {
+    const cached = adventure.pregeneratedStep;
+    if (cached?.mode === 'end_story') {
+      console.log(
+        `[cache] HIT end_story step=${adventure.currentStepIndex} adventure=${adventureId}`
+      );
+      const llmResp = cached.llmResponse as unknown as LLMEndStoryResponse;
+      const segment = mapEndStoryResponse(llmResp);
+      const pregenImage =
+        consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
+        (await generateSegmentImage(cached.imageDescription, child.avatars[child.activeAvatarIndex]?.imageData ?? ''));
+      if (pregenImage) segment.imageUrl = pregenImage;
+      adventure.pregeneratedStep = null;
+      adventure.lastChoices = [];
+      appendToHistory(adventure, 'wizzy', segment.narrative);
+      await adventure.save();
+      // no prefetch after end_story
+      res.json({ segment });
+      if (pregenImage) {
+        void AdventureImage.create({
+          adventureId: adventure._id,
+          stepIndex: adventure.currentStepIndex,
+          imageData: pregenImage,
+          contentType: 'image/jpeg',
+          imageDescription: cached.imageDescription,
+        }).catch((err: unknown) =>
+          logger.warn({ err }, 'AdventureImage.create failed on cache-hit end_story')
+        );
+      }
+      return;
+    }
+    console.log(
+      `[cache] MISS end_story step=${adventure.currentStepIndex} adventure=${adventureId} — generating on demand`
+    );
+  }
+
+  // ── Cache miss: call LLM normally ─────────────────────────────────────────
   const state = buildAdventureState(adventure, child, mode);
 
   let segment: StorySegment;
@@ -174,16 +394,37 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     const llmResponse = await llmService.generateEndStoryFromState(state);
     segment = mapEndStoryResponse(llmResponse);
   } else {
-    const llmResponse = await llmService.generateStartAdventureFromState(state);
+    const llmResponse = await llmService.generateStoryStepFromState(state);
     segment = mapStartAdventureResponse(llmResponse);
   }
 
-  segment.imageUrl =
-    (await generateSegmentImage(segment.imageDescription, child.avatarUrl ?? '')) ?? undefined;
+  const generatedImageUrl = await generateSegmentImage(
+    segment.imageDescription,
+    child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+  );
+  if (generatedImageUrl) {
+    segment.imageUrl = generatedImageUrl;
+    await AdventureImage.create({
+      adventureId: adventure._id,
+      stepIndex: adventure.currentStepIndex,
+      imageData: generatedImageUrl,
+      contentType: 'image/jpeg',
+      imageDescription: segment.imageDescription,
+    });
+  }
 
   adventure.lastChoices = segment.choices;
-  appendToHistory(adventure, 'wizzy', segment.narrative, segment.imageUrl);
+  appendToHistory(adventure, 'wizzy', segment.narrative);
   await adventure.save();
+
+  // Fire next pre-generation based on what was just served
+  if (mode === 'story_step') {
+    void prefetchForChoices(adventure, child);
+  } else if (mode === 'math_question') {
+    // Start pre-generating the next story_step NOW — user will spend time solving the math
+    void prefetchNextStep(adventure, child);
+  }
+  // end_story: no pre-generation
 
   res.json({ segment });
 }
@@ -211,7 +452,23 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (isCorrect) {
     const hintUsed = adventure.currentChallenge.hintLevel > 0;
-    const xpEarned = calculateAnswerXP(true, hintUsed);
+
+    const score = scoreChallenge(true, adventure.currentChallenge.attemptsCount + 1, hintUsed);
+    const updatedScores = [...adventure.recentPerformanceScores, score].slice(-3);
+    adventure.recentPerformanceScores = updatedScores;
+    adventure.currentDifficulty = adjustDifficulty(
+      adventure.currentDifficulty as 'easy' | 'medium' | 'hard',
+      updatedScores
+    );
+
+    // Increment streak BEFORE calculating XP so the +10 bonus fires on the 3rd correct
+    adventure.consecutiveCorrect = (adventure.consecutiveCorrect ?? 0) + 1;
+
+    const { xpEarned, breakdown } = calculateChallengeXP(
+      true,
+      hintUsed,
+      adventure.consecutiveCorrect
+    );
 
     adventure.xpEarned += xpEarned;
     adventure.correctAnswers += 1;
@@ -222,7 +479,7 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
     await updateTopicProgress(child._id.toString(), adventure.mathTopic, true, hintUsed);
 
-    res.json({ correct: true, xpEarned, feedback: 'Great job! ✨' });
+    res.json({ correct: true, xpEarned, breakdown, feedback: 'Great job! ✨' });
     return;
   }
 
@@ -232,7 +489,16 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
 
   if (adventure.currentChallenge.attemptsCount >= 3) {
     const correctAnswer = adventure.currentChallenge.correctAnswer;
-    adventure.xpEarned += 2; // consolation XP
+    const score = scoreChallenge(false, 3, false);
+    const updatedScores = [...adventure.recentPerformanceScores, score].slice(-3);
+    adventure.recentPerformanceScores = updatedScores;
+    adventure.currentDifficulty = adjustDifficulty(
+      adventure.currentDifficulty as 'easy' | 'medium' | 'hard',
+      updatedScores
+    );
+    // Consolation XP for seeing the answer — streak resets on reveal
+    adventure.consecutiveCorrect = 0;
+    adventure.xpEarned += 2;
     appendToHistory(adventure, 'system', `The correct answer was ${correctAnswer}. Keep going!`);
     adventure.currentChallenge = null;
     adventure.currentHints = []; // reset hint memory for next challenge
@@ -311,20 +577,42 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
   const { starsEarned } = calculateAdventureRewards(stats);
   adventure.starsEarned = starsEarned;
 
+  // Completion XP is separate from per-challenge XP (scales with accuracy)
+  const completionXP = calculateCompletionXP(stats);
+  adventure.xpEarned += completionXP;
+
   await adventure.save();
+
+  updateTopicDifficulty(
+    child._id.toString(),
+    adventure.mathTopic,
+    adventure.currentDifficulty as 'easy' | 'medium' | 'hard'
+  ).catch((err: unknown) => {
+    console.warn('updateTopicDifficulty failed on completeAdventure', err);
+  });
+
+  // Count completed adventures AFTER saving so the count is accurate for badge checks
+  const totalCompletedAdventures = await Adventure.countDocuments({
+    childId: child._id,
+    status: 'completed',
+  });
 
   const durationMinutes = Math.round(
     (adventure.completedAt.getTime() - adventure.startedAt.getTime()) / 60000
   );
 
-  const { newLevel, newBadge } = await applyRewardsToChild(
+  const { newLevel, newBadges } = await applyRewardsToChild(
     child,
     adventure.xpEarned,
     starsEarned,
     stats,
-    adventure.storyWorld,
-    durationMinutes
+    {
+      currentStoryWorld: adventure.storyWorld,
+      adventureDurationMinutes: durationMinutes,
+      totalCompletedAdventures,
+    }
   );
+
 
   await LearningSession.findOneAndUpdate(
     { adventureId: adventure._id },
@@ -333,12 +621,33 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
 
   res.json({
     xpEarned: adventure.xpEarned,
+    completionXP,
     starsEarned,
     newLevel,
-    newBadge,
+    newBadges,
     totalXP: child.totalXP,
     totalStars: child.totalStars,
   });
+}
+
+// ─── GET /api/adventures/:adventureId/images/:stepIndex ─────────────────────
+
+export async function getAdventureImage(req: Request, res: Response): Promise<void> {
+  const { adventureId, stepIndex } = req.params as { adventureId: string; stepIndex: string };
+  const userId = req.user!.userId;
+
+  await verifyAdventureAccess(userId, adventureId);
+
+  const img = await AdventureImage.findOne({
+    adventureId,
+    stepIndex: parseInt(stepIndex, 10),
+  }).lean();
+
+  if (!img) {
+    throw ApiError.notFound('Image not found');
+  }
+
+  res.json({ imageUrl: img.imageData });
 }
 
 // ─── GET /api/adventures/children/:childId ──────────────────────────────────

@@ -2,24 +2,24 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../services/authService', () => ({
+vi.mock('../../services/authService', () => ({
   verifyGoogleToken: vi.fn(),
   findOrCreateUser: vi.fn(),
   registerLocalUser: vi.fn(),
   loginLocalUser: vi.fn(),
 }));
 
-vi.mock('../model/User', () => ({
+vi.mock('../../model/User', () => ({
   default: {
     findById: vi.fn(),
   },
 }));
 
-import app from '../app';
-import * as authService from '../services/authService';
-import User from '../model/User';
-import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../utils/cookieOptions';
-import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../utils/jwt';
+import app from '../../app';
+import * as authService from '../../services/authService';
+import User from '../../model/User';
+import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../../utils/cookieOptions';
+import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../../utils/jwt';
 
 type MockUser = {
   _id: string;

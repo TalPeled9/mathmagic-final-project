@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import { config } from './index';
+import { logger } from '../lib/logger';
 
 export async function connectDB(): Promise<void> {
-  mongoose.connection.on('error', (err) => console.error('MongoDB error:', err));
-  mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'));
+  mongoose.connection.on('error', (err) => logger.error({ err }, 'MongoDB error'));
+  mongoose.connection.on('disconnected', () => logger.warn('MongoDB disconnected'));
 
   await mongoose.connect(config.mongoUri, { maxPoolSize: 10 });
-  console.log(`MongoDB connected: ${mongoose.connection.host}`);
+  logger.info(`MongoDB connected: ${mongoose.connection.host}`);
 }

@@ -7,71 +7,79 @@ import {
   continueAdventureSchema,
   answerChallengeSchema,
   adventureParamsSchema,
+  imageParamsSchema,
   childParamsSchema,
 } from '../validators/adventure.schemas';
 import * as adventureController from '../controllers/adventureController';
 
 const router = Router();
 
-// Apply AI rate limits to all adventure endpoints.
-router.use(aiRateLimit);
-
 // Child-scoped routes
 router.get(
   '/children/:childId/available',
   requireAuth,
   validate({ params: childParamsSchema }),
-  adventureController.getAvailableAdventures,
+  adventureController.getAvailableAdventures
 );
 
 router.get(
   '/children/:childId',
   requireAuth,
   validate({ params: childParamsSchema }),
-  adventureController.getChildAdventures,
+  adventureController.getChildAdventures
 );
 
 router.post(
   '/children/:childId',
   requireAuth,
+  aiRateLimit,
   validate({ params: childParamsSchema, body: startAdventureSchema }),
-  adventureController.startAdventure,
+  adventureController.startAdventure
 );
 
 // Adventure-scoped routes
 router.get(
+  '/:adventureId/images/:stepIndex',
+  requireAuth,
+  validate({ params: imageParamsSchema }),
+  adventureController.getAdventureImage
+);
+
+router.get(
   '/:adventureId',
   requireAuth,
   validate({ params: adventureParamsSchema }),
-  adventureController.getAdventure,
+  adventureController.getAdventure
 );
 
 router.post(
   '/:adventureId/continue',
   requireAuth,
+  aiRateLimit,
   validate({ params: adventureParamsSchema, body: continueAdventureSchema }),
-  adventureController.continueAdventure,
+  adventureController.continueAdventure
 );
 
 router.post(
   '/:adventureId/answer',
   requireAuth,
   validate({ params: adventureParamsSchema, body: answerChallengeSchema }),
-  adventureController.answerChallenge,
+  adventureController.answerChallenge
 );
 
 router.post(
   '/:adventureId/hint',
   requireAuth,
+  aiRateLimit,
   validate({ params: adventureParamsSchema }),
-  adventureController.requestHint,
+  adventureController.requestHint
 );
 
 router.post(
   '/:adventureId/complete',
   requireAuth,
   validate({ params: adventureParamsSchema }),
-  adventureController.completeAdventure,
+  adventureController.completeAdventure
 );
 
 export default router;

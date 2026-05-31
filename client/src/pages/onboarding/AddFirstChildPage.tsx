@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Users, Sparkles, Lightbulb } from 'lucide-react';
+import { Users, Sparkles } from 'lucide-react';
+import { GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { GradeLevel } from '@mathmagic/types';
 
@@ -12,7 +13,6 @@ export default function AddFirstChildPage() {
 
   const [childName, setChildName] = useState('');
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(1);
-  const [avatarDescription, setAvatarDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +22,6 @@ export default function AddFirstChildPage() {
       await childService.create({
         name: childName,
         gradeLevel,
-        avatarDescription: avatarDescription.trim() || undefined,
       });
       toast.success("Child profile created! Let's get started ✨");
       navigate('/profiles');
@@ -38,10 +37,10 @@ export default function AddFirstChildPage() {
       <div className="w-full max-w-lg">
         {/* Logo + heading */}
         <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-3">
+          <Link to="/" className="flex items-center justify-center gap-2 mb-3">
             <Sparkles className="text-gold-magic" size={32} />
             <span className="text-4xl font-bold text-purple-wizzy">MathMagic</span>
-          </div>
+          </Link>
           <h2 className="text-xl font-bold text-purple-wizzy">One last step!</h2>
           <p className="text-gray-500 text-sm mt-1">
             Set up your child's profile to begin their learning adventure
@@ -95,24 +94,6 @@ export default function AddFirstChildPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">
-                Describe Your Child's Avatar <span className="text-gray-400">(Optional)</span>
-              </label>
-              <textarea
-                value={avatarDescription}
-                onChange={(e) => setAvatarDescription(e.target.value)}
-                placeholder="Example: A friendly astronaut with curly hair and a big smile, wearing an orange space suit..."
-                maxLength={200}
-                rows={3}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 placeholder:text-gray-400"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                <Lightbulb size={14} className="inline-block mr-1 text-gold-magic" />
-                Describe what you'd like the avatar to look like. We'll create a custom cartoon
-                character for your child!
-              </p>
-            </div>
           </div>
 
           <button
@@ -120,9 +101,13 @@ export default function AddFirstChildPage() {
             disabled={isLoading}
             className="w-full mt-4 flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3.5 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
           >
-            <Sparkles size={18} className="text-gold-magic" />
+            {isLoading ? (
+              <GradientRing size={18} thickness={2.5} label="" />
+            ) : (
+              <Sparkles size={18} className="text-gold-magic" />
+            )}
             {isLoading ? 'Creating profile...' : "Create Child's Profile"}
-            <Sparkles size={18} className="text-gold-magic" />
+            {!isLoading && <Sparkles size={18} className="text-gold-magic" />}
           </button>
         </form>
       </div>

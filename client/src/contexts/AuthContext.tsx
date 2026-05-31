@@ -1,7 +1,6 @@
-import { createContext,  } from 'react';
+import { createContext } from 'react';
 import type { IChild } from '@mathmagic/types';
 import type { AuthState, RegisterState } from './AuthState';
-
 
 export interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -12,4 +11,3 @@ export interface AuthContextValue extends AuthState {
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
-

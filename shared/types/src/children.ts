@@ -8,12 +8,21 @@ export interface IBadge {
   earnedAt: string;
 }
 
+export interface AvatarSlot {
+  imageData: string;    // base64 data URL
+  description: string;  // corrected description used to generate this avatar
+  createdAt: string;    // ISO date string
+}
+
 export interface IChild {
   _id: string;
   parentId: string;
   name: string;
   gradeLevel: GradeLevel;
-  avatarUrl?: string;
+  avatars: AvatarSlot[];
+  activeAvatarIndex: number;
+  weeklyGenerationsRemaining: number;     // 0–3
+  weeklyGenerationsDaysUntilReset: number; // 0 when quota not exhausted
   currentLevel: number;
   totalXP: number;
   totalStars: number;
@@ -27,7 +36,6 @@ export interface IChild {
 export interface CreateChildRequest {
   name: string;
   gradeLevel: GradeLevel;
-  avatarDescription?: string;
 }
 
 export interface UpdateChildRequest {
@@ -35,3 +43,30 @@ export interface UpdateChildRequest {
   gradeLevel?: GradeLevel;
 }
 
+export interface GenerateAvatarRequest {
+  description: string;
+  replaceIndex?: number; // required when all 3 slots are filled
+}
+
+export interface SetActiveAvatarRequest {
+  avatarIndex: number;
+}
+
+export interface TopicStat {
+  mathTopic: string;
+  name: string;
+  icon: string;
+  color: string;
+  totalChallenges: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  hintsUsed: number;
+  masteryLevel: number; // 0–100
+  currentDifficulty: 'easy' | 'medium' | 'hard';
+  lastPracticedAt?: string;
+}
+
+export interface DailySessionStat {
+  date: string;
+  minutes: number;
+}

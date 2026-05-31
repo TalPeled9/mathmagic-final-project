@@ -24,4 +24,5 @@ export const csrfCookieOptions: CookieOptions = {
   secure: config.isProduction,
   sameSite: 'strict',
   path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // match refresh token lifetime so it survives browser restarts
 };
