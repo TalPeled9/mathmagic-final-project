@@ -1,6 +1,7 @@
 import type { DailySessionStat } from '@mathmagic/types';
 import { Types } from 'mongoose';
 import { LearningSession } from '../../models/LearningSession';
+import { Adventure } from '../../models/Adventure';
 
 /**
  * Returns total learning minutes for a child in the last 7 days.
@@ -64,4 +65,33 @@ export async function getDailySessionBreakdown(
   }
 
   return result;
+}
+
+/**
+ * Returns how many consecutive calendar days (ending today) the child has
+ * completed at least one adventure. Returns 0 if today has no adventure.
+ */
+export async function getCurrentDayStreak(childId: string): Promise<number> {
+  const completed = await Adventure.find(
+    { childId: new Types.ObjectId(childId), status: 'completed', completedAt: { $exists: true } },
+    { completedAt: 1, _id: 0 }
+  ).lean();
+
+  if (completed.length === 0) return 0;
+
+  const daySet = new Set<string>(
+    completed.filter((a) => a.completedAt).map((a) => new Date(a.completedAt!).toISOString().slice(0, 10))
+  );
+
+  let streak = 0;
+  const now = Date.now();
+  for (let i = 0; ; i++) {
+    const key = new Date(now - i * 86_400_000).toISOString().slice(0, 10);
+    if (daySet.has(key)) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
 }
