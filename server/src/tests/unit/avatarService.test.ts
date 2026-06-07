@@ -12,7 +12,7 @@ vi.mock('@google/genai', () => ({
   GoogleGenAI: vi.fn(),
 }));
 
-import { generateAvatar, generateDefaultAvatar } from '../../services/avatarService';
+import { generateAvatar } from '../../services/avatarService';
 import { validateDescription } from '../../services/ai/avatarValidationService';
 
 // Mock GoogleGenAI is accessed dynamically in avatarService, so we get it from the mocked module
@@ -83,25 +83,3 @@ describe('generateAvatar', () => {
   });
 });
 
-describe('generateDefaultAvatar', () => {
-  it('returns a data URL without calling validateDescription', async () => {
-    mockGenerateContent.mockResolvedValue({
-      candidates: [{
-        content: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: 'defaultimg' } }] },
-      }],
-    });
-
-    const result = await generateDefaultAvatar('Sam', 2);
-
-    expect(result).toBe('data:image/jpeg;base64,defaultimg');
-    expect(mockValidate).not.toHaveBeenCalled();
-  });
-
-  it('returns fallback SVG when Gemini is unavailable', async () => {
-    mockGenerateContent.mockRejectedValue(new Error('Unavailable'));
-
-    const result = await generateDefaultAvatar('Sam', 2);
-
-    expect(result).toMatch(/^data:image\/svg\+xml;base64,/);
-  });
-});

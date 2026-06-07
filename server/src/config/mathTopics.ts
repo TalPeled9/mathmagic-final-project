@@ -1,6 +1,4 @@
-import type { MathTopicConfig } from '@mathmagic/types';
-
-export const MATH_TOPICS: MathTopicConfig[] = [
+export const MATH_TOPICS = [
   {
     id: 'addition',
     name: 'Addition',
@@ -83,6 +81,6 @@ export const MATH_TOPICS: MathTopicConfig[] = [
   },
 ];
 
-export function getMathTopicById(id: string): MathTopicConfig | undefined {
+export function getMathTopicById(id: string) {
   return MATH_TOPICS.find((topic) => topic.id === id);
 }

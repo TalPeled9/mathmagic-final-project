@@ -3,6 +3,7 @@ import User from '../model/User';
 import { Child } from '../models/Child';
 import { ApiError } from '../utils/ApiError';
 import { generateAvatar } from '../services/avatarService';
+import { getWeekStart } from '../services/adventureService';
 import type { GradeLevel } from '@mathmagic/types';
 
 const MAX_WEEKLY_GENERATIONS = 3;
@@ -41,6 +42,7 @@ function toPublicChild(child: InstanceType<typeof Child>) {
     currentLevel: child.currentLevel,
     totalXP: child.totalXP,
     totalStars: child.totalStars,
+    weeklyLearningMinutes: child.weeklyLearningMinutes,
     unlockedWorlds: child.unlockedWorlds,
     badges: child.badges,
     createdAt: child.createdAt,
@@ -55,7 +57,13 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
 }
 
 export async function getChildren(req: Request, res: Response): Promise<void> {
-  const children = await Child.find({ parentId: req.user!.userId }).sort({ createdAt: 1 });
+  const parentId = req.user!.userId;
+  const currentWeekStart = getWeekStart(new Date());
+  await Child.updateMany(
+    { parentId, weekStart: { $not: { $gte: currentWeekStart } } },
+    { $set: { weeklyLearningMinutes: 0, weekStart: currentWeekStart } }
+  );
+  const children = await Child.find({ parentId }).sort({ createdAt: 1 });
   res.json({ children: children.map(toPublicChild) });
 }
 
@@ -81,6 +89,12 @@ export async function createChild(req: Request, res: Response): Promise<void> {
 export async function getChild(req: Request, res: Response): Promise<void> {
   const child = await Child.findOne({ _id: req.params.childId, parentId: req.user!.userId });
   if (!child) throw ApiError.notFound('Child not found');
+  const currentWeekStart = getWeekStart(new Date());
+  if (!child.weekStart || child.weekStart < currentWeekStart) {
+    child.weeklyLearningMinutes = 0;
+    child.weekStart = currentWeekStart;
+    await child.save();
+  }
   res.json({ child: toPublicChild(child) });
 }
 

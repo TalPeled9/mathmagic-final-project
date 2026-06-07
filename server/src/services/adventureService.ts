@@ -228,6 +228,15 @@ export async function generateSegmentImage(
   }
 }
 
+// ─── Weekly Reset Helper ─────────────────────────────────────────────────────
+
+export function getWeekStart(date: Date): Date {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay();
+  d.setUTCDate(d.getUTCDate() - (day === 0 ? 6 : day - 1));
+  return d;
+}
+
 // ─── XP Calculation ──────────────────────────────────────────────────────────
 // Delegates to gamification/xpService — re-exported for controller use
 
@@ -290,6 +299,13 @@ export async function applyRewardsToChild(
   };
 
   const newBadges = await checkAndAwardBadges(child, stats, badgeContext);
+
+  const currentWeekStart = getWeekStart(new Date());
+  if (!child.weekStart || child.weekStart < currentWeekStart) {
+    child.weeklyLearningMinutes = 0;
+    child.weekStart = currentWeekStart;
+  }
+  child.weeklyLearningMinutes += context.adventureDurationMinutes;
 
   await child.save();
   return { newLevel, newBadges };

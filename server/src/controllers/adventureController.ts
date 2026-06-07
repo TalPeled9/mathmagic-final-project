@@ -613,6 +613,7 @@ export async function completeAdventure(req: Request, res: Response): Promise<vo
     }
   );
 
+
   await LearningSession.findOneAndUpdate(
     { adventureId: adventure._id },
     { endTime: adventure.completedAt, duration: durationMinutes }
