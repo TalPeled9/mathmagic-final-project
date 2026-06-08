@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Users, Sparkles, Lightbulb } from 'lucide-react';
+import { Users, Sparkles } from 'lucide-react';
 import { GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { GradeLevel } from '@mathmagic/types';
@@ -13,7 +13,6 @@ export default function AddFirstChildPage() {
 
   const [childName, setChildName] = useState('');
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(1);
-  const [avatarDescription, setAvatarDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +22,6 @@ export default function AddFirstChildPage() {
       await childService.create({
         name: childName,
         gradeLevel,
-        avatarDescription: avatarDescription.trim() || undefined,
       });
       toast.success("Child profile created! Let's get started ✨");
       navigate('/profiles');
@@ -96,24 +94,6 @@ export default function AddFirstChildPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">
-                Describe Your Child's Avatar <span className="text-gray-400">(Optional)</span>
-              </label>
-              <textarea
-                value={avatarDescription}
-                onChange={(e) => setAvatarDescription(e.target.value)}
-                placeholder="Example: A friendly astronaut with curly hair and a big smile, wearing an orange space suit..."
-                maxLength={200}
-                rows={3}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 placeholder:text-gray-400"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                <Lightbulb size={14} className="inline-block mr-1 text-gold-magic" />
-                Describe what you'd like the avatar to look like. We'll create a custom cartoon
-                character for your child!
-              </p>
-            </div>
           </div>
 
           <button

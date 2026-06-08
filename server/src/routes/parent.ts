@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { validate } from '../middleware/validateRequest';
 import * as parentController from '../controllers/parentController';
+import * as statisticsController from '../controllers/statisticsController';
 
 const MIN_CHILD_NAME_LENGTH = 1;
 const MAX_CHILD_NAME_LENGTH = 50;
@@ -21,7 +22,6 @@ const gradeLevelSchema = z.union([
 const createChildSchema = z.object({
   name: z.string().min(MIN_CHILD_NAME_LENGTH, 'Name is required').max(MAX_CHILD_NAME_LENGTH),
   gradeLevel: gradeLevelSchema,
-  avatarDescription: z.string().max(MAX_AVATAR_DESC_LENGTH).optional(),
 });
 
 const updateChildSchema = z.object({
@@ -31,8 +31,13 @@ const updateChildSchema = z.object({
 
 const childIdSchema = z.object({ childId: z.string().min(1) });
 
-const regenerateAvatarSchema = z.object({
-  avatarDescription: z.string().max(MAX_AVATAR_DESC_LENGTH).optional(),
+const generateAvatarSchema = z.object({
+  description: z.string().min(1).max(MAX_AVATAR_DESC_LENGTH),
+  replaceIndex: z.number().int().min(0).max(2).optional(),
+});
+
+const setActiveAvatarSchema = z.object({
+  avatarIndex: z.number().int().min(0).max(2),
 });
 
 router.get('/profile', requireAuth, parentController.getProfile);
@@ -49,6 +54,12 @@ router.get(
   validate({ params: childIdSchema }),
   parentController.getChild
 );
+router.get(
+  '/children/:childId/statistics',
+  requireAuth,
+  validate({ params: childIdSchema }),
+  statisticsController.getChildStatistics
+);
 router.put(
   '/children/:childId',
   requireAuth,
@@ -58,8 +69,14 @@ router.put(
 router.post(
   '/children/:childId/avatar',
   requireAuth,
-  validate({ params: childIdSchema, body: regenerateAvatarSchema }),
-  parentController.regenerateAvatar
+  validate({ params: childIdSchema, body: generateAvatarSchema }),
+  parentController.generateChildAvatar
+);
+router.patch(
+  '/children/:childId/avatar/active',
+  requireAuth,
+  validate({ params: childIdSchema, body: setActiveAvatarSchema }),
+  parentController.setActiveAvatar
 );
 
 export default router;

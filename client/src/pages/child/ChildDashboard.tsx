@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router';
 import { toast } from 'sonner';
 import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'lucide-react';
 import { SkeletonCard } from '@/components/loaders';
+import defaultAvatar from '@/assets/default_avatar.png';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
 import {
@@ -220,18 +221,14 @@ export default function ChildDashboard() {
         <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
           {/* Avatar */}
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-wizzy/20 flex-shrink-0">
-            {activeChild.avatarUrl ? (
+            {activeChild.avatars[activeChild.activeAvatarIndex]?.imageData ? (
               <img
-                src={activeChild.avatarUrl}
+                src={activeChild.avatars[activeChild.activeAvatarIndex].imageData}
                 alt={activeChild.name}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-purple-wizzy/10 flex items-center justify-center">
-                <span className="text-3xl font-bold text-purple-wizzy">
-                  {activeChild.name[0].toUpperCase()}
-                </span>
-              </div>
+              <img src={defaultAvatar} alt={activeChild.name} className="w-full h-full object-cover" />
             )}
           </div>
 
