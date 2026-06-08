@@ -1,10 +1,19 @@
 import { Request, Response } from 'express';
 import User from '../model/User';
 import { Child } from '../models/Child';
+import { TopicProgress } from '../models/TopicProgress';
 import { ApiError } from '../utils/ApiError';
 import { generateAvatar } from '../services/avatarService';
 import { getWeekStart } from '../services/adventureService';
 import type { GradeLevel } from '@mathmagic/types';
+
+interface TopicSummary {
+  mathTopic: string;
+  masteryLevel: number;
+  totalChallenges: number;
+  correctAnswers: number;
+  accuracyPercent: number;
+}
 
 const MAX_WEEKLY_GENERATIONS = 3;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -22,7 +31,7 @@ function getDaysUntilReset(timestamps: Date[]): number {
   return Math.ceil((oldest + SEVEN_DAYS_MS - now) / (24 * 60 * 60 * 1000));
 }
 
-function toPublicChild(child: InstanceType<typeof Child>) {
+function toPublicChild(child: InstanceType<typeof Child>, topTopics: TopicSummary[] = []) {
   return {
     _id: child._id,
     parentId: child.parentId,
@@ -45,6 +54,7 @@ function toPublicChild(child: InstanceType<typeof Child>) {
     weeklyLearningMinutes: child.weeklyLearningMinutes,
     unlockedWorlds: child.unlockedWorlds,
     badges: child.badges,
+    topTopics,
     createdAt: child.createdAt,
     updatedAt: child.updatedAt,
   };
@@ -64,7 +74,34 @@ export async function getChildren(req: Request, res: Response): Promise<void> {
     { $set: { weeklyLearningMinutes: 0, weekStart: currentWeekStart } }
   );
   const children = await Child.find({ parentId }).sort({ createdAt: 1 });
-  res.json({ children: children.map(toPublicChild) });
+
+  const childIds = children.map((c) => c._id);
+  const allTopics = await TopicProgress.find({ childId: { $in: childIds } }).lean();
+
+  const topicsByChild = new Map<string, typeof allTopics>();
+  for (const t of allTopics) {
+    const key = t.childId.toString();
+    if (!topicsByChild.has(key)) topicsByChild.set(key, []);
+    topicsByChild.get(key)!.push(t);
+  }
+
+  const enriched = children.map((child) => {
+    const topics = topicsByChild.get(child._id.toString()) ?? [];
+    const topTopics: TopicSummary[] = topics
+      .sort((a, b) => b.masteryLevel - a.masteryLevel)
+      .slice(0, 3)
+      .map((t) => ({
+        mathTopic: t.mathTopic,
+        masteryLevel: t.masteryLevel,
+        totalChallenges: t.totalChallenges,
+        correctAnswers: t.correctAnswers,
+        accuracyPercent:
+          t.totalChallenges > 0 ? Math.round((t.correctAnswers / t.totalChallenges) * 100) : 0,
+      }));
+    return toPublicChild(child, topTopics);
+  });
+
+  res.json({ children: enriched });
 }
 
 export async function createChild(req: Request, res: Response): Promise<void> {

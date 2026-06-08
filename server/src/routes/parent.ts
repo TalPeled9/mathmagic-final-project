@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/auth';
 import { validate } from '../middleware/validateRequest';
 import * as parentController from '../controllers/parentController';
+import * as statisticsController from '../controllers/statisticsController';
 
 const MIN_CHILD_NAME_LENGTH = 1;
 const MAX_CHILD_NAME_LENGTH = 50;
@@ -52,6 +53,12 @@ router.get(
   requireAuth,
   validate({ params: childIdSchema }),
   parentController.getChild
+);
+router.get(
+  '/children/:childId/statistics',
+  requireAuth,
+  validate({ params: childIdSchema }),
+  statisticsController.getChildStatistics
 );
 router.put(
   '/children/:childId',

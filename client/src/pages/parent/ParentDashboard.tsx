@@ -1,23 +1,33 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Plus, ArrowLeft, Star, Zap, Trophy, Clock, Edit2, X, Users } from 'lucide-react';
+import { Sparkles, Plus, X, Users, LogOut, Settings, Clock, Star } from 'lucide-react';
 import { ParentLoader, GradientRing } from '@/components/loaders';
-import { childService } from '../../services/childService';
-import type { IChild, GradeLevel } from '@mathmagic/types';
+import { childService, type ChildWithTopics } from '../../services/childService';
+import type { GradeLevel } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
+import { ChildSection } from '@/components/parent/ChildSection';
+import { ParentSettingsModal } from '@/components/parent/ParentSettingsModal';
 import defaultAvatar from '@/assets/default_avatar.png';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
 
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  if (h >= 17 && h < 21) return 'Good evening';
+  return 'Hello';
+}
+
 export default function ParentDashboard() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [children, setChildren] = useState<IChild[]>([]);
+  const { user, logout } = useAuth();
+  const [children, setChildren] = useState<ChildWithTopics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
-  // Add-child form state
   const [newName, setNewName] = useState('');
   const [newGrade, setNewGrade] = useState<GradeLevel>(1);
   const [isCreating, setIsCreating] = useState(false);
@@ -25,7 +35,10 @@ export default function ParentDashboard() {
   useEffect(() => {
     childService
       .getAll()
-      .then(setChildren)
+      .then((list) => {
+        setChildren(list);
+        if (list.length > 0) setSelectedChildId((prev) => prev ?? list[0]._id);
+      })
       .catch(() => toast.error('Failed to load profiles'))
       .finally(() => setIsLoading(false));
   }, []);
@@ -34,11 +47,10 @@ export default function ParentDashboard() {
     e.preventDefault();
     setIsCreating(true);
     try {
-      const child = await childService.create({
-        name: newName,
-        gradeLevel: newGrade,
-      });
-      setChildren((prev) => [...prev, child]);
+      const child = await childService.create({ name: newName, gradeLevel: newGrade });
+      const withTopics = child as ChildWithTopics;
+      setChildren((prev) => [...prev, withTopics]);
+      setSelectedChildId(child._id);
       setShowAddForm(false);
       setNewName('');
       setNewGrade(1);
@@ -50,176 +62,288 @@ export default function ParentDashboard() {
     }
   };
 
+  const selectedChild =
+    children.find((c) => c._id === selectedChildId) ?? children[0] ?? null;
+
+  const firstName = user?.name?.split(' ')[0] ?? 'there';
+  const totalWeeklyMinutes = children.reduce((s, c) => s + c.weeklyLearningMinutes, 0);
+  const totalStars = children.reduce((s, c) => s + c.totalStars, 0);
+  const activeCount = children.filter((c) => c.weeklyLearningMinutes > 0).length;
+
   return (
-    <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            to="/profiles"
-            className="inline-flex items-center gap-1 text-sm text-purple-wizzy hover:text-purple-wizzy/80 transition-colors font-medium"
-          >
-            <ArrowLeft size={15} />
-            Back to Profiles
-          </Link>
-          <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="text-gold-magic" size={20} />
-            <span className="text-lg font-bold text-purple-wizzy">MathMagic</span>
-          </Link>
-        </div>
+    <>
+      <ParentSettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
-        {/* Title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-purple-wizzy">Manage Profiles</h1>
-          {user?.name && (
-            <p className="text-gray-500 text-sm mt-0.5">{user.name}'s family account</p>
-          )}
-        </div>
+      <div className="min-h-screen bg-parchment flex flex-col items-center px-4 py-5">
+        <div className="w-full max-w-3xl">
 
-        {/* Children list */}
-        {isLoading ? (
-          <ParentLoader message="Loading profiles…" />
-        ) : (
-          <div className="space-y-3 mb-4">
-            {children.length === 0 && !showAddForm && (
-              <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-                <Users size={40} className="text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">No profiles yet</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Add your first child profile to get started
-                </p>
-              </div>
-            )}
-
-            {children.map((child) => (
-              <div
-                key={child._id}
-                className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4"
-              >
-                {/* Avatar */}
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-wizzy/20 shrink-0">
-                  {child.avatars[child.activeAvatarIndex]?.imageData ? (
-                    <img
-                      src={child.avatars[child.activeAvatarIndex].imageData}
-                      alt={child.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800 truncate">{child.name}</p>
-                  <p className="text-xs text-gray-400">Grade {child.gradeLevel}</p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                    <span className="flex items-center gap-0.5">
-                      <Zap size={11} className="text-gold-magic" />
-                      {child.totalXP} XP
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Star size={11} className="text-yellow-400" />
-                      {child.totalStars}
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Trophy size={11} className="text-purple-wizzy" />
-                      Lv {child.currentLevel}
-                    </span>
-                    <span className="flex items-center gap-0.5">
-                      <Clock size={11} className="text-blue-400" />
-                      {child.weeklyLearningMinutes} min this week
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => navigate(`/parent/child/${child._id}`)}
-                    title="Edit profile"
-                    className="p-2 rounded-lg text-gray-400 hover:text-purple-wizzy hover:bg-purple-wizzy/10 transition-colors"
-                  >
-                    <Edit2 size={15} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Add child form */}
-        {showAddForm ? (
-          <div className="bg-violet-50 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
+          {/* ── Top bar ── */}
+          <div className="flex items-center justify-between mb-5">
+            <Link to="/" className="flex items-center gap-2">
+              <Sparkles className="text-gold-magic" size={20} />
+              <span className="text-lg font-bold text-purple-wizzy">MathMagic</span>
+            </Link>
+            <div className="flex items-center gap-1">
+              {children.length > 0 && (
+                <Link
+                  to="/profiles"
+                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10 font-medium"
+                >
+                  <Users size={15} />
+                  <span className="hidden sm:inline">Child View</span>
+                </Link>
+              )}
               <button
-                onClick={() => setShowAddForm(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10 font-medium"
               >
-                <X size={18} />
+                <Settings size={15} />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
+              <button
+                onClick={logout}
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"
+              >
+                <LogOut size={15} />
+                <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
-
-            <form onSubmit={handleCreate} className="space-y-3">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Child's Name</label>
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Enter child's first name"
-                  maxLength={50}
-                  required
-                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Grade Level</label>
-                <select
-                  value={newGrade}
-                  onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                >
-                  {GRADES.map((g) => (
-                    <option key={g} value={g}>
-                      Grade {g}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowAddForm(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-wizzy text-white text-sm font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
-                >
-                  {isCreating ? <GradientRing size={16} thickness={2.5} label="" /> : null}
-                  {isCreating ? 'Creating...' : 'Create Profile'}
-                </button>
-              </div>
-            </form>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowAddForm(true)}
-            disabled={children.length >= 10}
-            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-purple-wizzy/30 rounded-2xl py-4 text-purple-wizzy hover:bg-purple-wizzy/5 hover:border-purple-wizzy/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed font-medium text-sm"
-          >
-            <Plus size={18} />
-            Add Child Profile
-          </button>
-        )}
+
+          {/* ── Hero greeting card ── */}
+          <div className="bg-gradient-to-br from-purple-wizzy to-violet-700 rounded-2xl p-6 mb-5 shadow-lg relative overflow-hidden">
+            <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/8 rounded-full" />
+            <div className="absolute -bottom-4 left-12 w-16 h-16 bg-white/8 rounded-full" />
+            <Sparkles size={80} className="absolute -bottom-3 -right-3 text-white/5" strokeWidth={1} />
+            <div className="relative">
+              <p className="text-purple-200 text-sm font-medium">
+                {getGreeting()}, {firstName}! ✨
+              </p>
+              <h1 className="text-2xl font-bold text-white mt-0.5">
+                {isLoading
+                  ? 'Loading your dashboard…'
+                  : children.length === 0
+                  ? 'Welcome to MathMagic!'
+                  : activeCount > 0
+                  ? `${activeCount === children.length ? 'All' : activeCount} wizard${activeCount !== 1 ? 's are' : ' is'} learning this week`
+                  : 'Your wizards are ready to learn'}
+              </h1>
+              <p className="text-purple-200 text-sm mt-1">
+                {children.length === 0
+                  ? 'Add your first child profile to get started'
+                  : totalWeeklyMinutes > 0
+                  ? `${totalWeeklyMinutes} minutes of learning magic this week`
+                  : 'No activity recorded yet this week'}
+              </p>
+              {children.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <div className="flex items-center gap-1.5 bg-white/15 rounded-xl px-3 py-2">
+                    <Users size={13} className="text-white/80" />
+                    <span className="text-sm font-semibold text-white">
+                      {children.length} Wizard{children.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/15 rounded-xl px-3 py-2">
+                    <Clock size={13} className="text-white/80" />
+                    <span className="text-sm font-semibold text-white">
+                      {totalWeeklyMinutes} min this week
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/15 rounded-xl px-3 py-2">
+                    <Star size={13} className="text-white/80 fill-white/80" />
+                    <span className="text-sm font-semibold text-white">{totalStars} stars</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Loading ── */}
+          {isLoading && <ParentLoader message="Loading profiles…" />}
+
+          {/* ── No children yet ── */}
+          {!isLoading && children.length === 0 && !showAddForm && (
+            <div className="bg-white rounded-2xl p-10 text-center shadow-sm mb-4">
+              <Users size={44} className="text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-600 font-semibold">No child profiles yet</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Tap "Add Child Profile" below to get started
+              </p>
+            </div>
+          )}
+
+          {/* ── Child selector + dashboard ── */}
+          {!isLoading && children.length > 0 && (
+            <>
+              {/* Child pill switcher */}
+              <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-0.5">
+                {children.map((child) => {
+                  const av = child.avatars[child.activeAvatarIndex];
+                  const isSelected = !showAddForm && selectedChildId === child._id;
+                  return (
+                    <button
+                      key={child._id}
+                      onClick={() => { setSelectedChildId(child._id); setShowAddForm(false); }}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap shrink-0 ${
+                        isSelected
+                          ? 'bg-purple-wizzy text-white shadow-sm'
+                          : 'bg-white text-gray-600 border border-gray-100 shadow-sm hover:border-purple-wizzy/30 hover:text-purple-wizzy'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-full overflow-hidden shrink-0 border ${isSelected ? 'border-white/30' : 'border-gray-200'}`}>
+                        {av?.imageData ? (
+                          <img src={av.imageData} alt={child.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                      {child.name}
+                    </button>
+                  );
+                })}
+
+                {/* Add child pill */}
+                {children.length < 10 && (
+                  <button
+                    onClick={() => setShowAddForm((v) => !v)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap shrink-0 ${
+                      showAddForm
+                        ? 'bg-purple-wizzy/10 text-purple-wizzy border border-purple-wizzy/30'
+                        : 'text-gray-400 border border-dashed border-gray-200 hover:text-purple-wizzy hover:border-purple-wizzy/40'
+                    }`}
+                  >
+                    <Plus size={13} />
+                    Add
+                  </button>
+                )}
+              </div>
+
+              {/* Add form or child section */}
+              {showAddForm ? (
+                <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border-2 border-purple-wizzy/10">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
+                    <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <form onSubmit={handleCreate} className="space-y-3">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Child's Name</label>
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Enter child's first name"
+                        maxLength={50}
+                        required
+                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Grade Level</label>
+                      <select
+                        value={newGrade}
+                        onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
+                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
+                      >
+                        {GRADES.map((g) => <option key={g} value={g}>Grade {g}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowAddForm(false)}
+                        className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isCreating}
+                        className="flex-1 py-2.5 rounded-xl bg-purple-wizzy text-white text-sm font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        {isCreating && <GradientRing size={16} thickness={2.5} label="" />}
+                        {isCreating ? 'Creating...' : 'Create Profile'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                selectedChild && (
+                  <ChildSection key={selectedChild._id} child={selectedChild} />
+                )
+              )}
+            </>
+          )}
+
+          {/* No children + add form */}
+          {!isLoading && children.length === 0 && showAddForm && (
+            <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border-2 border-purple-wizzy/10">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
+                <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-3">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Child's Name</label>
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Enter child's first name"
+                    maxLength={50}
+                    required
+                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Grade Level</label>
+                  <select
+                    value={newGrade}
+                    onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
+                  >
+                    {GRADES.map((g) => <option key={g} value={g}>Grade {g}</option>)}
+                  </select>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCreating}
+                    className="flex-1 py-2.5 rounded-xl bg-purple-wizzy text-white text-sm font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    {isCreating && <GradientRing size={16} thickness={2.5} label="" />}
+                    {isCreating ? 'Creating...' : 'Create Profile'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* First-time add button (no children) */}
+          {!isLoading && children.length === 0 && !showAddForm && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-purple-wizzy/30 rounded-2xl py-4 text-purple-wizzy hover:bg-purple-wizzy/5 hover:border-purple-wizzy/50 transition-all font-medium text-sm mt-4"
+            >
+              <Plus size={18} />
+              Add Child Profile
+            </button>
+          )}
+
+
+        </div>
       </div>
-    </div>
+    </>
   );
 }

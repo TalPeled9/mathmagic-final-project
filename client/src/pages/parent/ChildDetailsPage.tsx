@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Star, Zap, Trophy } from 'lucide-react';
+import { ArrowLeft, Save, Star, Zap, Trophy, Clock } from 'lucide-react';
 import { ParentLoader, GradientRing } from '@/components/loaders';
 import { childService } from '../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
@@ -119,6 +119,13 @@ export default function ChildDetailsPage() {
                 <span className="font-bold text-gray-700">{child.currentLevel}</span>
               </div>
               <span className="text-xs text-gray-400">Level</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="flex items-center gap-1 text-blue-400">
+                <Clock size={14} />
+                <span className="font-bold text-gray-700">{child.weeklyLearningMinutes}</span>
+              </div>
+              <span className="text-xs text-gray-400">Min this week</span>
             </div>
           </div>
 
