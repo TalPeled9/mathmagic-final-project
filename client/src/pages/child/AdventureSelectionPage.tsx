@@ -1,5 +1,5 @@
 // client/src/pages/child/AdventureSelectionPage.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { ArrowLeft, Sparkles, Wand2 } from 'lucide-react';
@@ -14,6 +14,13 @@ type GridAnim = 'slide-out-left' | 'slide-in-right' | 'slide-out-right' | 'slide
 
 const PAGE_BG = 'linear-gradient(150deg, #fdf4ff 0%, #fef3c7 55%, #ede9fe 100%)';
 
+const GRID_ANIM_CLASSES: Record<NonNullable<GridAnim>, string> = {
+  'slide-out-left': 'animate-slide-out-left',
+  'slide-in-right': 'animate-slide-in-right',
+  'slide-out-right': 'animate-slide-out-right',
+  'slide-in-left': 'animate-slide-in-left',
+};
+
 export default function AdventureSelectionPage() {
   const { activeChild } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +33,15 @@ export default function AdventureSelectionPage() {
   const [step, setStep] = useState<Step>('topic');
   const [isFetching, setIsFetching] = useState(true);
   const [gridAnim, setGridAnim] = useState<GridAnim>(null);
+
+  const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTransitionTimers = () => {
+    transitionTimers.current.forEach(clearTimeout);
+    transitionTimers.current = [];
+  };
+
+  useEffect(() => clearTransitionTimers, []); // cleanup on unmount
 
   useEffect(() => {
     if (!activeChild) return;
@@ -48,23 +64,29 @@ export default function AdventureSelectionPage() {
   }, [error]);
 
   const goToWorlds = (topicId: string) => {
+    clearTransitionTimers();
     setSelectedTopic(topicId);
     setGridAnim('slide-out-left');
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setStep('world');
       setGridAnim('slide-in-right');
-      setTimeout(() => setGridAnim(null), 380);
+      const t2 = setTimeout(() => setGridAnim(null), 380);
+      transitionTimers.current.push(t2);
     }, 260);
+    transitionTimers.current.push(t1);
   };
 
   const goBackToTopics = () => {
+    clearTransitionTimers();
     setGridAnim('slide-out-right');
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setStep('topic');
       setSelectedWorld(null);
       setGridAnim('slide-in-left');
-      setTimeout(() => setGridAnim(null), 380);
+      const t2 = setTimeout(() => setGridAnim(null), 380);
+      transitionTimers.current.push(t2);
     }, 260);
+    transitionTimers.current.push(t1);
   };
 
   const handleStartAdventure = () => {
@@ -72,7 +94,7 @@ export default function AdventureSelectionPage() {
     startAdventure(activeChild._id, selectedTopic, selectedWorld);
   };
 
-  const gridAnimClass = gridAnim ? `animate-${gridAnim}` : '';
+  const gridAnimClass = gridAnim ? GRID_ANIM_CLASSES[gridAnim] : '';
 
   if (isLoading) {
     return (
