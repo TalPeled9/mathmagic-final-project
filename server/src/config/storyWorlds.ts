@@ -77,6 +77,20 @@ export const STORY_WORLDS: StoryWorld[] = [
     imageUrl: '',
     theme: 'archaeological',
   },
+  {
+    id: 'icy-caves',
+    name: 'Icy Caves',
+    description: 'Navigate frozen crystal caverns and uncover Arctic mysteries',
+    imageUrl: '',
+    theme: 'arctic',
+  },
+  {
+    id: 'volcano-island',
+    name: 'Volcano Island',
+    description: 'Survive a volcanic eruption alongside a team of brave explorers',
+    imageUrl: '',
+    theme: 'volcanic',
+  },
 ];
 
 export function getStoryWorldById(id: string): StoryWorld | undefined {
