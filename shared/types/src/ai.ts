@@ -14,6 +14,7 @@ export interface LLMStoryPromptContext {
 
 export interface LLMMathQuestionContext extends LLMStoryPromptContext {
   selectedChoice: string;
+  previousProblemTexts?: string[];
 }
 
 export interface LLMHintContext extends LLMStoryPromptContext {

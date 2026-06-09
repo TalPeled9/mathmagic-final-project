@@ -17,7 +17,12 @@ import { generateStoryImage } from './ai/imageGenerationService';
 import { buildStorySummary } from './ai/storyContextBuilder';
 import { llmService } from './ai/llmService';
 import { getLevelForXP } from '../config/levelThresholds';
-import { calculateChallengeXP, calculateCompletionXP, type XPResult, type AdventureStats } from './gamification/xpService';
+import {
+  calculateChallengeXP,
+  calculateCompletionXP,
+  type XPResult,
+  type AdventureStats,
+} from './gamification/xpService';
 import { updateTopicMastery } from './gamification/masteryService';
 import { checkAndAwardBadges, type BadgeContext } from './gamification/badgeService';
 import { ApiError } from '../utils/ApiError';
@@ -132,6 +137,7 @@ export function buildAdventureState(
     hintUsed: (adventure.currentChallenge?.hintLevel ?? 0) > 0,
     currentDifficulty: (adventure.currentDifficulty ?? 'easy') as 'easy' | 'medium' | 'hard',
     recentPerformanceScores: adventure.recentPerformanceScores ?? [],
+    previousProblemTexts: adventure.previousProblemTexts ?? [],
     storySummary: '',
   };
 

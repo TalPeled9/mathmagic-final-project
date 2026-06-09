@@ -482,6 +482,81 @@ describe('adventure routes integration', () => {
     });
   });
 
+  // ─── previousProblemTexts accumulation ────────────────────────────────────
+
+  describe('continueAdventure — previousProblemTexts', () => {
+    async function startAdventure(): Promise<string> {
+      const res = await request(app)
+        .post(`/api/adventures/children/${childId}`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'fantasy' })
+        .expect(201);
+      return res.body.adventureId;
+    }
+
+    it('appends problemText to previousProblemTexts after a math question step', async () => {
+      const adventureId = await startAdventure();
+
+      // step 0 is story_step; step 1 is math_question
+      await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
+
+      const adventure = await Adventure.findById(adventureId);
+      expect(adventure?.previousProblemTexts).toContain(MOCK_MATH_RESPONSE.problemText);
+    });
+
+    it('accumulates multiple problem texts across steps', async () => {
+      const adventureId = await startAdventure();
+
+      // step 1 — first math question
+      await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
+
+      // answer correctly to clear currentChallenge
+      await request(app)
+        .post(`/api/adventures/${adventureId}/answer`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ answer: MOCK_MATH_RESPONSE.correctAnswer })
+        .expect(200);
+
+      // Override math mock before the story_step so the background prefetch
+      // (which fires during the story_step response) picks up the new text.
+      const SECOND_MATH = { ...MOCK_MATH_RESPONSE, problemText: 'What is 6 + 2?' };
+      mockedLlm.generateMathQuestionFromState.mockResolvedValue(SECOND_MATH);
+
+      // step 2 — story_step; prefetchForChoices fires in background using SECOND_MATH
+      await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
+
+      // step 3 — second math question served from cache (SECOND_MATH)
+      await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
+
+      const adventure = await Adventure.findById(adventureId);
+      expect(adventure?.previousProblemTexts).toContain(MOCK_MATH_RESPONSE.problemText);
+      expect(adventure?.previousProblemTexts).toContain('What is 6 + 2?');
+      expect(adventure?.previousProblemTexts).toHaveLength(2);
+    });
+  });
+
   // ─── Auth guard ────────────────────────────────────────────────────────────
 
   describe('auth guard', () => {

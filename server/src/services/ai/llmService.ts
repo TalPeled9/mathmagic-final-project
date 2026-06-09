@@ -263,12 +263,23 @@ class LLMService {
     strict = false
   ): Promise<LLMModeResponseMap[K]> {
     const definition = modeDefinitions[mode];
+    const difficulty = (ctx as { currentDifficulty?: string }).currentDifficulty;
+    const prompt = definition.buildPrompt(ctx);
+
+    // DEV LOGS — remove before production
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(
+      `[LLM] mode=${mode}${difficulty ? `  difficulty=${difficulty.toUpperCase()}` : ''}`
+    );
+    console.log(`[LLM] topic=${ctx.mathTopic}  child=${ctx.childName}  grade=${ctx.gradeLevel}`);
+    console.log(`[LLM] PROMPT:\n${prompt}`);
+    console.log('='.repeat(60));
 
     let response: LLMModeResponseMap[K];
     try {
       response = await this.client.generateJson<LLMModeResponseMap[K]>({
         schema: definition.schema,
-        prompt: definition.buildPrompt(ctx),
+        prompt,
         temperature: mode === 'hint' ? 0.4 : 0.8,
         maxOutputTokens: 2048,
       });
@@ -277,6 +288,9 @@ class LLMService {
       logger.warn({ err }, `All providers failed for mode=${mode}; using fallback.`);
       return fallbackByMode(mode, ctx);
     }
+
+    // DEV LOG — remove before production
+    console.log(`[LLM] RESPONSE (mode=${mode}):\n${JSON.stringify(response, null, 2)}\n`);
 
     try {
       return sanitizeAndValidateAIResponse(response);

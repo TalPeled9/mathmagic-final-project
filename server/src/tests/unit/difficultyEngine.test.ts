@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { scoreChallenge, adjustDifficulty, type Difficulty } from '../../services/ai/difficultyEngine';
+import {
+  scoreChallenge,
+  adjustDifficulty,
+  type Difficulty,
+} from '../../services/ai/difficultyEngine';
 
 describe('scoreChallenge', () => {
   it('returns 2 for first try with no hint', () => {

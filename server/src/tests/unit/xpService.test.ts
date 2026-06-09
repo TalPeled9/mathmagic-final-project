@@ -58,18 +58,46 @@ describe('calculateChallengeXP', () => {
 
 describe('calculateCompletionXP', () => {
   it('returns 20 base when no challenges', () => {
-    expect(calculateCompletionXP({ totalChallenges: 0, correctAnswers: 0, incorrectAnswers: 0, hintsUsed: 0 })).toBe(20);
+    expect(
+      calculateCompletionXP({
+        totalChallenges: 0,
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        hintsUsed: 0,
+      })
+    ).toBe(20);
   });
 
   it('returns 20 for 0% accuracy', () => {
-    expect(calculateCompletionXP({ totalChallenges: 4, correctAnswers: 0, incorrectAnswers: 4, hintsUsed: 0 })).toBe(20);
+    expect(
+      calculateCompletionXP({
+        totalChallenges: 4,
+        correctAnswers: 0,
+        incorrectAnswers: 4,
+        hintsUsed: 0,
+      })
+    ).toBe(20);
   });
 
   it('returns 35 for 50% accuracy', () => {
-    expect(calculateCompletionXP({ totalChallenges: 4, correctAnswers: 2, incorrectAnswers: 2, hintsUsed: 0 })).toBe(35);
+    expect(
+      calculateCompletionXP({
+        totalChallenges: 4,
+        correctAnswers: 2,
+        incorrectAnswers: 2,
+        hintsUsed: 0,
+      })
+    ).toBe(35);
   });
 
   it('returns 50 for 100% accuracy', () => {
-    expect(calculateCompletionXP({ totalChallenges: 4, correctAnswers: 4, incorrectAnswers: 0, hintsUsed: 0 })).toBe(50);
+    expect(
+      calculateCompletionXP({
+        totalChallenges: 4,
+        correctAnswers: 4,
+        incorrectAnswers: 0,
+        hintsUsed: 0,
+      })
+    ).toBe(50);
   });
 });

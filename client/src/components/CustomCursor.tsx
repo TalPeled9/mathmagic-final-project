@@ -17,7 +17,9 @@ function StarIcon({ glowing, clicking }: { glowing: boolean; clicking: boolean }
       `${7 + outerR * Math.cos(outerAngle)},${7 + outerR * Math.sin(outerAngle)}`,
       `${7 + innerR * Math.cos(innerAngle)},${7 + innerR * Math.sin(innerAngle)}`,
     ];
-  }).flat().join(' ');
+  })
+    .flat()
+    .join(' ');
 
   return (
     <svg
@@ -33,14 +35,20 @@ function StarIcon({ glowing, clicking }: { glowing: boolean; clicking: boolean }
     >
       {/* Wand body */}
       <line
-        x1="26" y1="26" x2="9" y2="9"
+        x1="26"
+        y1="26"
+        x2="9"
+        y2="9"
         stroke={glowing ? '#7c3aed' : '#6d28d9'}
         strokeWidth="4"
         strokeLinecap="round"
       />
       {/* Grip band */}
       <line
-        x1="20" y1="20" x2="22.5" y2="22.5"
+        x1="20"
+        y1="20"
+        x2="22.5"
+        y2="22.5"
         stroke="#c4b5fd"
         strokeWidth="5"
         strokeLinecap="round"
@@ -53,7 +61,8 @@ function StarIcon({ glowing, clicking }: { glowing: boolean; clicking: boolean }
           transformOrigin: '7px 7px',
           transform: clicking ? 'scale(1.35) rotate(20deg)' : glowing ? 'scale(1.1)' : 'scale(1)',
           transition: 'transform 0.1s ease',
-          animation: glowing && !clicking ? 'cursor-wand-glow 1.4s ease-in-out infinite' : undefined,
+          animation:
+            glowing && !clicking ? 'cursor-wand-glow 1.4s ease-in-out infinite' : undefined,
         }}
       />
       {/* Small accent dot on wand */}
@@ -75,9 +84,9 @@ export function CustomCursor() {
       id: ++sparkleCounter,
       angle: (i * 360) / count + Math.random() * 30,
     }));
-    setSparkles(prev => [...prev, ...newSparkles]);
+    setSparkles((prev) => [...prev, ...newSparkles]);
     setTimeout(() => {
-      setSparkles(prev => prev.filter(s => !newSparkles.find(n => n.id === s.id)));
+      setSparkles((prev) => prev.filter((s) => !newSparkles.find((n) => n.id === s.id)));
     }, 520);
   }, []);
 
@@ -91,7 +100,8 @@ export function CustomCursor() {
         const style = window.getComputedStyle(el);
         const isClickable =
           style.cursor === 'pointer' ||
-          el.closest('button, a, [role="button"], input, select, textarea, label, [tabindex]') !== null;
+          el.closest('button, a, [role="button"], input, select, textarea, label, [tabindex]') !==
+            null;
         setIsPointer(!!isClickable);
       }
     };
@@ -134,7 +144,7 @@ export function CustomCursor() {
     >
       <StarIcon glowing={isPointer} clicking={isClicking} />
 
-      {sparkles.map(sparkle => {
+      {sparkles.map((sparkle) => {
         const rad = sparkle.angle * (Math.PI / 180);
         const dist = 28 + Math.random() * 14;
         const tx = Math.cos(rad) * dist;

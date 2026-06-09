@@ -179,7 +179,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '📦',
     grade: 2,
     color: '#E91E63',
-    description: 'Recognizing and naming 3D bodies (cube, box, cylinder, pyramid, cone); identifying vertices, sides, and faces; matching bodies to drawings or photographs',
+    description:
+      'Recognizing and naming 3D bodies (cube, box, cylinder, pyramid, cone); identifying vertices, sides, and faces; matching bodies to drawings or photographs',
     difficulty: {
       easy: 'Name a 3D body (cube, box, cylinder, pyramid, cone) from a picture or description.',
       medium: 'Identify the number of vertices, sides (edges), or faces of a named 3D body.',
@@ -233,7 +234,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '➕',
     grade: 3,
     color: '#F44336',
-    description: 'Written and mental addition and subtraction of 4-digit numbers, including regrouping',
+    description:
+      'Written and mental addition and subtraction of 4-digit numbers, including regrouping',
     difficulty: {
       easy: 'Add or subtract two 3-digit numbers, no regrouping.',
       medium: 'Add or subtract two 4-digit numbers with regrouping.',
@@ -339,7 +341,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '➕',
     grade: 4,
     color: '#F44336',
-    description: 'Written and mental addition and subtraction of multi-digit numbers without an upper limit',
+    description:
+      'Written and mental addition and subtraction of multi-digit numbers without an upper limit',
     difficulty: {
       easy: 'Add or subtract two 4-digit numbers with regrouping.',
       medium: 'Add or subtract two large numbers (5–6 digits) with regrouping.',
@@ -352,7 +355,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '✖️',
     grade: 4,
     color: '#2196F3',
-    description: 'Vertical multiplication with multi-digit factors; long division with 1- or 2-digit divisors',
+    description:
+      'Vertical multiplication with multi-digit factors; long division with 1- or 2-digit divisors',
     difficulty: {
       easy: '3-digit × 1-digit multiplication.',
       medium: '3-digit × 2-digit multiplication.',
@@ -378,7 +382,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '🧮',
     grade: 4,
     color: '#FF9800',
-    description: 'Solving multi-step expressions following the conventional order, with parentheses',
+    description:
+      'Solving multi-step expressions following the conventional order, with parentheses',
     difficulty: {
       easy: 'Two operations — multiplication before addition.',
       medium: 'Multiple operations with parentheses.',
@@ -391,7 +396,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '🔢',
     grade: 4,
     color: '#9C27B0',
-    description: 'Identifying prime and composite numbers; understanding divisibility and number properties',
+    description:
+      'Identifying prime and composite numbers; understanding divisibility and number properties',
     difficulty: {
       easy: 'Identify whether a small number (up to 20) is prime or composite.',
       medium: 'Identify whether a larger number (up to 100) is prime or composite.',
@@ -432,10 +438,12 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '🍕',
     grade: 5,
     color: '#9C27B0',
-    description: 'Equivalent/reduced fractions; adding and subtracting with same and different denominators; mixed numbers',
+    description:
+      'Equivalent/reduced fractions; adding and subtracting with same and different denominators; mixed numbers',
     difficulty: {
       easy: 'Add two fractions with the same denominator.',
-      medium: 'Add or subtract two fractions with different denominators using a common denominator.',
+      medium:
+        'Add or subtract two fractions with different denominators using a common denominator.',
       hard: 'Add or subtract mixed numbers with different denominators using a common denominator.',
     },
   },
@@ -510,7 +518,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '📐',
     grade: 5,
     color: '#E91E63',
-    description: 'Heights of triangles and parallelograms; area of triangles, parallelograms; composite shapes',
+    description:
+      'Heights of triangles and parallelograms; area of triangles, parallelograms; composite shapes',
     difficulty: {
       easy: 'Area of a triangle (base × height ÷ 2).',
       medium: 'Area of a parallelogram (base × height).',
@@ -541,7 +550,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description: 'Adding and subtracting fractions (including mixed numbers) and decimals',
     difficulty: {
       easy: 'Add or subtract two fractions with the same denominator.',
-      medium: 'Add or subtract two fractions with different denominators, or two decimals with regrouping.',
+      medium:
+        'Add or subtract two fractions with different denominators, or two decimals with regrouping.',
       hard: 'Add or subtract mixed numbers or a fraction and a decimal in a word-problem context.',
     },
   },
@@ -577,7 +587,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     icon: '💯',
     grade: 6,
     color: '#4CAF50',
-    description: 'Percent as part of 100; find part, find whole, find percent; link to fractions and decimals',
+    description:
+      'Percent as part of 100; find part, find whole, find percent; link to fractions and decimals',
     difficulty: {
       easy: 'Find the part (10% of 80).',
       medium: 'Find the percentage (15 is what % of 60?).',

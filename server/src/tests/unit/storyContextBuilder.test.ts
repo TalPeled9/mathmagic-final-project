@@ -1,6 +1,10 @@
 // server/src/tests/unit/storyContextBuilder.test.ts
 import { describe, it, expect } from 'vitest';
-import { buildMathQuestionContext, buildStorySummary, buildHintContext } from '../../services/ai/storyContextBuilder';
+import {
+  buildMathQuestionContext,
+  buildStorySummary,
+  buildHintContext,
+} from '../../services/ai/storyContextBuilder';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {
@@ -100,5 +104,21 @@ describe('buildHintContext', () => {
     const state = { ...baseState, mathTopic: 'g1_addition', currentDifficulty: 'easy' as const };
     const ctx = buildHintContext(state);
     expect(ctx.difficultyDescription).toBeTruthy();
+  });
+});
+
+describe('buildMathQuestionContext — previousProblemTexts', () => {
+  it('passes previousProblemTexts from state into the context', () => {
+    const state = {
+      ...baseState,
+      previousProblemTexts: ['What is 5 + 3?', 'What is 2 + 4?'],
+    };
+    const ctx = buildMathQuestionContext(state);
+    expect(ctx.previousProblemTexts).toEqual(['What is 5 + 3?', 'What is 2 + 4?']);
+  });
+
+  it('passes empty array when previousProblemTexts is absent', () => {
+    const ctx = buildMathQuestionContext(baseState);
+    expect(ctx.previousProblemTexts).toEqual([]);
   });
 });

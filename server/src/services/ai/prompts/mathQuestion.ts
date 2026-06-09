@@ -1,6 +1,16 @@
 import type { LLMMathQuestionContext } from '@mathmagic/types';
 
 export function buildMathQuestionPrompt(ctx: LLMMathQuestionContext): string {
+  const uniquenessBlock =
+    ctx.previousProblemTexts && ctx.previousProblemTexts.length > 0
+      ? `
+UNIQUENESS RULES:
+- These problems were already asked in this adventure — do NOT reuse the same combination of numbers:
+${ctx.previousProblemTexts.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
+- Vary the number combinations even if the operation is the same.
+`
+      : '';
+
   return `Generate the next story segment and include exactly one grade-appropriate math question.
 
 CHILD CONTEXT:
@@ -21,7 +31,7 @@ DIFFICULTY RULES:
 - Wrong answer options must reflect realistic student mistakes for this level:
   off-by-one errors, wrong operation, misplaced digit, forgetting order of operations.
 - Do not make the problem easier or harder than the described level.
-
+${uniquenessBlock}
 MATH RULES:
 - Include exactly one clear, solvable math problem in problemText.
 - Provide exactly 4 answer options in answerOptions.

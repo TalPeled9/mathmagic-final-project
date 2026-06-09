@@ -181,17 +181,70 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Banner */}
-      <section aria-label="Call to action" className="relative bg-purple-wizzy py-16 px-6 text-center overflow-hidden">
-        <Star size={20} aria-hidden="true" className="absolute top-4 left-[6%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.8s ease-in-out infinite', animationDelay: '0s' }} />
-        <Star size={32} aria-hidden="true" className="absolute top-8 left-[18%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.2s ease-in-out infinite', animationDelay: '0.3s' }} />
-        <Star size={16} aria-hidden="true" className="absolute bottom-5 left-[12%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.6s ease-in-out infinite', animationDelay: '0.7s' }} />
-        <Star size={26} aria-hidden="true" className="absolute bottom-8 left-[30%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.4s ease-in-out infinite', animationDelay: '0.2s' }} />
-        <Star size={18} aria-hidden="true" className="absolute top-5 left-[42%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.0s ease-in-out infinite', animationDelay: '1.0s' }} />
-        <Star size={28} aria-hidden="true" className="absolute top-3 right-[8%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.9s ease-in-out infinite', animationDelay: '0.5s' }} />
-        <Star size={20} aria-hidden="true" className="absolute top-9 right-[22%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.3s ease-in-out infinite', animationDelay: '0.9s' }} />
-        <Star size={36} aria-hidden="true" className="absolute bottom-4 right-[14%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.7s ease-in-out infinite', animationDelay: '0.4s' }} />
-        <Star size={16} aria-hidden="true" className="absolute bottom-7 right-[33%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 2.1s ease-in-out infinite', animationDelay: '1.2s' }} />
-        <Star size={22} aria-hidden="true" className="absolute top-6 right-[40%] text-gold-magic" style={{ animation: 'mm-bg-twinkle 1.6s ease-in-out infinite', animationDelay: '0.8s' }} />
+      <section
+        aria-label="Call to action"
+        className="relative bg-purple-wizzy py-16 px-6 text-center overflow-hidden"
+      >
+        <Star
+          size={20}
+          aria-hidden="true"
+          className="absolute top-4 left-[6%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 1.8s ease-in-out infinite', animationDelay: '0s' }}
+        />
+        <Star
+          size={32}
+          aria-hidden="true"
+          className="absolute top-8 left-[18%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 2.2s ease-in-out infinite', animationDelay: '0.3s' }}
+        />
+        <Star
+          size={16}
+          aria-hidden="true"
+          className="absolute bottom-5 left-[12%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 1.6s ease-in-out infinite', animationDelay: '0.7s' }}
+        />
+        <Star
+          size={26}
+          aria-hidden="true"
+          className="absolute bottom-8 left-[30%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 2.4s ease-in-out infinite', animationDelay: '0.2s' }}
+        />
+        <Star
+          size={18}
+          aria-hidden="true"
+          className="absolute top-5 left-[42%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 2.0s ease-in-out infinite', animationDelay: '1.0s' }}
+        />
+        <Star
+          size={28}
+          aria-hidden="true"
+          className="absolute top-3 right-[8%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 1.9s ease-in-out infinite', animationDelay: '0.5s' }}
+        />
+        <Star
+          size={20}
+          aria-hidden="true"
+          className="absolute top-9 right-[22%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 2.3s ease-in-out infinite', animationDelay: '0.9s' }}
+        />
+        <Star
+          size={36}
+          aria-hidden="true"
+          className="absolute bottom-4 right-[14%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 1.7s ease-in-out infinite', animationDelay: '0.4s' }}
+        />
+        <Star
+          size={16}
+          aria-hidden="true"
+          className="absolute bottom-7 right-[33%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 2.1s ease-in-out infinite', animationDelay: '1.2s' }}
+        />
+        <Star
+          size={22}
+          aria-hidden="true"
+          className="absolute top-6 right-[40%] text-gold-magic"
+          style={{ animation: 'mm-bg-twinkle 1.6s ease-in-out infinite', animationDelay: '0.8s' }}
+        />
         <h2 className="text-2xl font-bold text-white mb-2">Ready to Start the Adventure?</h2>
         <p className="text-white/75 mb-8">Join thousands of families making math magical</p>
         <Link
