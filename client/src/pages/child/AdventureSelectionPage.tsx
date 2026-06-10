@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Sparkles, Wand2 } from 'lucide-react';
+import { ArrowLeft, Wand2 } from 'lucide-react';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdventure } from '@/hooks/useAdventure';
 import { adventureService } from '@/services/adventureService';
@@ -118,9 +119,8 @@ export default function AdventureSelectionPage() {
           <ArrowLeft size={14} />
           {step === 'world' ? 'Back' : 'Dashboard'}
         </button>
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="text-gold-magic" size={22} />
-          <span className="text-lg font-extrabold text-purple-wizzy">MathMagic</span>
+        <Link to="/" className="flex items-center justify-center">
+          <img src={mathmagicLogo} alt="MathMagic" className="h-12 w-auto" />
         </Link>
         <div style={{ width: 90 }} />
       </div>
