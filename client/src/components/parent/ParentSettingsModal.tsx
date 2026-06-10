@@ -33,7 +33,9 @@ export function ParentSettingsModal({ isOpen, onClose }: Props) {
 
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
@@ -70,7 +72,6 @@ export function ParentSettingsModal({ isOpen, onClose }: Props) {
 
           {/* Scrollable content */}
           <div className="overflow-y-auto max-h-[70vh] p-5 space-y-5">
-
             {/* Notifications */}
             <div>
               <div className="flex items-center gap-2 mb-3">

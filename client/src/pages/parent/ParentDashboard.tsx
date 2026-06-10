@@ -62,8 +62,7 @@ export default function ParentDashboard() {
     }
   };
 
-  const selectedChild =
-    children.find((c) => c._id === selectedChildId) ?? children[0] ?? null;
+  const selectedChild = children.find((c) => c._id === selectedChildId) ?? children[0] ?? null;
 
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const totalWeeklyMinutes = children.reduce((s, c) => s + c.weeklyLearningMinutes, 0);
@@ -76,7 +75,6 @@ export default function ParentDashboard() {
 
       <div className="min-h-screen bg-parchment flex flex-col items-center px-4 py-5">
         <div className="w-full max-w-3xl">
-
           {/* ── Top bar ── */}
           <div className="flex items-center justify-between mb-5">
             <Link to="/" className="flex items-center gap-2">
@@ -114,7 +112,11 @@ export default function ParentDashboard() {
           <div className="bg-gradient-to-br from-purple-wizzy to-violet-700 rounded-2xl p-6 mb-5 shadow-lg relative overflow-hidden">
             <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/8 rounded-full" />
             <div className="absolute -bottom-4 left-12 w-16 h-16 bg-white/8 rounded-full" />
-            <Sparkles size={80} className="absolute -bottom-3 -right-3 text-white/5" strokeWidth={1} />
+            <Sparkles
+              size={80}
+              className="absolute -bottom-3 -right-3 text-white/5"
+              strokeWidth={1}
+            />
             <div className="relative">
               <p className="text-purple-200 text-sm font-medium">
                 {getGreeting()}, {firstName}! ✨
@@ -123,17 +125,17 @@ export default function ParentDashboard() {
                 {isLoading
                   ? 'Loading your dashboard…'
                   : children.length === 0
-                  ? 'Welcome to MathMagic!'
-                  : activeCount > 0
-                  ? `${activeCount === children.length ? 'All' : activeCount} wizard${activeCount !== 1 ? 's are' : ' is'} learning this week`
-                  : 'Your wizards are ready to learn'}
+                    ? 'Welcome to MathMagic!'
+                    : activeCount > 0
+                      ? `${activeCount === children.length ? 'All' : activeCount} wizard${activeCount !== 1 ? 's are' : ' is'} learning this week`
+                      : 'Your wizards are ready to learn'}
               </h1>
               <p className="text-purple-200 text-sm mt-1">
                 {children.length === 0
                   ? 'Add your first child profile to get started'
                   : totalWeeklyMinutes > 0
-                  ? `${totalWeeklyMinutes} minutes of learning magic this week`
-                  : 'No activity recorded yet this week'}
+                    ? `${totalWeeklyMinutes} minutes of learning magic this week`
+                    : 'No activity recorded yet this week'}
               </p>
               {children.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 mt-4">
@@ -183,18 +185,31 @@ export default function ParentDashboard() {
                   return (
                     <button
                       key={child._id}
-                      onClick={() => { setSelectedChildId(child._id); setShowAddForm(false); }}
+                      onClick={() => {
+                        setSelectedChildId(child._id);
+                        setShowAddForm(false);
+                      }}
                       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap shrink-0 ${
                         isSelected
                           ? 'bg-purple-wizzy text-white shadow-sm'
                           : 'bg-white text-gray-600 border border-gray-100 shadow-sm hover:border-purple-wizzy/30 hover:text-purple-wizzy'
                       }`}
                     >
-                      <div className={`w-6 h-6 rounded-full overflow-hidden shrink-0 border ${isSelected ? 'border-white/30' : 'border-gray-200'}`}>
+                      <div
+                        className={`w-6 h-6 rounded-full overflow-hidden shrink-0 border ${isSelected ? 'border-white/30' : 'border-gray-200'}`}
+                      >
                         {av?.imageData ? (
-                          <img src={av.imageData} alt={child.name} className="w-full h-full object-cover" />
+                          <img
+                            src={av.imageData}
+                            alt={child.name}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <img src={defaultAvatar} alt={child.name} className="w-full h-full object-cover" />
+                          <img
+                            src={defaultAvatar}
+                            alt={child.name}
+                            className="w-full h-full object-cover"
+                          />
                         )}
                       </div>
                       {child.name}
@@ -223,7 +238,10 @@ export default function ParentDashboard() {
                 <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border-2 border-purple-wizzy/10">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
-                    <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <button
+                      onClick={() => setShowAddForm(false)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
                       <X size={18} />
                     </button>
                   </div>
@@ -247,7 +265,11 @@ export default function ParentDashboard() {
                         onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
                         className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
                       >
-                        {GRADES.map((g) => <option key={g} value={g}>Grade {g}</option>)}
+                        {GRADES.map((g) => (
+                          <option key={g} value={g}>
+                            Grade {g}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex gap-2 pt-1">
@@ -270,9 +292,7 @@ export default function ParentDashboard() {
                   </form>
                 </div>
               ) : (
-                selectedChild && (
-                  <ChildSection key={selectedChild._id} child={selectedChild} />
-                )
+                selectedChild && <ChildSection key={selectedChild._id} child={selectedChild} />
               )}
             </>
           )}
@@ -282,7 +302,10 @@ export default function ParentDashboard() {
             <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border-2 border-purple-wizzy/10">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
-                <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
                   <X size={18} />
                 </button>
               </div>
@@ -306,7 +329,11 @@ export default function ParentDashboard() {
                     onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
                     className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
                   >
-                    {GRADES.map((g) => <option key={g} value={g}>Grade {g}</option>)}
+                    {GRADES.map((g) => (
+                      <option key={g} value={g}>
+                        Grade {g}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex gap-2 pt-1">
@@ -340,8 +367,6 @@ export default function ParentDashboard() {
               Add Child Profile
             </button>
           )}
-
-
         </div>
       </div>
     </>

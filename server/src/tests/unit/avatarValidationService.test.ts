@@ -48,7 +48,10 @@ describe('validateDescription', () => {
       rejectionReason: 'unsafe',
     });
 
-    const result = await validateDescription('a character that kills and hurts people', mockProvider);
+    const result = await validateDescription(
+      'a character that kills and hurts people',
+      mockProvider
+    );
 
     expect(result.valid).toBe(false);
     expect(result.rejectionReason).toBe('unsafe');
@@ -70,7 +73,9 @@ describe('validateDescription', () => {
   it('throws ApiError 503 when Ollama is unreachable', async () => {
     mockGenerateJson.mockRejectedValue(new Error('Network error'));
 
-    await expect(validateDescription('a dragon', mockProvider)).rejects.toMatchObject({ statusCode: 503 });
+    await expect(validateDescription('a dragon', mockProvider)).rejects.toMatchObject({
+      statusCode: 503,
+    });
   });
 
   it('treats unknown rejectionReason values from the model as undefined', async () => {

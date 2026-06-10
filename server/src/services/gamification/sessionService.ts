@@ -80,7 +80,9 @@ export async function getCurrentDayStreak(childId: string): Promise<number> {
   if (completed.length === 0) return 0;
 
   const daySet = new Set<string>(
-    completed.filter((a) => a.completedAt).map((a) => new Date(a.completedAt!).toISOString().slice(0, 10))
+    completed
+      .filter((a) => a.completedAt)
+      .map((a) => new Date(a.completedAt!).toISOString().slice(0, 10))
   );
 
   let streak = 0;

@@ -228,7 +228,11 @@ export default function ChildDashboard() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <img src={defaultAvatar} alt={activeChild.name} className="w-full h-full object-cover" />
+              <img
+                src={defaultAvatar}
+                alt={activeChild.name}
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
 

@@ -62,11 +62,11 @@ export function AdventureCard({
         className="absolute bottom-0 left-0 right-0 pointer-events-none"
         style={{
           background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.88) 100%)',
-          padding: '40px 12px 12px',
+          padding: '40px 14px 12px',
         }}
       >
-        <p className="font-extrabold text-white text-sm leading-tight">{name}</p>
-        <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>
+        <p className="font-extrabold text-white text-base leading-normal">{name}</p>
+        <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
           {description}
         </p>
       </div>

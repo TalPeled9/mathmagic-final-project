@@ -171,7 +171,11 @@ export async function generateChildAvatar(req: Request, res: Response): Promise<
   }
 
   const slot = await generateAvatar(child.name, child.gradeLevel, description);
-  const avatarSlot = { imageData: slot.imageData, description: slot.description, createdAt: new Date() };
+  const avatarSlot = {
+    imageData: slot.imageData,
+    description: slot.description,
+    createdAt: new Date(),
+  };
 
   if (child.avatars.length < 4) {
     child.avatars.push(avatarSlot);

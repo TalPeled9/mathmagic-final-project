@@ -113,7 +113,9 @@ describe('Gemini live E2E — full adventure flow', () => {
         parentId: (await User.findOne({ email: 'live-parent@example.com' }))!._id,
         name: 'Maya',
         gradeLevel: 2,
-        avatars: [{ imageData: 'https://example.com/avatar.png', description: '', createdAt: new Date() }],
+        avatars: [
+          { imageData: 'https://example.com/avatar.png', description: '', createdAt: new Date() },
+        ],
         activeAvatarIndex: 0,
         generationTimestamps: [],
       });

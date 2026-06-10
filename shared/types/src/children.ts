@@ -9,9 +9,9 @@ export interface IBadge {
 }
 
 export interface AvatarSlot {
-  imageData: string;    // base64 data URL
-  description: string;  // corrected description used to generate this avatar
-  createdAt: string;    // ISO date string
+  imageData: string; // base64 data URL
+  description: string; // corrected description used to generate this avatar
+  createdAt: string; // ISO date string
 }
 
 export interface IChild {
@@ -21,7 +21,7 @@ export interface IChild {
   gradeLevel: GradeLevel;
   avatars: AvatarSlot[];
   activeAvatarIndex: number;
-  weeklyGenerationsRemaining: number;     // 0–3
+  weeklyGenerationsRemaining: number; // 0–3
   weeklyGenerationsDaysUntilReset: number; // 0 when quota not exhausted
   currentLevel: number;
   totalXP: number;

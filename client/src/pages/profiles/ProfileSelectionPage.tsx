@@ -19,10 +19,18 @@ export default function ProfileSelectionPage() {
     let active = true;
     childService
       .getAll()
-      .then((data) => { if (active) setChildren(data); })
-      .catch(() => { if (active) toast.error('Failed to load profiles'); })
-      .finally(() => { if (active) setIsLoading(false); });
-    return () => { active = false; };
+      .then((data) => {
+        if (active) setChildren(data);
+      })
+      .catch(() => {
+        if (active) toast.error('Failed to load profiles');
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSelect = (child: IChild) => {
@@ -76,7 +84,10 @@ export default function ProfileSelectionPage() {
               className="group w-40 flex flex-col items-center justify-center bg-white/60 rounded-2xl border-2 border-dashed border-gray-200 hover:border-purple-wizzy/40 hover:bg-purple-wizzy/5 transition-all h-52"
             >
               <div className="w-16 h-16 rounded-full bg-gray-100 group-hover:bg-purple-wizzy/10 flex items-center justify-center transition-colors mb-3">
-                <Plus size={28} className="text-gray-300 group-hover:text-purple-wizzy transition-colors" />
+                <Plus
+                  size={28}
+                  className="text-gray-300 group-hover:text-purple-wizzy transition-colors"
+                />
               </div>
               <p className="text-sm text-gray-400 group-hover:text-purple-wizzy transition-colors font-medium">
                 Add Child
