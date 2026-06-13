@@ -437,3 +437,85 @@
     @apply bg-amber-50 text-gray-900 font-medium leading-relaxed;
   }
 }
+
+/* ── StoryChat Immersive UI Enhancements ───────────────── */
+
+@keyframes ken-burns {
+  0%   { transform: scale(1)    translate(0,    0); }
+  50%  { transform: scale(1.1) translate(-2%, -1%); }
+  100% { transform: scale(1.15) translate(-4%,  1%); }
+}
+
+@keyframes story-message-enter {
+  0%   { opacity: 0; transform: translateY(18px) scale(0.97); }
+  60%  { transform: translateY(-3px) scale(1.005); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes wizzy-avatar-pop {
+  0%   { transform: scale(0) rotate(-20deg); }
+  70%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes child-message-enter {
+  0%   { opacity: 0; transform: translateX(20px) scale(0.95); }
+  65%  { transform: translateX(-3px) scale(1.01); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes hint-message-enter {
+  0%   { opacity: 0; transform: translateY(12px) rotate(-1deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+@keyframes wizzy-thinking-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(139, 92, 246, 0); }
+}
+
+@keyframes sparkle-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.7) translateY(0); }
+  40%           { opacity: 1;    transform: scale(1.2) translateY(-4px); }
+}
+
+@keyframes star-burst {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
+}
+
+@keyframes chat-flash {
+  0%   { opacity: 0.8; }
+  30%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+@keyframes sheet-slide-up {
+  from { transform: translateY(20px); opacity: 0.8; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.story-message-enter {
+  animation: story-message-enter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.wizzy-avatar {
+  animation: wizzy-avatar-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.child-message-enter {
+  animation: child-message-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.hint-message-enter {
+  animation: hint-message-enter 0.45s ease-out both;
+}
+
+.system-message-enter {
+  animation: slide-up-fade 0.35s ease-out both;
+}
+
+.option-sparkle-hover {
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+  transition: opacity 0.2s;
+}

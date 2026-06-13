@@ -5,6 +5,7 @@ import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2 } from 'lucide
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
+import wizzyImg from '@/assets/wizzy.png';
 import { adventureService } from '@/services/adventureService';
 import type {
   ICurrentChallenge,
@@ -46,6 +47,55 @@ const CONFETTI_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
   size: 6 + (i % 3) * 3,
 }));
 
+// ── WORLD PARTICLE CONFIG ─────────────────────────────────────────────────────
+
+const WORLD_PARTICLES: Record<string, { symbols: string[]; count: number; color: string[] }> = {
+  space:           { symbols: ['★', '✦', '·', '✧', '⭐'], count: 22, color: ['#c4b5fd', '#818cf8', '#e0e7ff'] },
+  fantasy:         { symbols: ['✨', '🌸', '🍀', '💫', '♦'], count: 18, color: ['#f9a8d4', '#c084fc', '#fde68a'] },
+  ocean:           { symbols: ['○', '◦', '◯', '·', '○'], count: 20, color: ['#7dd3fc', '#38bdf8', '#bae6fd'] },
+  jungle:          { symbols: ['🍃', '✿', '❀', '◈', '●'], count: 16, color: ['#86efac', '#4ade80', '#bbf7d0'] },
+  dinosaur:        { symbols: ['✦', '◆', '·', '✧', '◇'], count: 16, color: ['#fde047', '#a3e635', '#fcd34d'] },
+  pirates:         { symbols: ['✦', '·', '✧', '◇', '○'], count: 14, color: ['#fcd34d', '#fbbf24', '#fef3c7'] },
+  robots:          { symbols: ['◈', '◉', '⊕', '◦', '●'], count: 16, color: ['#94a3b8', '#cbd5e1', '#e2e8f0'] },
+  candy:           { symbols: ['✿', '❀', '◆', '✦', '◇'], count: 20, color: ['#f9a8d4', '#f0abfc', '#fde68a'] },
+  'magic-school':  { symbols: ['★', '✦', '✧', '⭐', '💫'], count: 20, color: ['#c4b5fd', '#f9a8d4', '#fde68a'] },
+  'ancient-temple':{ symbols: ['◈', '◆', '◇', '✦', '✧'], count: 14, color: ['#fcd34d', '#fbbf24', '#f97316'] },
+  default:         { symbols: ['★', '✦', '·', '◇', '✧'], count: 16, color: ['#c4b5fd', '#f9a8d4', '#fde68a'] },
+};
+
+// ── CHALLENGE OPTION STYLES ───────────────────────────────────────────────────
+
+const OPTION_SHAPES = [
+  { label: 'A' },
+  { label: 'B' },
+  { label: 'C' },
+  { label: 'D' },
+];
+
+// ── PATH CHOICE STYLES ────────────────────────────────────────────────────────
+
+const PATH_THEMES = [
+  { gradient: 'linear-gradient(135deg, #faf5ff, #ede9fe)', border: 'rgba(139,92,246,0.3)', hover: '#8b5cf6', icon: '⚡', label: 'Path A', labelColor: '#7c3aed' },
+  { gradient: 'linear-gradient(135deg, #fffbeb, #fef3c7)', border: 'rgba(245,158,11,0.3)',  hover: '#f59e0b', icon: '✨', label: 'Path B', labelColor: '#b45309' },
+];
+
+// ── CORRECT ANSWER STAR BURST ─────────────────────────────────────────────────
+
+const STAR_BURST_PARTICLES = Array.from({ length: 8 }, (_, i) => ({
+  id: i,
+  delay: i * 60,
+  tx: Math.round(Math.cos((i / 8) * Math.PI * 2) * 120),
+  ty: Math.round(Math.sin((i / 8) * Math.PI * 2) * 120),
+}));
+
+// ── WIZZY STATUS MAP ──────────────────────────────────────────────────────────
+
+const WIZZY_STATUS_MAP = {
+  thinking: { text: 'Thinking…',   color: '#f59e0b', dot: '#fbbf24' },
+  talking:  { text: 'Just spoke!', color: '#8b5cf6', dot: '#a78bfa' },
+  idle:     { text: 'Ready!',      color: '#10b981', dot: '#34d399' },
+} as const;
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function StoryChat() {
@@ -72,6 +122,7 @@ export default function StoryChat() {
     mathTopic: string;
     storyWorld: string;
   } | null>(null);
+  const [showCorrectFlash, setShowCorrectFlash] = useState(false);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -228,6 +279,11 @@ export default function StoryChat() {
         addMessage({ role: 'system', text: response.feedback, isCorrect });
         setLastAnswerFeedback(response);
 
+        if (isCorrect) {
+          setShowCorrectFlash(true);
+          setTimeout(() => setShowCorrectFlash(false), 1400);
+        }
+
         if (response.correct || response.correctAnswer !== undefined) {
           // Challenge resolved (correct answer or max attempts exhausted)
           setCurrentChallenge(null);
@@ -309,6 +365,22 @@ export default function StoryChat() {
   };
   const worldBg = WORLD_TINTS[adventureContext?.storyWorld ?? 'default'] ?? WORLD_TINTS.default;
 
+  const wizzyStatus: keyof typeof WIZZY_STATUS_MAP = isProcessing
+    ? 'thinking'
+    : messages.at(-1)?.role === 'wizzy'
+    ? 'talking'
+    : 'idle';
+
+  const panelKey = currentChallenge
+    ? 'challenge'
+    : pendingContinue
+    ? 'continue'
+    : currentChoices.length > 0
+    ? 'choices'
+    : isLastStep
+    ? 'finish'
+    : 'empty';
+
   if (adventureStatus === 'loading') {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
@@ -334,15 +406,20 @@ export default function StoryChat() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: worldBg }}>
+      <WorldParticleLayer world={adventureContext?.storyWorld ?? 'default'} />
+
       {/* ── Header ── */}
-      <header className="sticky top-0 z-10 backdrop-blur-md border-b border-purple-wizzy/10 px-4 py-3" style={{ background: 'rgba(245,243,255,0.88)' }}>
+      <header
+        className="sticky top-0 z-10 backdrop-blur-md border-b border-purple-wizzy/10 px-4 py-2.5"
+        style={{ background: 'rgba(245,243,255,0.92)' }}
+      >
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
             onClick={() => navigate('/child/dashboard')}
-            className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3 py-1.5 rounded-lg"
+            className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3 py-2 rounded-lg min-h-[44px]"
           >
             <ArrowLeft size={14} />
-            Dashboard
+            <span className="hidden sm:inline">Dashboard</span>
           </button>
 
           <div className="flex flex-col items-center">
@@ -357,8 +434,38 @@ export default function StoryChat() {
             )}
           </div>
 
-          {/* Spacer */}
-          <div className="w-24" />
+          {/* Wizzy character status */}
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
+              <div className="flex items-center gap-1">
+                <div
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: WIZZY_STATUS_MAP[wizzyStatus].dot,
+                    boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
+                    animation: wizzyStatus === 'thinking' ? 'sparkle 0.8s ease-in-out infinite' : 'none',
+                  }}
+                />
+                <span
+                  className="text-[11px] font-semibold"
+                  style={{ color: WIZZY_STATUS_MAP[wizzyStatus].color }}
+                >
+                  {WIZZY_STATUS_MAP[wizzyStatus].text}
+                </span>
+              </div>
+            </div>
+            <div
+              className="w-10 h-10 rounded-full overflow-hidden border-2 shadow-md flex-shrink-0"
+              style={{
+                borderColor: WIZZY_STATUS_MAP[wizzyStatus].dot,
+                boxShadow: `0 0 10px ${WIZZY_STATUS_MAP[wizzyStatus].dot}40`,
+                animation: wizzyStatus === 'thinking' ? 'mm-wizzy-bob 1.2s ease-in-out infinite' : 'none',
+              }}
+            >
+              <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
+            </div>
+          </div>
         </div>
       </header>
 
@@ -390,10 +497,63 @@ export default function StoryChat() {
         </div>
       </main>
 
+      {/* ── Correct answer flash overlay ── */}
+      {showCorrectFlash && (
+        <div className="fixed inset-0 pointer-events-none z-40 flex items-center justify-center">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'rgba(16,185,129,0.22)',
+              animation: 'chat-flash 1.2s ease-out forwards',
+            }}
+          />
+          {STAR_BURST_PARTICLES.map((s) => (
+            <div
+              key={s.id}
+              className="absolute text-2xl"
+              style={{
+                animation: `star-burst 1s ${s.delay}ms ease-out forwards`,
+                '--tx': `${s.tx}px`,
+                '--ty': `${s.ty}px`,
+              } as React.CSSProperties}
+            >
+              ⭐
+            </div>
+          ))}
+          <div
+            className="relative text-4xl font-black text-white select-none"
+            style={{
+              animation: 'pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
+              textShadow: '0 2px 16px rgba(16,185,129,0.9)',
+            }}
+          >
+            ✨ Correct! ✨
+          </div>
+        </div>
+      )}
+
       {/* ── Interactive panel ── */}
       {adventureStatus === 'in-progress' && !isProcessing && !completionData && (
-        <div className="sticky bottom-0 backdrop-blur-md border-t border-purple-wizzy/10 px-4 py-4" style={{ background: 'rgba(245,243,255,0.95)' }}>
+        <div
+          key={panelKey}
+          className="sticky bottom-0 z-[1]"
+          style={{
+            background: 'rgba(252,250,255,0.97)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderTop: '1px solid rgba(139,92,246,0.12)',
+            borderRadius: '24px 24px 0 0',
+            boxShadow: '0 -8px 32px rgba(139,92,246,0.10), 0 -2px 8px rgba(0,0,0,0.06)',
+            paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+            paddingLeft: 'max(16px, env(safe-area-inset-left))',
+            paddingRight: 'max(16px, env(safe-area-inset-right))',
+            paddingTop: '12px',
+            animation: 'sheet-slide-up 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both',
+          }}
+        >
           <div className="max-w-2xl mx-auto">
+            {/* Drag handle */}
+            <div className="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3" aria-hidden="true" />
             {currentChallenge ? (
               <ChallengePanel
                 challenge={currentChallenge}
@@ -403,11 +563,11 @@ export default function StoryChat() {
                 lastSubmittedAnswer={lastSubmittedAnswer}
               />
             ) : pendingContinue ? (
-              <div className="flex justify-center">
+              <div className="flex justify-center py-2">
                 <button
                   onClick={handleAutoContinue}
-                  className="flex items-center gap-2 text-white rounded-xl px-8 py-3 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)' }}
+                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)', boxShadow: '0 6px 20px rgba(139,92,246,0.4)' }}
                 >
                   <Wand2 size={18} />
                   Continue Story
@@ -416,10 +576,10 @@ export default function StoryChat() {
             ) : currentChoices.length > 0 ? (
               <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
             ) : isLastStep ? (
-              <div className="flex justify-center">
+              <div className="flex justify-center py-2">
                 <button
                   onClick={handleFinishAdventure}
-                  className="flex items-center gap-2 text-white rounded-xl px-8 py-3 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
                   style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
                 >
                   <Trophy size={18} />
@@ -447,29 +607,58 @@ export default function StoryChat() {
 
 function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
   return (
-    <div className="flex items-start gap-3 max-w-[85%]">
-      <div
-        className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md"
-        style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}
-      >
-        <Sparkles size={15} className="text-white" />
-      </div>
-      <div
-        className="rounded-2xl rounded-tl-sm p-4 min-w-0"
-        style={{
-          background: 'linear-gradient(135deg, rgba(245,243,255,0.95), rgba(237,233,254,0.9))',
-          border: '1px solid rgba(139,92,246,0.18)',
-          boxShadow: '0 2px 12px rgba(139,92,246,0.08)',
-        }}
-      >
-        <p className="text-gray-800 leading-relaxed whitespace-pre-line break-words">{text}</p>
-        {imageUrl && (
+    <div className="story-message-enter">
+      {/* Cinematic full-bleed image panel */}
+      {imageUrl && (
+        <div
+          className="relative overflow-hidden rounded-2xl mb-3"
+          style={{
+            marginLeft: 'calc(-1rem - env(safe-area-inset-left, 0px))',
+            marginRight: 'calc(-1rem - env(safe-area-inset-right, 0px))',
+            height: 'clamp(220px, 56vw, 360px)',
+          }}
+        >
           <img
             src={imageUrl}
             alt="Story scene"
-            className="mt-3 rounded-xl w-full object-cover max-h-72 shadow-md"
+            className="w-full h-full object-cover"
+            style={{ animation: 'ken-burns 10s ease-in-out infinite alternate' }}
           />
-        )}
+          {/* Gradient overlay — image fades to page background at bottom */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.78) 100%)',
+            }}
+          />
+          {/* World badge */}
+          <span
+            className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
+            style={{ background: 'rgba(139,92,246,0.78)', backdropFilter: 'blur(8px)' }}
+          >
+            ✨ Wizzy's World
+          </span>
+        </div>
+      )}
+
+      {/* Dialogue bubble */}
+      <div className="flex items-start gap-3 max-w-[90%]">
+        <div
+          className="wizzy-avatar flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}
+        >
+          <Sparkles size={15} className="text-white" />
+        </div>
+        <div
+          className="rounded-2xl rounded-tl-sm p-4 min-w-0 flex-1"
+          style={{
+            background: 'linear-gradient(135deg, rgba(245,243,255,0.97), rgba(237,233,254,0.92))',
+            border: '1px solid rgba(139,92,246,0.18)',
+            boxShadow: '0 2px 12px rgba(139,92,246,0.08)',
+          }}
+        >
+          <p className="text-gray-800 leading-relaxed whitespace-pre-line break-words">{text}</p>
+        </div>
       </div>
     </div>
   );
@@ -477,7 +666,7 @@ function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
 
 function ChildMessage({ text, avatarUrl }: { text: string; avatarUrl?: string }) {
   return (
-    <div className="flex items-start gap-3 max-w-[85%] ml-auto flex-row-reverse">
+    <div className="child-message-enter flex items-start gap-3 max-w-[85%] ml-auto flex-row-reverse">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-wizzy overflow-hidden">
         {avatarUrl ? (
           <img src={avatarUrl} alt="You" className="w-full h-full object-cover" />
@@ -496,7 +685,7 @@ function ChildMessage({ text, avatarUrl }: { text: string; avatarUrl?: string })
 
 function SystemMessage({ text, isCorrect }: { text: string; isCorrect: boolean }) {
   return (
-    <div className="flex justify-center">
+    <div className="system-message-enter flex justify-center">
       <span
         className="text-sm px-5 py-2 rounded-full font-semibold shadow-sm"
         style={
@@ -513,7 +702,7 @@ function SystemMessage({ text, isCorrect }: { text: string; isCorrect: boolean }
 
 function HintMessage({ text }: { text: string }) {
   return (
-    <div className="flex items-start gap-3 max-w-[85%]">
+    <div className="hint-message-enter flex items-start gap-3 max-w-[85%]">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gold-magic/10 flex items-center justify-center">
         <Lightbulb size={15} className="text-gold-magic" />
       </div>
@@ -526,18 +715,42 @@ function HintMessage({ text }: { text: string }) {
 
 function TypingIndicator() {
   return (
-    <div className="flex items-start gap-3 max-w-[85%]">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-wizzy/10 flex items-center justify-center">
-        <Sparkles size={15} className="text-purple-wizzy" />
+    <div className="story-message-enter flex items-start gap-3 max-w-[75%]">
+      <div
+        className="relative flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+        style={{
+          background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+          animation: 'wizzy-thinking-pulse 2s ease-in-out infinite',
+        }}
+      >
+        <Wand2 size={16} className="text-white" />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ border: '2px solid rgba(139,92,246,0.5)', animation: 'pulse-ring 1.5s ease-out infinite' }}
+        />
       </div>
-      <div className="bg-white rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm border-l-4 border-purple-wizzy/30">
-        <div className="flex items-center gap-1.5">
-          {[0, 1, 2].map((i) => (
+      <div
+        className="rounded-2xl rounded-tl-sm px-5 py-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(245,243,255,0.97), rgba(237,233,254,0.92))',
+          border: '1px solid rgba(139,92,246,0.18)',
+          boxShadow: '0 2px 12px rgba(139,92,246,0.08)',
+        }}
+      >
+        <div className="flex items-center gap-1">
+          <span className="text-xs font-semibold text-purple-400 mr-2">Wizzy is thinking</span>
+          {[0, 1, 2, 3].map((i) => (
             <span
               key={i}
-              className="w-2 h-2 rounded-full bg-purple-wizzy/40 animate-bounce"
-              style={{ animationDelay: `${i * 150}ms` }}
-            />
+              style={{
+                display: 'inline-block',
+                fontSize: i % 2 === 0 ? 14 : 10,
+                animation: `sparkle-dot 1.2s ease-in-out ${i * 200}ms infinite`,
+                color: i % 2 === 0 ? '#8b5cf6' : '#f59e0b',
+              }}
+            >
+              ✦
+            </span>
           ))}
         </div>
       </div>
@@ -553,26 +766,58 @@ function ChoiceBubbles({
   onChoice: (index: number) => void;
 }) {
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-gray-500 font-semibold text-center mb-3 flex items-center justify-center gap-1.5">
-        <span>🌟</span> Choose your path:
-      </p>
-      {choices.map((choice, i) => (
-        <button
-          key={i}
-          onClick={() => onChoice(i)}
-          className="w-full text-left rounded-xl px-4 py-3 border-2 transition-all hover:-translate-y-0.5 hover:shadow-md font-medium text-gray-700 hover:text-purple-wizzy"
-          style={{
-            background: 'rgba(255,255,255,0.9)',
-            borderColor: 'rgba(139,92,246,0.15)',
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.4)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.15)'; }}
-        >
-          <span className="text-purple-wizzy/50 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
-          {choice}
-        </button>
-      ))}
+    <div className="space-y-3">
+      <div className="flex items-center justify-center gap-2 mb-1">
+        <div className="h-px flex-1 bg-purple-wizzy/15 rounded" />
+        <p className="text-xs text-purple-wizzy font-black uppercase tracking-widest px-2">
+          Choose your path
+        </p>
+        <div className="h-px flex-1 bg-purple-wizzy/15 rounded" />
+      </div>
+      {choices.map((choice, i) => {
+        const t = PATH_THEMES[i] ?? PATH_THEMES[0];
+        return (
+          <button
+            key={i}
+            onClick={() => onChoice(i)}
+            className="group w-full text-left rounded-2xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:scale-[0.98]"
+            style={{
+              background: t.gradient,
+              border: `2px solid ${t.border}`,
+              minHeight: 64,
+              padding: '14px 16px',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.hover; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.border; }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
+                style={{ background: 'rgba(255,255,255,0.7)' }}
+              >
+                {t.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span
+                  className="text-xs font-black uppercase tracking-widest block mb-0.5"
+                  style={{ color: t.labelColor }}
+                >
+                  {t.label}
+                </span>
+                <span className="text-gray-800 font-semibold text-sm leading-snug break-words">
+                  {choice}
+                </span>
+              </div>
+              <div
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity"
+                style={{ background: t.hover + '20' }}
+              >
+                <span className="text-sm font-black" style={{ color: t.labelColor }}>›</span>
+              </div>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -594,60 +839,181 @@ function ChallengePanel({
 }: ChallengePanelProps) {
   return (
     <div
-      className="rounded-2xl p-5 shadow-md"
+      className="rounded-3xl overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%)',
-        border: '2px solid rgba(139,92,246,0.2)',
-        boxShadow: '0 4px 20px rgba(139,92,246,0.1)',
+        background: 'linear-gradient(160deg, #faf5ff 0%, #f3e8ff 40%, #ede9fe 100%)',
+        border: '2px solid rgba(139,92,246,0.22)',
+        boxShadow: '0 -4px 32px rgba(139,92,246,0.10), 0 2px 8px rgba(139,92,246,0.08)',
       }}
     >
-      {/* Challenge badge */}
-      <div className="flex items-center justify-center mb-3">
-        <div
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
-          style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)' }}
-        >
-          ⚔️ Math Challenge
-        </div>
-      </div>
+      {/* Shimmer bar at top */}
+      <div
+        className="h-1.5 w-full"
+        style={{
+          background: 'linear-gradient(90deg, #8b5cf6, #f59e0b, #8b5cf6)',
+          backgroundSize: '200% 100%',
+          animation: 'shimmer-text 3s linear infinite',
+        }}
+      />
 
-      <div className="flex items-center gap-2 justify-center mb-4">
-        <p className="text-base font-bold text-gray-800 text-center">{challenge.problemText}</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2.5">
-        {challenge.options.map((option, i) => {
-          const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
-          return (
-            <button
-              key={i}
-              onClick={() => onAnswer(option)}
-              className={`rounded-xl px-3 py-3.5 text-center font-semibold transition-all border-2 hover:scale-[1.02] active:scale-[0.98] ${
-                wasWrong
-                  ? 'bg-red-50 border-red-300 text-red-500 animate-shake'
-                  : 'bg-white border-gray-200 hover:border-purple-wizzy/50 hover:bg-purple-wizzy/5 hover:shadow-md text-gray-700 hover:text-purple-wizzy'
-              }`}
-            >
-              {option}
-            </button>
-          );
-        })}
-      </div>
-
-      {challenge.hintLevel < 3 && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={onHint}
-            className="flex items-center gap-1.5 text-sm font-semibold text-gold-magic hover:text-amber-600 transition-colors px-4 py-2 rounded-xl hover:bg-amber-50"
+      <div className="p-5">
+        {/* Challenge badge */}
+        <div className="flex items-center justify-center mb-4">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold text-white"
+            style={{
+              background: 'linear-gradient(90deg, #7c3aed, #8b5cf6, #a78bfa)',
+              boxShadow: '0 0 16px rgba(139,92,246,0.40)',
+            }}
           >
-            <Lightbulb size={15} />
-            Ask Wizzy for help
-          </button>
+            <Wand2 size={14} className="text-yellow-300" />
+            Math Challenge!
+            <Zap size={14} className="text-yellow-300 fill-yellow-300" />
+          </div>
         </div>
-      )}
+
+        <p className="text-xl font-extrabold text-center mb-5 text-gray-800 tracking-tight">
+          {challenge.problemText}
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          {challenge.options.map((option, i) => {
+            const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
+            const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
+            const isRevealed = lastFeedback?.correctAnswer === option;
+
+            return (
+              <button
+                key={i}
+                onClick={() => onAnswer(option)}
+                disabled={Boolean(lastFeedback?.correct)}
+                className={`relative group rounded-2xl overflow-hidden transition-all active:scale-[0.96] ${
+                  wasWrong
+                    ? 'animate-shake'
+                    : 'hover:scale-[1.03] hover:shadow-md hover:border-purple-wizzy/40'
+                }`}
+                style={{
+                  minHeight: 56,
+                  background: wasWrong
+                    ? '#fef2f2'
+                    : isRevealed
+                    ? '#f0fdf4'
+                    : 'white',
+                  border: wasWrong
+                    ? '2px solid #fca5a5'
+                    : isRevealed
+                    ? '2px solid #6ee7b7'
+                    : '2px solid rgba(139,92,246,0.15)',
+                  boxShadow: wasWrong ? 'none' : '0 2px 6px rgba(139,92,246,0.08)',
+                }}
+              >
+                {/* Sparkle shimmer on hover */}
+                <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
+                {/* Letter badge */}
+                <div
+                  className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
+                  style={{
+                    background: wasWrong
+                      ? '#ef4444'
+                      : isRevealed
+                      ? '#10b981'
+                      : '#8b5cf6',
+                  }}
+                >
+                  {shape.label}
+                </div>
+                <span className="block pt-3 pb-1.5 px-2 text-center font-bold text-gray-800 text-sm">
+                  {option}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Retry / revealed answer prompt */}
+        {lastFeedback && !lastFeedback.correct && !lastFeedback.correctAnswer && (
+          <p className="text-center text-sm font-bold text-amber-600 mt-3" style={{ animation: 'slide-up-fade 0.35s ease-out both' }}>
+            💪 Try again — you've got this!
+          </p>
+        )}
+        {lastFeedback?.correctAnswer && (
+          <p className="text-center text-sm font-semibold text-emerald-600 mt-3" style={{ animation: 'slide-up-fade 0.35s ease-out both' }}>
+            The answer was <strong>{lastFeedback.correctAnswer}</strong> — keep going! 🌟
+          </p>
+        )}
+
+        {challenge.hintLevel < 3 && (
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={onHint}
+              className="flex items-center gap-1.5 text-sm font-semibold text-gold-magic hover:text-amber-600 transition-colors px-4 py-3 rounded-xl hover:bg-amber-50"
+            >
+              <Lightbulb size={15} />
+              Ask Wizzy for help
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+// ── World Particle Layer ──────────────────────────────────────────────────────
+
+function WorldParticleLayer({ world }: { world: string }) {
+  const cfg = WORLD_PARTICLES[world] ?? WORLD_PARTICLES.default;
+  const ANIMS = ['particle-float-a', 'particle-float-b', 'particle-float-c'];
+
+  const particles = useMemo(
+    () =>
+      Array.from({ length: cfg.count }, (_, i) => ({
+        id: i,
+        symbol: cfg.symbols[i % cfg.symbols.length],
+        left: ((i * 137.508) % 92) + 4,
+        top: ((i * 3 * 137.508) % 88) + 6,
+        size: 10 + ((i * 5) % 14),
+        duration: 7 + ((i * 3) % 8),
+        delay: (i * 0.41) % 5,
+        anim: ANIMS[i % 3],
+        color: cfg.color[i % cfg.color.length],
+      })),
+    [cfg]
+  );
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        zIndex: 0,
+      }}
+    >
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          style={{
+            position: 'absolute',
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            fontSize: p.size,
+            color: p.color,
+            opacity: 0.18,
+            userSelect: 'none',
+            animation: `${p.anim} ${p.duration}s ease-in-out ${p.delay}s infinite`,
+            willChange: 'transform, opacity',
+          }}
+        >
+          {p.symbol}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ── Completion Overlay ────────────────────────────────────────────────────────
 
 interface CompletionOverlayProps {
   data: CompleteAdventureResponse;
