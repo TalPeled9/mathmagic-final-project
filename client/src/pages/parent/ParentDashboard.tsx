@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { Sparkles, Plus, X, Users, LogOut, Settings, Clock, Star } from 'lucide-react';
 import { ParentLoader, GradientRing } from '@/components/loaders';
+import MagicBackground from '@/components/MagicBackground';
 import { childService, type ChildWithTopics } from '../../services/childService';
 import type { GradeLevel } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,8 +74,12 @@ export default function ParentDashboard() {
     <>
       <ParentSettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
-      <div className="min-h-screen bg-parchment flex flex-col items-center px-4 py-5">
-        <div className="w-full max-w-3xl">
+      <div
+        className="relative min-h-screen flex flex-col items-center px-4 py-5 overflow-hidden"
+        style={{ background: 'linear-gradient(160deg, #f5f3ff 0%, #fffbeb 55%, #ede9fe 100%)' }}
+      >
+        <MagicBackground symbols="stars" count={14} opacity={0.07} />
+        <div className="relative z-10 w-full max-w-3xl">
           {/* ── Top bar ── */}
           <div className="flex items-center justify-between mb-5">
             <Link to="/" className="flex items-center gap-2">
@@ -165,12 +170,15 @@ export default function ParentDashboard() {
 
           {/* ── No children yet ── */}
           {!isLoading && children.length === 0 && !showAddForm && (
-            <div className="bg-white rounded-2xl p-10 text-center shadow-sm mb-4">
-              <Users size={44} className="text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-600 font-semibold">No child profiles yet</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Tap "Add Child Profile" below to get started
-              </p>
+            <div
+              className="rounded-2xl p-10 text-center mb-4"
+              style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.12)', backdropFilter: 'blur(8px)' }}
+            >
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(139,92,246,0.08)' }}>
+                <Users size={28} className="text-purple-wizzy/40" />
+              </div>
+              <p className="text-gray-700 font-bold">No child profiles yet</p>
+              <p className="text-sm text-gray-400 mt-1">Tap "Add Child Profile" below to begin the adventure</p>
             </div>
           )}
 
@@ -361,7 +369,8 @@ export default function ParentDashboard() {
           {!isLoading && children.length === 0 && !showAddForm && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-purple-wizzy/30 rounded-2xl py-4 text-purple-wizzy hover:bg-purple-wizzy/5 hover:border-purple-wizzy/50 transition-all font-medium text-sm mt-4"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-white font-semibold mt-4 hover:scale-[1.02] transition-all shadow-lg"
+              style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)' }}
             >
               <Plus size={18} />
               Add Child Profile

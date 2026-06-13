@@ -293,6 +293,22 @@ export default function StoryChat() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
+  // World-specific background tints
+  const WORLD_TINTS: Record<string, string> = {
+    space: 'linear-gradient(180deg, #0f0c29/5 0%, #f5f3ff 100%)',
+    fantasy: 'linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%)',
+    dinosaur: 'linear-gradient(180deg, #fefce8 0%, #ecfccb 100%)',
+    ocean: 'linear-gradient(180deg, #eff6ff 0%, #e0f2fe 100%)',
+    jungle: 'linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%)',
+    pirates: 'linear-gradient(180deg, #fff7ed 0%, #fef3c7 100%)',
+    robots: 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)',
+    candy: 'linear-gradient(180deg, #fdf4ff 0%, #fce7f3 100%)',
+    'magic-school': 'linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%)',
+    'ancient-temple': 'linear-gradient(180deg, #fef9c3 0%, #fef3c7 100%)',
+    default: 'linear-gradient(180deg, #f5f3ff 0%, #fffbeb 100%)',
+  };
+  const worldBg = WORLD_TINTS[adventureContext?.storyWorld ?? 'default'] ?? WORLD_TINTS.default;
+
   if (adventureStatus === 'loading') {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
@@ -317,15 +333,15 @@ export default function StoryChat() {
   }
 
   return (
-    <div className="min-h-screen bg-parchment flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: worldBg }}>
       {/* ── Header ── */}
-      <header className="sticky top-0 z-10 bg-parchment/90 backdrop-blur-sm border-b border-gray-100 px-4 py-3">
+      <header className="sticky top-0 z-10 backdrop-blur-md border-b border-purple-wizzy/10 px-4 py-3" style={{ background: 'rgba(245,243,255,0.88)' }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
             onClick={() => navigate('/child/dashboard')}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"
+            className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3 py-1.5 rounded-lg"
           >
-            <ArrowLeft size={15} />
+            <ArrowLeft size={14} />
             Dashboard
           </button>
 
@@ -335,7 +351,7 @@ export default function StoryChat() {
               <span className="font-bold text-purple-wizzy">MathMagic</span>
             </Link>
             {adventureContext && (
-              <span className="text-xs text-gray-400 capitalize">
+              <span className="text-xs text-gray-400 capitalize font-medium">
                 {adventureContext.storyWorld.replace(/-/g, ' ')} · {adventureContext.mathTopic}
               </span>
             )}
@@ -376,7 +392,7 @@ export default function StoryChat() {
 
       {/* ── Interactive panel ── */}
       {adventureStatus === 'in-progress' && !isProcessing && !completionData && (
-        <div className="sticky bottom-0 bg-parchment/95 backdrop-blur-sm border-t border-gray-100 px-4 py-4">
+        <div className="sticky bottom-0 backdrop-blur-md border-t border-purple-wizzy/10 px-4 py-4" style={{ background: 'rgba(245,243,255,0.95)' }}>
           <div className="max-w-2xl mx-auto">
             {currentChallenge ? (
               <ChallengePanel
@@ -390,7 +406,8 @@ export default function StoryChat() {
               <div className="flex justify-center">
                 <button
                   onClick={handleAutoContinue}
-                  className="flex items-center gap-2 bg-purple-wizzy text-white rounded-xl px-8 py-3 font-bold hover:bg-purple-700 transition-all shadow-sm"
+                  className="flex items-center gap-2 text-white rounded-xl px-8 py-3 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)' }}
                 >
                   <Wand2 size={18} />
                   Continue Story
@@ -402,7 +419,8 @@ export default function StoryChat() {
               <div className="flex justify-center">
                 <button
                   onClick={handleFinishAdventure}
-                  className="flex items-center gap-2 bg-gold-magic text-white rounded-xl px-8 py-3 font-bold hover:bg-amber-500 transition-all shadow-sm"
+                  className="flex items-center gap-2 text-white rounded-xl px-8 py-3 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
                 >
                   <Trophy size={18} />
                   Finish Adventure!
@@ -430,16 +448,26 @@ export default function StoryChat() {
 function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
   return (
     <div className="flex items-start gap-3 max-w-[85%]">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-wizzy/10 flex items-center justify-center">
-        <Sparkles size={15} className="text-purple-wizzy" />
+      <div
+        className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md"
+        style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}
+      >
+        <Sparkles size={15} className="text-white" />
       </div>
-      <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border-l-4 border-purple-wizzy/30 min-w-0">
+      <div
+        className="rounded-2xl rounded-tl-sm p-4 min-w-0"
+        style={{
+          background: 'linear-gradient(135deg, rgba(245,243,255,0.95), rgba(237,233,254,0.9))',
+          border: '1px solid rgba(139,92,246,0.18)',
+          boxShadow: '0 2px 12px rgba(139,92,246,0.08)',
+        }}
+      >
         <p className="text-gray-800 leading-relaxed whitespace-pre-line break-words">{text}</p>
         {imageUrl && (
           <img
             src={imageUrl}
             alt="Story scene"
-            className="mt-3 rounded-xl w-full object-cover max-h-72"
+            className="mt-3 rounded-xl w-full object-cover max-h-72 shadow-md"
           />
         )}
       </div>
@@ -470,11 +498,14 @@ function SystemMessage({ text, isCorrect }: { text: string; isCorrect: boolean }
   return (
     <div className="flex justify-center">
       <span
-        className={`text-sm px-4 py-1.5 rounded-full font-medium ${
-          isCorrect ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
-        }`}
+        className="text-sm px-5 py-2 rounded-full font-semibold shadow-sm"
+        style={
+          isCorrect
+            ? { background: 'linear-gradient(90deg, #d1fae5, #a7f3d0)', color: '#047857', border: '1px solid rgba(16,185,129,0.3)' }
+            : { background: 'linear-gradient(90deg, #fef3c7, #fde68a)', color: '#92400e', border: '1px solid rgba(245,158,11,0.3)' }
+        }
       >
-        {text}
+        {isCorrect ? '✅ ' : '💡 '}{text}
       </span>
     </div>
   );
@@ -523,13 +554,22 @@ function ChoiceBubbles({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs text-gray-400 text-center mb-3">Choose your path:</p>
+      <p className="text-xs text-gray-500 font-semibold text-center mb-3 flex items-center justify-center gap-1.5">
+        <span>🌟</span> Choose your path:
+      </p>
       {choices.map((choice, i) => (
         <button
           key={i}
           onClick={() => onChoice(i)}
-          className="w-full text-left bg-white rounded-xl px-4 py-3 shadow-sm border-2 border-transparent hover:border-purple-wizzy/30 hover:shadow-md hover:-translate-y-0.5 transition-all text-gray-700 hover:text-purple-wizzy font-medium"
+          className="w-full text-left rounded-xl px-4 py-3 border-2 transition-all hover:-translate-y-0.5 hover:shadow-md font-medium text-gray-700 hover:text-purple-wizzy"
+          style={{
+            background: 'rgba(255,255,255,0.9)',
+            borderColor: 'rgba(139,92,246,0.15)',
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.4)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.15)'; }}
         >
+          <span className="text-purple-wizzy/50 font-bold mr-2">{String.fromCharCode(65 + i)}.</span>
           {choice}
         </button>
       ))}
@@ -553,23 +593,39 @@ function ChallengePanel({
   lastSubmittedAnswer,
 }: ChallengePanelProps) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm">
-      <div className="flex items-center gap-2 justify-center mb-4">
-        <span className="text-lg">🧮</span>
-        <p className="text-base font-semibold text-gray-800 text-center">{challenge.problemText}</p>
+    <div
+      className="rounded-2xl p-5 shadow-md"
+      style={{
+        background: 'linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%)',
+        border: '2px solid rgba(139,92,246,0.2)',
+        boxShadow: '0 4px 20px rgba(139,92,246,0.1)',
+      }}
+    >
+      {/* Challenge badge */}
+      <div className="flex items-center justify-center mb-3">
+        <div
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
+          style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)' }}
+        >
+          ⚔️ Math Challenge
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex items-center gap-2 justify-center mb-4">
+        <p className="text-base font-bold text-gray-800 text-center">{challenge.problemText}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
         {challenge.options.map((option, i) => {
           const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
           return (
             <button
               key={i}
               onClick={() => onAnswer(option)}
-              className={`rounded-xl px-3 py-3 text-center font-medium transition-colors border-2 ${
+              className={`rounded-xl px-3 py-3.5 text-center font-semibold transition-all border-2 hover:scale-[1.02] active:scale-[0.98] ${
                 wasWrong
-                  ? 'bg-red-50 border-red-200 text-red-500'
-                  : 'bg-purple-wizzy/5 border-transparent hover:bg-purple-wizzy/15 hover:text-purple-wizzy hover:border-purple-wizzy/20 text-gray-700'
+                  ? 'bg-red-50 border-red-300 text-red-500 animate-shake'
+                  : 'bg-white border-gray-200 hover:border-purple-wizzy/50 hover:bg-purple-wizzy/5 hover:shadow-md text-gray-700 hover:text-purple-wizzy'
               }`}
             >
               {option}
@@ -582,9 +638,9 @@ function ChallengePanel({
         <div className="flex justify-center mt-4">
           <button
             onClick={onHint}
-            className="flex items-center gap-1.5 text-sm text-gold-magic hover:text-amber-600 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-semibold text-gold-magic hover:text-amber-600 transition-colors px-4 py-2 rounded-xl hover:bg-amber-50"
           >
-            <Lightbulb size={14} />
+            <Lightbulb size={15} />
             Ask Wizzy for help
           </button>
         </div>

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Users, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { GradientRing } from '@/components/loaders';
+import MagicBackground from '@/components/MagicBackground';
+import wizzyImg from '@/assets/wizzy.png';
 import { childService } from '../../services/childService';
 import type { GradeLevel } from '@mathmagic/types';
 
@@ -19,10 +21,7 @@ export default function AddFirstChildPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await childService.create({
-        name: childName,
-        gradeLevel,
-      });
+      await childService.create({ name: childName, gradeLevel });
       toast.success("Child profile created! Let's get started ✨");
       navigate('/profiles');
     } catch (err) {
@@ -33,78 +32,111 @@ export default function AddFirstChildPage() {
   };
 
   return (
-    <div className="min-h-screen bg-parchment flex flex-col items-center p-4 py-8">
-      <div className="w-full max-w-lg">
-        {/* Logo + heading */}
+    <div
+      className="relative min-h-screen flex flex-col items-center p-4 py-8 overflow-hidden"
+      style={{ background: 'linear-gradient(150deg, #fdf4ff 0%, #fef3c7 55%, #ede9fe 100%)' }}
+    >
+      <MagicBackground symbols="mixed" count={18} opacity={0.09} />
+
+      <div className="relative z-10 w-full max-w-lg">
+        {/* Logo + Wizzy */}
         <div className="text-center mb-6">
-          <Link to="/" className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="text-gold-magic" size={32} />
-            <span className="text-4xl font-bold text-purple-wizzy">MathMagic</span>
+          <Link to="/" className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="text-gold-magic" size={28} />
+            <span className="text-3xl font-black text-purple-wizzy">MathMagic</span>
           </Link>
-          <h2 className="text-xl font-bold text-purple-wizzy">One last step!</h2>
-          <p className="text-gray-500 text-sm mt-1">
+
+          <img
+            src={wizzyImg}
+            alt="Wizzy the Wizard"
+            className="w-24 h-24 object-contain mx-auto mb-4 drop-shadow-xl"
+            style={{ animation: 'mm-float 3s ease-in-out infinite' }}
+          />
+
+          <h2 className="text-2xl font-black gradient-text">One last step!</h2>
+          <p className="text-gray-500 text-sm mt-2">
             Set up your child's profile to begin their learning adventure
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="bg-violet-50 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-7 h-7 rounded-full bg-cyan-500 text-white text-sm font-bold flex items-center justify-center shrink-0">
-                <Users size={14} />
-              </span>
-              <h3 className="font-semibold text-cyan-500">Create Your Child's Profile</h3>
+          <div
+            className="rounded-2xl p-6 space-y-5"
+            style={{
+              background: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(139,92,246,0.15)',
+              boxShadow: '0 8px 32px rgba(139,92,246,0.12)',
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}
+              >
+                ✨
+              </div>
+              <h3 className="font-bold text-purple-wizzy">Create Your Child's Profile</h3>
             </div>
-            <p className="text-xs text-gray-500">
-              Each child gets their own personalized learning experience with progress tracking and
-              achievements. You can add more children later!
+            <p className="text-xs text-gray-400">
+              Each child gets their own personalized learning experience with progress tracking and achievements. You can add more children later!
             </p>
 
+            {/* Child name */}
             <div>
-              <label className="block text-sm text-gray-600 mb-1.5">Child's Name</label>
-              <div className="relative">
-                <Users
-                  size={15}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  value={childName}
-                  onChange={(e) => setChildName(e.target.value)}
-                  placeholder="Enter child's first name"
-                  maxLength={50}
-                  required
-                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 placeholder:text-gray-400"
-                />
-              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Child's Name</label>
+              <input
+                type="text"
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="Enter child's first name"
+                maxLength={50}
+                required
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy transition-shadow focus:shadow-[0_0_0_3px_rgba(139,92,246,0.10)]"
+              />
             </div>
 
+            {/* Grade level — button grid */}
             <div>
-              <label className="block text-sm text-gray-600 mb-1.5">Grade Level</label>
-              <select
-                value={gradeLevel}
-                onChange={(e) => setGradeLevel(Number(e.target.value) as GradeLevel)}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500"
-              >
+              <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+              <div className="grid grid-cols-6 gap-2">
                 {GRADES.map((g) => (
-                  <option key={g} value={g}>
-                    Grade {g}
-                  </option>
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGradeLevel(g)}
+                    className="py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                    style={
+                      gradeLevel === g
+                        ? {
+                            background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                            color: 'white',
+                            boxShadow: '0 4px 12px rgba(139,92,246,0.4)',
+                          }
+                        : {
+                            background: 'rgba(139,92,246,0.06)',
+                            color: '#6b7280',
+                            border: '1px solid rgba(139,92,246,0.1)',
+                          }
+                    }
+                  >
+                    {g}
+                  </button>
                 ))}
-              </select>
+              </div>
+              <p className="text-xs text-gray-400 mt-2 text-center">
+                Grade {gradeLevel} selected
+              </p>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-4 flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl py-3.5 font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors"
+            className="w-full mt-4 flex items-center justify-center gap-2 text-white rounded-xl py-3.5 font-bold disabled:opacity-60 transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+            style={{ background: 'linear-gradient(90deg, #8b5cf6 0%, #6d28d9 100%)' }}
           >
-            {isLoading ? (
-              <GradientRing size={18} thickness={2.5} label="" />
-            ) : (
-              <Sparkles size={18} className="text-gold-magic" />
-            )}
+            {isLoading ? <GradientRing size={18} thickness={2.5} label="" /> : <Sparkles size={18} className="text-gold-magic" />}
             {isLoading ? 'Creating profile...' : "Create Child's Profile"}
             {!isLoading && <Sparkles size={18} className="text-gold-magic" />}
           </button>
