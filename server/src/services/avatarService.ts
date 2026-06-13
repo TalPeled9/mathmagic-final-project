@@ -60,15 +60,16 @@ function generateFallbackAvatar(name: string): string {
 export async function generateAvatar(
   name: string,
   gradeLevel: number,
-  description: string,
+  description: string
 ): Promise<GeneratedAvatarSlot> {
   const validation = await validateDescription(description);
   if (!validation.valid) {
     throw ApiError.badRequest(validation.rejectionReason ?? 'invalid_description');
   }
   const imageData = config.gemini.apiKey
-    ? (await callGeminiImage(buildImagePrompt(name, gradeLevel, validation.correctedDescription))) ??
-      generateFallbackAvatar(name)
+    ? ((await callGeminiImage(
+        buildImagePrompt(name, gradeLevel, validation.correctedDescription)
+      )) ?? generateFallbackAvatar(name))
     : generateFallbackAvatar(name);
   return { imageData, description: validation.correctedDescription };
 }

@@ -52,9 +52,11 @@ describe('generateAvatar', () => {
       correctedDescription: 'an astronaut wearing a cowboy hat',
     });
     mockGenerateContent.mockResolvedValue({
-      candidates: [{
-        content: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: 'abc123' } }] },
-      }],
+      candidates: [
+        {
+          content: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: 'abc123' } }] },
+        },
+      ],
     });
 
     const result = await generateAvatar('Alex', 3, 'an astrounaut wearing a cowbay hat');
@@ -82,4 +84,3 @@ describe('generateAvatar', () => {
     expect(result.imageData).toMatch(/^data:image\/svg\+xml;base64,/);
   });
 });
-

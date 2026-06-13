@@ -3,7 +3,10 @@ import { Child } from '../models/Child';
 import { TopicProgress } from '../models/TopicProgress';
 import { Adventure } from '../models/Adventure';
 import { ApiError } from '../utils/ApiError';
-import { getDailySessionBreakdown, getCurrentDayStreak } from '../services/gamification/sessionService';
+import {
+  getDailySessionBreakdown,
+  getCurrentDayStreak,
+} from '../services/gamification/sessionService';
 import { getLevelForXP, LEVEL_THRESHOLDS } from '../config/levelThresholds';
 
 export async function getChildStatistics(req: Request, res: Response): Promise<void> {
@@ -20,7 +23,9 @@ export async function getChildStatistics(req: Request, res: Response): Promise<v
       Adventure.find({ childId, status: 'completed' })
         .sort({ completedAt: -1 })
         .limit(10)
-        .select('mathTopic storyWorld completedAt xpEarned starsEarned totalChallenges correctAnswers hintsUsed')
+        .select(
+          'mathTopic storyWorld completedAt xpEarned starsEarned totalChallenges correctAnswers hintsUsed'
+        )
         .lean(),
       Adventure.countDocuments({ childId, status: 'completed' }),
       getCurrentDayStreak(childId),

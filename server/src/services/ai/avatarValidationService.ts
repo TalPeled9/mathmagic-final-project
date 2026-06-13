@@ -32,15 +32,20 @@ Rules:
 - For invalid descriptions: correctedDescription must be an empty string.`;
 }
 
-function parseResult(raw: { valid: boolean; correctedDescription: string; rejectionReason?: string }): ValidationResult {
+function parseResult(raw: {
+  valid: boolean;
+  correctedDescription: string;
+  rejectionReason?: string;
+}): ValidationResult {
   const valid = raw.valid === true;
   const validReasons = ['unsafe', 'gibberish', 'unrelated'];
   return {
     valid,
     correctedDescription: valid ? (raw.correctedDescription ?? '') : '',
-    rejectionReason: !valid && validReasons.includes(raw.rejectionReason ?? '')
-      ? (raw.rejectionReason as ValidationResult['rejectionReason'])
-      : undefined,
+    rejectionReason:
+      !valid && validReasons.includes(raw.rejectionReason ?? '')
+        ? (raw.rejectionReason as ValidationResult['rejectionReason'])
+        : undefined,
   };
 }
 

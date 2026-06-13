@@ -13,17 +13,29 @@ const BADGE_EMOJIS: Record<string, string> = {
   explorer: '🗺️',
 };
 
-
 const WORLD_EMOJIS: Record<string, string> = {
-  space: '🚀', fantasy: '🏰', dinosaur: '🦕', ocean: '🌊',
-  jungle: '🌿', pirates: '☠️', robots: '🤖', candy: '🍬',
-  'magic-school': '🧙', 'ancient-temple': '🏛️',
+  space: '🚀',
+  fantasy: '🏰',
+  dinosaur: '🦕',
+  ocean: '🌊',
+  jungle: '🌿',
+  pirates: '☠️',
+  robots: '🤖',
+  candy: '🍬',
+  'magic-school': '🧙',
+  'ancient-temple': '🏛️',
 };
 
 const WORLD_NAMES: Record<string, string> = {
-  space: 'Space Station', fantasy: 'Enchanted Kingdom', dinosaur: 'Dino Valley',
-  ocean: 'Deep Ocean', jungle: 'Jungle Explorer', pirates: 'Pirate Seas',
-  robots: 'Robot City', candy: 'Candy Land', 'magic-school': 'Magic School',
+  space: 'Space Station',
+  fantasy: 'Enchanted Kingdom',
+  dinosaur: 'Dino Valley',
+  ocean: 'Deep Ocean',
+  jungle: 'Jungle Explorer',
+  pirates: 'Pirate Seas',
+  robots: 'Robot City',
+  candy: 'Candy Land',
+  'magic-school': 'Magic School',
   'ancient-temple': 'Ancient Temple',
 };
 
@@ -49,13 +61,14 @@ interface Props {
 export function OverviewTab({ child, stats }: Props) {
   const [barPercent, setBarPercent] = useState(0);
 
-  const { levelProgress, currentDayStreak, totalAdventuresCompleted, recentAdventures, badges } = stats;
-  const { currentLevel, levelName, currentXP, currentLevelThresholdXP, xpToNextLevel, isMaxLevel } = levelProgress;
+  const { levelProgress, currentDayStreak, totalAdventuresCompleted, recentAdventures, badges } =
+    stats;
+  const { currentLevel, levelName, currentXP, currentLevelThresholdXP, xpToNextLevel, isMaxLevel } =
+    levelProgress;
 
   const xpInLevel = currentXP - currentLevelThresholdXP;
-  const progressPercent = isMaxLevel || !xpToNextLevel
-    ? 100
-    : Math.round((xpInLevel / xpToNextLevel) * 100);
+  const progressPercent =
+    isMaxLevel || !xpToNextLevel ? 100 : Math.round((xpInLevel / xpToNextLevel) * 100);
 
   useEffect(() => {
     const t = setTimeout(() => setBarPercent(progressPercent), 150);
@@ -167,9 +180,7 @@ export function OverviewTab({ child, stats }: Props) {
                 key={String(a.adventureId)}
                 className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-purple-wizzy/5 transition-colors"
               >
-                <span className="text-xl shrink-0">
-                  {WORLD_EMOJIS[a.storyWorld] ?? '✨'}
-                </span>
+                <span className="text-xl shrink-0">{WORLD_EMOJIS[a.storyWorld] ?? '✨'}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-700 truncate">
                     {WORLD_NAMES[a.storyWorld] ?? a.storyWorld}
@@ -197,11 +208,10 @@ export function OverviewTab({ child, stats }: Props) {
           <CheckCircle size={24} className="text-emerald-400 shrink-0" />
           <div>
             <p className="text-sm font-semibold text-gray-700">
-              {totalAdventuresCompleted} adventure{totalAdventuresCompleted !== 1 ? 's' : ''} completed
+              {totalAdventuresCompleted} adventure{totalAdventuresCompleted !== 1 ? 's' : ''}{' '}
+              completed
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Keep up the great work!
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">Keep up the great work!</p>
           </div>
         </div>
       )}

@@ -142,6 +142,8 @@ export const WORLD_EMOJIS: Record<string, string> = {
   candy: '🍬',
   'magic-school': '🧙',
   'ancient-temple': '🏛️',
+  'icy-caves': '🧊',
+  'volcano-island': '🌋',
 };
 
 export interface GetAvailableResponse {

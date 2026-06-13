@@ -10,6 +10,11 @@
   --animate-pop-in: pop-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   --animate-slide-up-fade: slide-up-fade 0.4s ease-out forwards;
   --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
+  --animate-slide-up: slide-up 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  --animate-slide-out-left: slide-out-left 0.25s ease-in forwards;
+  --animate-slide-in-right: slide-in-right 0.35s ease-out forwards;
+  --animate-slide-out-right: slide-out-right 0.25s ease-in forwards;
+  --animate-slide-in-left: slide-in-left 0.35s ease-out forwards;
 }
 
 @keyframes float {
@@ -85,6 +90,57 @@
   50% {
     box-shadow: 0 0 18px rgba(245, 158, 11, 0.65);
   }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(45px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-out-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-8%); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(8%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(8%); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-8%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Adventure card shine sweep — triggered by parent .group:hover */
+.adventure-card-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.14) 50%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: none;
+}
+
+.group:hover .adventure-card-shine {
+  transform: translateX(200%);
+  transition: transform 0.55s ease;
 }
 
 /* ── MathMagic loader keyframes ──────────────────────────── */

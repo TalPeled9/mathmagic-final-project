@@ -354,7 +354,13 @@ export default function StoryChat() {
               return <WizzyMessage key={msg.id} text={msg.text} imageUrl={msg.imageUrl} />;
             if (msg.role === 'child')
               return (
-                <ChildMessage key={msg.id} text={msg.text} avatarUrl={activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar} />
+                <ChildMessage
+                  key={msg.id}
+                  text={msg.text}
+                  avatarUrl={
+                    activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar
+                  }
+                />
               );
             if (msg.role === 'hint') return <HintMessage key={msg.id} text={msg.text} />;
             return (

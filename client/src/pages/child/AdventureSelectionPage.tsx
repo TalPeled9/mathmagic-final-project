@@ -1,14 +1,26 @@
-import { useState, useEffect } from 'react';
+// client/src/pages/child/AdventureSelectionPage.tsx
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Sparkles, Wand2 } from 'lucide-react';
-import { SparkleSpinner, SkeletonCard, AILoader } from '@/components/loaders';
+import { ArrowLeft, Wand2 } from 'lucide-react';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdventure } from '@/hooks/useAdventure';
 import { adventureService } from '@/services/adventureService';
-import { WORLD_EMOJIS, type MathTopicConfig, type StoryWorldConfig } from '@mathmagic/types';
+import type { MathTopicConfig, StoryWorldConfig } from '@mathmagic/types';
+import { TopicCard, WorldCard, StepIndicator } from '@/components/adventure';
 
 type Step = 'topic' | 'world';
+type GridAnim = 'slide-out-left' | 'slide-in-right' | 'slide-out-right' | 'slide-in-left' | null;
+
+const PAGE_BG = 'linear-gradient(150deg, #fdf4ff 0%, #fef3c7 55%, #ede9fe 100%)';
+
+const GRID_ANIM_CLASSES: Record<NonNullable<GridAnim>, string> = {
+  'slide-out-left': 'animate-slide-out-left',
+  'slide-in-right': 'animate-slide-in-right',
+  'slide-out-right': 'animate-slide-out-right',
+  'slide-in-left': 'animate-slide-in-left',
+};
 
 export default function AdventureSelectionPage() {
   const { activeChild } = useAuth();
@@ -21,6 +33,16 @@ export default function AdventureSelectionPage() {
   const [selectedWorld, setSelectedWorld] = useState<string | null>(null);
   const [step, setStep] = useState<Step>('topic');
   const [isFetching, setIsFetching] = useState(true);
+  const [gridAnim, setGridAnim] = useState<GridAnim>(null);
+
+  const transitionTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTransitionTimers = () => {
+    transitionTimers.current.forEach(clearTimeout);
+    transitionTimers.current = [];
+  };
+
+  useEffect(() => clearTransitionTimers, []); // cleanup on unmount
 
   useEffect(() => {
     if (!activeChild) return;
@@ -35,20 +57,37 @@ export default function AdventureSelectionPage() {
   }, [activeChild]);
 
   useEffect(() => {
-    if (adventureId) {
-      navigate(`/child/story/${adventureId}`);
-    }
+    if (adventureId) navigate(`/child/story/${adventureId}`);
   }, [adventureId, navigate]);
 
   useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
+    if (error) toast.error(error);
   }, [error]);
 
-  const handleTopicSelect = (topicId: string) => {
+  const goToWorlds = (topicId: string) => {
+    clearTransitionTimers();
     setSelectedTopic(topicId);
-    setStep('world');
+    setGridAnim('slide-out-left');
+    const t1 = setTimeout(() => {
+      setStep('world');
+      setGridAnim('slide-in-right');
+      const t2 = setTimeout(() => setGridAnim(null), 380);
+      transitionTimers.current.push(t2);
+    }, 260);
+    transitionTimers.current.push(t1);
+  };
+
+  const goBackToTopics = () => {
+    clearTransitionTimers();
+    setGridAnim('slide-out-right');
+    const t1 = setTimeout(() => {
+      setStep('topic');
+      setSelectedWorld(null);
+      setGridAnim('slide-in-left');
+      const t2 = setTimeout(() => setGridAnim(null), 380);
+      transitionTimers.current.push(t2);
+    }, 260);
+    transitionTimers.current.push(t1);
   };
 
   const handleStartAdventure = () => {
@@ -56,159 +95,103 @@ export default function AdventureSelectionPage() {
     startAdventure(activeChild._id, selectedTopic, selectedWorld);
   };
 
-  // Show full-screen AI loader during story generation (the heavy Gemini call)
+  const gridAnimClass = gridAnim ? GRID_ANIM_CLASSES[gridAnim] : '';
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-parchment flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <AILoader />
-        </div>
+      <div
+        className="min-h-screen flex items-center justify-center p-6"
+        style={{ background: PAGE_BG }}
+      >
+        <div className="w-16 h-16 border-4 border-purple-wizzy border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
+    <div className="min-h-screen w-full" style={{ background: PAGE_BG }}>
       {/* Header */}
-      <div className="w-full max-w-3xl flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between px-8 py-4">
         <button
-          onClick={() => navigate('/child/dashboard')}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"
+          onClick={step === 'world' ? goBackToTopics : () => navigate('/child/dashboard')}
+          className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3 py-1.5 rounded-lg"
         >
-          <ArrowLeft size={15} />
-          Dashboard
+          <ArrowLeft size={14} />
+          {step === 'world' ? 'Back' : 'Dashboard'}
         </button>
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="text-gold-magic" size={24} />
-          <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
+        <Link to="/" className="flex items-center justify-center">
+          <img src={mathmagicLogo} alt="MathMagic" className="h-12 w-auto" />
         </Link>
-        {/* Spacer to keep logo centred */}
-        <div className="w-24" />
+        <div style={{ width: 90 }} />
       </div>
 
-      {/* Heading */}
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold text-purple-wizzy">
+      {/* Hero */}
+      <div className="text-center pt-4 px-8">
+        <h1 className="text-4xl font-black tracking-tight" style={{ color: '#1a0050' }}>
           {step === 'topic' ? 'Choose a Math Topic' : 'Choose a Story World'}
         </h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-sm mt-1.5" style={{ color: '#7c3aed', opacity: 0.8 }}>
           {step === 'topic'
             ? `What would you like to practice today${activeChild ? `, ${activeChild.name}` : ''}?`
-            : 'Where should your adventure take place?'}
+            : `Where should your adventure take place${activeChild ? `, ${activeChild.name}` : ''}?`}
         </p>
       </div>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-3 mb-8 text-sm font-medium">
-        <span className={step === 'topic' ? 'text-purple-wizzy' : 'text-gray-400'}>
-          1. Pick a Topic
-        </span>
-        <span className="text-gray-300">→</span>
-        <span className={step === 'world' ? 'text-purple-wizzy' : 'text-gray-400'}>
-          2. Pick a World
-        </span>
+      <div className="flex justify-center mt-5">
+        <StepIndicator step={step} />
       </div>
 
-      {/* Loading */}
-      {isFetching ? (
-        <div className="flex flex-wrap gap-4 mt-8 justify-center">
-          {[0, 1, 2, 3].map((i) => (
-            <SkeletonCard key={i} kind="adventure" />
-          ))}
-        </div>
-      ) : step === 'topic' ? (
-        /* ── Step 1: Topic Grid ── */
-        <div className="w-full max-w-3xl">
-          {topics.length === 0 ? (
-            <p className="text-center text-gray-400 mt-16">No topics available for your grade.</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {topics.map((topic) => {
-                const isSelected = selectedTopic === topic.id;
-                return (
-                  <button
-                    key={topic.id}
-                    onClick={() => handleTopicSelect(topic.id)}
-                    aria-pressed={isSelected}
-                    style={{ borderLeftColor: topic.color }}
-                    className={`group flex flex-col items-start gap-2 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-left border border-transparent border-l-4 ${
-                      isSelected
-                        ? 'ring-2 ring-purple-wizzy/30 bg-purple-wizzy/5'
-                        : 'hover:border-purple-wizzy/30'
-                    }`}
-                  >
-                    <span className="text-3xl">{topic.icon}</span>
-                    <div>
-                      <p className="font-semibold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                        {topic.name}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{topic.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : (
-        /* ── Step 2: World Grid ── */
-        <div className="w-full max-w-3xl">
-          <button
-            onClick={() => setStep('topic')}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors mb-5"
-          >
-            <ArrowLeft size={14} />
-            Back to topics
-          </button>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {worlds.map((world) => {
-              const isSelected = selectedWorld === world.id;
-              return (
-                <button
-                  key={world.id}
-                  onClick={() => setSelectedWorld(world.id)}
-                  aria-pressed={isSelected}
-                  className={`group flex flex-col items-start gap-2 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-left border-2 ${
-                    isSelected
-                      ? 'border-purple-wizzy ring-2 ring-purple-wizzy/30 bg-purple-wizzy/5'
-                      : 'border-transparent hover:border-purple-wizzy/30'
-                  }`}
-                >
-                  <span className="text-3xl">{WORLD_EMOJIS[world.id] ?? '✨'}</span>
-                  <div>
-                    <p className="font-semibold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                      {world.name}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{world.description}</p>
-                  </div>
-                </button>
-              );
-            })}
+      {/* Card grid */}
+      <div className={`px-8 pb-12 mt-6 ${gridAnimClass}`}>
+        {isFetching ? (
+          <div className="grid grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl bg-purple-wizzy/10 animate-pulse"
+                style={{ aspectRatio: '3 / 4' }}
+              />
+            ))}
           </div>
+        ) : step === 'topic' ? (
+          <div className="grid grid-cols-4 gap-4">
+            {topics.map((topic, i) => (
+              <TopicCard
+                key={topic.id}
+                topic={topic}
+                isSelected={selectedTopic === topic.id}
+                onClick={() => goToWorlds(topic.id)}
+                animationDelay={i * 55}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-4">
+            {worlds.map((world, i) => (
+              <WorldCard
+                key={world.id}
+                world={world}
+                isSelected={selectedWorld === world.id}
+                onClick={() => setSelectedWorld(world.id)}
+                animationDelay={i * 55}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-          {/* Start Adventure */}
-          {selectedWorld && (
-            <div className="flex justify-center mt-8">
-              <button
-                onClick={handleStartAdventure}
-                disabled={isLoading}
-                className="flex items-center gap-2 bg-purple-wizzy text-white rounded-xl px-8 py-3 font-bold hover:bg-purple-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <>
-                    <SparkleSpinner size={18} label="" />
-                    Creating your story...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 size={18} />
-                    Start Adventure!
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+      {/* Start Adventure button — pops in when a world is selected */}
+      {step === 'world' && selectedWorld && (
+        <div className="flex justify-center pb-12 animate-pop-in">
+          <button
+            onClick={handleStartAdventure}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-purple-wizzy text-white rounded-xl px-10 py-3.5 font-bold text-base hover:bg-purple-700 transition-all shadow-lg hover:shadow-[0_8px_24px_rgba(139,92,246,0.4)] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <Wand2 size={18} />
+            Start Adventure!
+          </button>
         </div>
       )}
     </div>

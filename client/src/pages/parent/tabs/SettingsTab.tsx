@@ -31,7 +31,9 @@ function PlaceholderToggle({ label, description }: { label: string; description?
         {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-300 bg-gray-100 px-2 py-0.5 rounded-full">Coming soon</span>
+        <span className="text-xs text-gray-300 bg-gray-100 px-2 py-0.5 rounded-full">
+          Coming soon
+        </span>
         <button
           disabled
           className="w-10 h-5 bg-gray-100 rounded-full relative cursor-not-allowed opacity-50"
@@ -83,7 +85,8 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
           <div>
             <p className="text-sm font-medium text-gray-700">{child.name}'s Avatar</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {child.weeklyGenerationsRemaining} generation{child.weeklyGenerationsRemaining !== 1 ? 's' : ''} remaining this week
+              {child.weeklyGenerationsRemaining} generation
+              {child.weeklyGenerationsRemaining !== 1 ? 's' : ''} remaining this week
             </p>
             <Link
               to={`/profiles/avatar/${child._id}`}

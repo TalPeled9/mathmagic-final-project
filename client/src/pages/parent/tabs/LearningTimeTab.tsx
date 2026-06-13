@@ -1,6 +1,13 @@
 import { TrendingUp, TrendingDown, Minus, Clock } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
 } from 'recharts';
 import type { ChildStatistics } from '../../../services/childService';
 
@@ -40,10 +47,8 @@ export function LearningTimeTab({ stats }: Props) {
   const diffPercent =
     lastWeekMinutes > 0 ? Math.round((Math.abs(diff) / lastWeekMinutes) * 100) : null;
 
-  const TrendIcon =
-    diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : Minus;
-  const trendColor =
-    diff > 0 ? 'text-emerald-500' : diff < 0 ? 'text-red-400' : 'text-gray-400';
+  const TrendIcon = diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : Minus;
+  const trendColor = diff > 0 ? 'text-emerald-500' : diff < 0 ? 'text-red-400' : 'text-gray-400';
 
   return (
     <div className="space-y-5">
@@ -52,7 +57,9 @@ export function LearningTimeTab({ stats }: Props) {
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-1">
             <Clock size={16} className="text-purple-wizzy" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">This Week</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              This Week
+            </span>
           </div>
           <p className="text-3xl font-bold text-gray-800">{thisWeekMinutes}</p>
           <p className="text-xs text-gray-400 mt-0.5">minutes</p>
@@ -60,7 +67,9 @@ export function LearningTimeTab({ stats }: Props) {
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <div className="flex items-center gap-2 mb-1">
             <Clock size={16} className="text-gray-300" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Last Week</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Last Week
+            </span>
           </div>
           <p className="text-3xl font-bold text-gray-800">{lastWeekMinutes}</p>
           <p className="text-xs text-gray-400 mt-0.5">minutes</p>
@@ -75,8 +84,8 @@ export function LearningTimeTab({ stats }: Props) {
             {diff === 0
               ? 'Same learning time as last week'
               : diff > 0
-              ? `${diff} more minutes than last week${diffPercent !== null ? ` (+${diffPercent}%)` : ''}`
-              : `${Math.abs(diff)} fewer minutes than last week${diffPercent !== null ? ` (-${diffPercent}%)` : ''}`}
+                ? `${diff} more minutes than last week${diffPercent !== null ? ` (+${diffPercent}%)` : ''}`
+                : `${Math.abs(diff)} fewer minutes than last week${diffPercent !== null ? ` (-${diffPercent}%)` : ''}`}
           </p>
         </div>
       )}
@@ -93,7 +102,11 @@ export function LearningTimeTab({ stats }: Props) {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={230}>
-            <BarChart data={weekData} margin={{ top: 0, right: 8, left: -20, bottom: 0 }} barGap={2}>
+            <BarChart
+              data={weekData}
+              margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
+              barGap={2}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
               <XAxis
                 dataKey="day"

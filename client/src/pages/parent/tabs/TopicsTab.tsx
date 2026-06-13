@@ -1,6 +1,13 @@
 import { BookOpen } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
 } from 'recharts';
 import type { ChildStatistics } from '../../../services/childService';
 import { TOPIC_NAMES } from '../../../utils/topicNames';
@@ -132,7 +139,9 @@ export function TopicsTab({ stats }: Props) {
             </div>
 
             <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>{t.totalChallenges} challenges · {t.accuracyPercent}% accuracy</span>
+              <span>
+                {t.totalChallenges} challenges · {t.accuracyPercent}% accuracy
+              </span>
               <span className="text-gray-400">Last: {formatDate(t.lastPracticedAt)}</span>
             </div>
           </div>

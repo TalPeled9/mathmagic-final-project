@@ -58,16 +58,26 @@ export function ChildSection({ child: initialChild }: Props) {
           {/* Avatar */}
           <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-wizzy/20 shrink-0">
             {avatar?.imageData ? (
-              <img src={avatar.imageData} alt={childData.name} className="w-full h-full object-cover" />
+              <img
+                src={avatar.imageData}
+                alt={childData.name}
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <img src={defaultAvatar} alt={childData.name} className="w-full h-full object-cover" />
+              <img
+                src={defaultAvatar}
+                alt={childData.name}
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
 
           {/* Identity */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-gray-800 text-base leading-tight">{childData.name}</span>
+              <span className="font-bold text-gray-800 text-base leading-tight">
+                {childData.name}
+              </span>
               <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
                 Grade {childData.gradeLevel}
               </span>
@@ -78,8 +88,12 @@ export function ChildSection({ child: initialChild }: Props) {
               {streak > 0 && (
                 <span className="text-xs font-semibold text-orange-500">🔥 {streak}d streak</span>
               )}
-              <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${isActive ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400 bg-gray-50'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-gray-300'}`} />
+              <span
+                className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${isActive ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400 bg-gray-50'}`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-gray-300'}`}
+                />
                 {isActive ? 'Active' : 'Inactive'}
               </span>
             </div>
@@ -109,7 +123,9 @@ export function ChildSection({ child: initialChild }: Props) {
               <span className="text-[10px] text-gray-400">stars</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-xs font-bold text-gray-700">{childData.weeklyLearningMinutes}</span>
+              <span className="text-xs font-bold text-gray-700">
+                {childData.weeklyLearningMinutes}
+              </span>
               <span className="text-[10px] text-gray-400">min/wk</span>
             </div>
           </div>
