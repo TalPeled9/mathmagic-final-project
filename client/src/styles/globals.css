@@ -325,6 +325,107 @@
   }
 }
 
+@keyframes particle-float-a {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  33% { transform: translateY(-18px) rotate(8deg); opacity: 1; }
+  66% { transform: translateY(-8px) rotate(-5deg); opacity: 0.8; }
+}
+
+@keyframes particle-float-b {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.5; }
+  40% { transform: translateY(-28px) rotate(-12deg) scale(1.1); opacity: 0.9; }
+  70% { transform: translateY(-12px) rotate(6deg) scale(0.95); opacity: 0.7; }
+}
+
+@keyframes particle-float-c {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.4; }
+  25% { transform: translateY(-10px) translateX(8px) rotate(10deg); opacity: 0.9; }
+  50% { transform: translateY(-22px) translateX(-5px) rotate(-8deg); opacity: 0.6; }
+  75% { transform: translateY(-14px) translateX(10px) rotate(5deg); opacity: 0.8; }
+}
+
+@keyframes shimmer-text {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes xp-bar-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(245, 158, 11, 0.5); }
+  50% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.9), 0 0 30px rgba(139, 92, 246, 0.3); }
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.3) rotate(-25deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(8deg); opacity: 1; }
+  80% { transform: scale(0.95) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes stat-count-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes correct-flash {
+  0% { opacity: 0; transform: scaleY(0); }
+  30% { opacity: 1; transform: scaleY(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Shared utility classes ────────────────────────────────── */
+
+.gradient-text {
+  background: linear-gradient(90deg, #8b5cf6 0%, #a855f7 40%, #f59e0b 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-text 4s ease infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.12);
+}
+
+.glow-purple {
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.2), 0 8px 32px rgba(139, 92, 246, 0.1);
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-badge-pop {
+  animation: badge-pop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-stat {
+  animation: stat-count-up 0.5s ease-out forwards;
+}
+
 @layer base {
   *,
   *::before,
@@ -335,4 +436,86 @@
   body {
     @apply bg-amber-50 text-gray-900 font-medium leading-relaxed;
   }
+}
+
+/* ── StoryChat Immersive UI Enhancements ───────────────── */
+
+@keyframes ken-burns {
+  0%   { transform: scale(1)    translate(0,    0); }
+  50%  { transform: scale(1.1) translate(-2%, -1%); }
+  100% { transform: scale(1.15) translate(-4%,  1%); }
+}
+
+@keyframes story-message-enter {
+  0%   { opacity: 0; transform: translateY(18px) scale(0.97); }
+  60%  { transform: translateY(-3px) scale(1.005); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes wizzy-avatar-pop {
+  0%   { transform: scale(0) rotate(-20deg); }
+  70%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes child-message-enter {
+  0%   { opacity: 0; transform: translateX(20px) scale(0.95); }
+  65%  { transform: translateX(-3px) scale(1.01); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes hint-message-enter {
+  0%   { opacity: 0; transform: translateY(12px) rotate(-1deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+@keyframes wizzy-thinking-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(139, 92, 246, 0); }
+}
+
+@keyframes sparkle-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.7) translateY(0); }
+  40%           { opacity: 1;    transform: scale(1.2) translateY(-4px); }
+}
+
+@keyframes star-burst {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
+}
+
+@keyframes chat-flash {
+  0%   { opacity: 0.8; }
+  30%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+@keyframes sheet-slide-up {
+  from { transform: translateY(20px); opacity: 0.8; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.story-message-enter {
+  animation: story-message-enter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.wizzy-avatar {
+  animation: wizzy-avatar-pop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.child-message-enter {
+  animation: child-message-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.hint-message-enter {
+  animation: hint-message-enter 0.45s ease-out both;
+}
+
+.system-message-enter {
+  animation: slide-up-fade 0.35s ease-out both;
+}
+
+.option-sparkle-hover {
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+  transition: opacity 0.2s;
 }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy } from 'lucide-react';
+import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy, Wand2 } from 'lucide-react';
 import { SkeletonCard } from '@/components/loaders';
+import MagicBackground from '@/components/MagicBackground';
 import defaultAvatar from '@/assets/default_avatar.png';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
@@ -12,72 +13,53 @@ import {
   type CompleteAdventureResponse,
 } from '@mathmagic/types';
 
-// ── Static config (mirrors server/src/config/levelThresholds.ts) ─────────────
+// ── Static config ─────────────────────────────────────────────────────────────
 
 const LEVEL_THRESHOLDS: readonly number[] = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
 
 const LEVEL_NAMES: readonly string[] = [
-  'Beginner',
-  'Math Explorer',
-  'Number Wizard',
-  'Problem Solver',
-  'Equation Master',
-  'Logic Hero',
-  'Calculation Champion',
-  'Formula Genius',
-  'Math Legend',
-  'Grand Wizard',
+  'Beginner', 'Math Explorer', 'Number Wizard', 'Problem Solver',
+  'Equation Master', 'Logic Hero', 'Calculation Champion', 'Formula Genius',
+  'Math Legend', 'Grand Wizard',
 ];
 
-// ── Display name maps ─────────────────────────────────────────────────────────
-
 const TOPIC_NAMES: Record<string, string> = {
-  addition: 'Addition',
-  subtraction: 'Subtraction',
-  multiplication: 'Multiplication',
-  division: 'Division',
-  fractions: 'Fractions',
-  patterns: 'Patterns',
-  time: 'Time',
-  money: 'Money',
-  measurement: 'Measurement',
-  shapes: 'Shapes',
+  addition: 'Addition', subtraction: 'Subtraction', multiplication: 'Multiplication',
+  division: 'Division', fractions: 'Fractions', patterns: 'Patterns',
+  time: 'Time', money: 'Money', measurement: 'Measurement', shapes: 'Shapes',
 };
 
 const TOPIC_ICONS: Record<string, string> = {
-  addition: '➕',
-  subtraction: '➖',
-  multiplication: '✖️',
-  division: '➗',
-  fractions: '½',
-  patterns: '🔷',
-  time: '⏰',
-  money: '💰',
-  measurement: '📏',
-  shapes: '🔺',
+  addition: '➕', subtraction: '➖', multiplication: '✖️', division: '➗',
+  fractions: '½', patterns: '🔷', time: '⏰', money: '💰', measurement: '📏', shapes: '🔺',
 };
 
 const WORLD_NAMES: Record<string, string> = {
-  space: 'Space Station',
-  fantasy: 'Enchanted Kingdom',
-  dinosaur: 'Dino Valley',
-  ocean: 'Deep Ocean',
-  jungle: 'Jungle Explorer',
-  pirates: 'Pirate Seas',
-  robots: 'Robot City',
-  candy: 'Candy Land',
-  'magic-school': 'Magic School',
+  space: 'Space Station', fantasy: 'Enchanted Kingdom', dinosaur: 'Dino Valley',
+  ocean: 'Deep Ocean', jungle: 'Jungle Explorer', pirates: 'Pirate Seas',
+  robots: 'Robot City', candy: 'Candy Land', 'magic-school': 'Magic School',
   'ancient-temple': 'Ancient Temple',
 };
 
 const BADGE_EMOJIS: Record<string, string> = {
-  'first-adventure': '🌟',
-  'perfect-score': '💯',
-  '5-day-streak': '🔥',
-  'speed-master': '⚡',
-  'topic-master': '🎓',
-  explorer: '🗺️',
+  'first-adventure': '🌟', 'perfect-score': '💯', '5-day-streak': '🔥',
+  'speed-master': '⚡', 'topic-master': '🎓', explorer: '🗺️',
 };
+
+const BADGE_COLORS: Record<string, string> = {
+  'first-adventure': 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+  'perfect-score': 'linear-gradient(135deg, #34d399, #10b981)',
+  '5-day-streak': 'linear-gradient(135deg, #f97316, #ef4444)',
+  'speed-master': 'linear-gradient(135deg, #60a5fa, #3b82f6)',
+  'topic-master': 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
+  explorer: 'linear-gradient(135deg, #fb923c, #f59e0b)',
+};
+
+const PLACEHOLDER_BADGES = [
+  { type: 'first-adventure', label: 'First Adventure', hint: 'Complete your first adventure' },
+  { type: 'perfect-score', label: 'Perfect Score', hint: 'Get all questions right in an adventure' },
+  { type: '5-day-streak', label: '5-Day Streak', hint: 'Play 5 days in a row' },
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -85,18 +67,12 @@ function getLevelName(level: number): string {
   return LEVEL_NAMES[Math.min(level - 1, LEVEL_NAMES.length - 1)] ?? 'Grand Wizard';
 }
 
-function getXPProgress(
-  totalXP: number,
-  currentLevel: number
-): { xpInLevel: number; xpNeeded: number } {
+function getXPProgress(totalXP: number, currentLevel: number): { xpInLevel: number; xpNeeded: number } {
   const levelIndex = currentLevel - 1;
   const currentThreshold = LEVEL_THRESHOLDS[levelIndex] ?? 0;
   const nextThreshold = LEVEL_THRESHOLDS[levelIndex + 1] ?? null;
   if (nextThreshold === null) return { xpInLevel: totalXP - currentThreshold, xpNeeded: 0 };
-  return {
-    xpInLevel: totalXP - currentThreshold,
-    xpNeeded: nextThreshold - currentThreshold,
-  };
+  return { xpInLevel: totalXP - currentThreshold, xpNeeded: nextThreshold - currentThreshold };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -106,21 +82,18 @@ export default function ChildDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const recentCompletion =
-    (location.state as { completionData?: CompleteAdventureResponse } | null)?.completionData ??
-    null;
+    (location.state as { completionData?: CompleteAdventureResponse } | null)?.completionData ?? null;
 
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [isLoadingAdventures, setIsLoadingAdventures] = useState(true);
   const [barPercent, setBarPercent] = useState(0);
   const [showReward, setShowReward] = useState(!!recentCompletion);
 
-  // Compute progress before hooks so effects can reference it (null-safe for early render)
   const totalXP = activeChild?.totalXP ?? 0;
   const currentLevel = activeChild?.currentLevel ?? 1;
   const isMaxLevel = currentLevel >= LEVEL_THRESHOLDS.length;
   const { xpInLevel, xpNeeded } = getXPProgress(totalXP, currentLevel);
-  const progressPercent =
-    isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
+  const progressPercent = isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
 
   useEffect(() => {
     if (!activeChild) return;
@@ -131,13 +104,11 @@ export default function ChildDashboard() {
       .finally(() => setIsLoadingAdventures(false));
   }, [activeChild]);
 
-  // Animate the XP bar on every mount and whenever the value changes
   useEffect(() => {
     const t = setTimeout(() => setBarPercent(progressPercent), 150);
     return () => clearTimeout(t);
   }, [progressPercent]);
 
-  // Auto-hide the reward banner after 5 s
   useEffect(() => {
     if (!showReward) return;
     const t = setTimeout(() => setShowReward(false), 5000);
@@ -147,7 +118,7 @@ export default function ChildDashboard() {
   if (!activeChild) return null;
 
   const inProgressAdventure = adventures.find((a) => a.status === 'in-progress') ?? null;
-  const hasInProgress = inProgressAdventure !== null;
+  const completedCount = adventures.filter((a) => a.status === 'completed').length;
 
   const handleSwitchProfile = () => {
     setActiveChild(null);
@@ -155,212 +126,312 @@ export default function ChildDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-parchment flex flex-col items-center p-6">
-      {/* Header */}
-      <div className="w-full max-w-2xl flex items-center justify-between mb-8">
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="text-gold-magic" size={24} />
-          <span className="text-xl font-bold text-purple-wizzy">MathMagic</span>
-        </Link>
-        <button
-          onClick={handleSwitchProfile}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"
-        >
-          <LogOut size={15} />
-          Switch Profile
-        </button>
-      </div>
+    <div
+      className="relative min-h-screen flex flex-col items-center p-5 overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #f5f3ff 0%, #fffbeb 50%, #ede9fe 100%)' }}
+    >
+      <MagicBackground symbols="mixed" count={20} opacity={0.08} />
 
-      <div className="w-full max-w-2xl flex flex-col gap-6">
+      <div className="relative z-10 w-full max-w-2xl flex flex-col gap-5">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Sparkles className="text-gold-magic" size={22} />
+            <span className="text-lg font-bold text-purple-wizzy">MathMagic</span>
+          </Link>
+          <button
+            onClick={handleSwitchProfile}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-purple-wizzy transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-wizzy/10"
+          >
+            <LogOut size={14} />
+            Switch Profile
+          </button>
+        </div>
+
         {/* Adventure completion reward banner */}
         {showReward && recentCompletion && (
           <div
-            className="bg-white rounded-2xl shadow-sm px-5 py-4 flex flex-col gap-2"
-            style={{ animation: 'slide-up-fade 0.4s ease-out forwards' }}
+            className="rounded-2xl shadow-md px-5 py-4 flex flex-col gap-2"
+            style={{
+              animation: 'slide-up-fade 0.4s ease-out forwards',
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(245,158,11,0.08))',
+              border: '1px solid rgba(139,92,246,0.2)',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                Adventure Reward
+              <span className="text-sm font-semibold text-purple-wizzy uppercase tracking-wide flex items-center gap-1.5">
+                🎉 Adventure Reward
               </span>
-              <button
-                onClick={() => setShowReward(false)}
-                className="text-gray-300 hover:text-gray-400 text-lg leading-none"
-                aria-label="Dismiss"
-              >
-                ×
-              </button>
+              <button onClick={() => setShowReward(false)} className="text-gray-300 hover:text-gray-400 text-lg leading-none" aria-label="Dismiss">×</button>
             </div>
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 bg-purple-wizzy/10 rounded-xl px-4 py-2">
-                <Zap size={16} className="text-gold-magic fill-gold-magic" />
+                <Zap size={15} className="text-gold-magic fill-gold-magic" />
                 <span className="font-bold text-purple-wizzy">+{recentCompletion.xpEarned} XP</span>
               </div>
               <div className="flex items-center gap-1.5 bg-yellow-50 rounded-xl px-4 py-2">
-                <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                <span className="font-bold text-yellow-600">
-                  {recentCompletion.starsEarned}{' '}
-                  {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}
-                </span>
+                <Star size={15} className="text-yellow-400 fill-yellow-400" />
+                <span className="font-bold text-yellow-600">{recentCompletion.starsEarned} {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}</span>
               </div>
               {recentCompletion.newLevel && (
                 <div
                   className="flex items-center gap-1.5 bg-gold-magic/10 border border-gold-magic/30 rounded-xl px-4 py-2"
                   style={{ animation: 'glow-pulse 2s ease-in-out infinite' }}
                 >
-                  <Trophy size={16} className="text-gold-magic" />
-                  <span className="font-bold text-amber-700">
-                    Level {recentCompletion.newLevel}!
-                  </span>
+                  <Trophy size={15} className="text-gold-magic" />
+                  <span className="font-bold text-amber-700">Level {recentCompletion.newLevel}!</span>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Child Identity Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
-          {/* Avatar */}
-          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-wizzy/20 flex-shrink-0">
-            {activeChild.avatars[activeChild.activeAvatarIndex]?.imageData ? (
-              <img
-                src={activeChild.avatars[activeChild.activeAvatarIndex].imageData}
-                alt={activeChild.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <img
-                src={defaultAvatar}
-                alt={activeChild.name}
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
+        {/* ── Hero Identity Card ── */}
+        <div
+          className="rounded-3xl overflow-hidden shadow-xl"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 60%, #4c1d95 100%)' }}
+        >
+          {/* Decorative dots pattern */}
+          <div className="relative px-6 pt-6 pb-5">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 opacity-10 select-none pointer-events-none text-7xl">✦</div>
+            <div className="absolute bottom-2 left-4 opacity-10 select-none pointer-events-none text-4xl">★</div>
 
-          {/* Info */}
-          <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-2xl font-bold text-gray-800">{activeChild.name}</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Grade {activeChild.gradeLevel}</p>
-
-            <div className="flex items-center justify-center sm:justify-start gap-1 mt-2">
-              <Trophy size={14} className="text-purple-wizzy" />
-              <span className="text-sm font-semibold text-purple-wizzy">
-                Level {activeChild.currentLevel} — {getLevelName(activeChild.currentLevel)}
-              </span>
-            </div>
-
-            {/* XP progress bar */}
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-                <span className="flex items-center gap-0.5">
-                  <Zap size={11} className="text-gold-magic" />
-                  {activeChild.totalXP} XP
-                </span>
-                {!isMaxLevel && <span>{xpNeeded - xpInLevel} XP to next level</span>}
-              </div>
-              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="flex items-center gap-5">
+              {/* Avatar with glow ring */}
+              <div className="relative flex-shrink-0">
                 <div
-                  className="h-full bg-purple-wizzy rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${barPercent}%` }}
-                />
+                  className="w-24 h-24 rounded-full overflow-hidden"
+                  style={{ boxShadow: '0 0 0 3px rgba(255,255,255,0.3), 0 0 0 6px rgba(255,255,255,0.1), 0 0 24px rgba(139,92,246,0.6)' }}
+                >
+                  {activeChild.avatars[activeChild.activeAvatarIndex]?.imageData ? (
+                    <img src={activeChild.avatars[activeChild.activeAvatarIndex].imageData} alt={activeChild.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={defaultAvatar} alt={activeChild.name} className="w-full h-full object-cover" />
+                  )}
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl font-black text-white truncate">{activeChild.name}</h1>
+                <p className="text-white/60 text-xs mt-0.5">Grade {activeChild.gradeLevel}</p>
+
+                {/* Level badge */}
+                <div
+                  className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-bold"
+                  style={{ background: 'rgba(245,158,11,0.25)', border: '1px solid rgba(245,158,11,0.4)', color: '#fbbf24' }}
+                >
+                  <Trophy size={11} />
+                  Level {activeChild.currentLevel} — {getLevelName(activeChild.currentLevel)}
+                </div>
               </div>
             </div>
 
-            {/* Stars */}
-            <div className="flex items-center justify-center sm:justify-start gap-1 mt-3 text-sm text-gray-500">
-              <Star size={14} className="text-yellow-400 fill-yellow-400" />
+            {/* XP Bar */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-xs text-white/60 mb-2">
+                <span className="flex items-center gap-1">
+                  <Zap size={11} className="text-gold-magic" />
+                  {activeChild.totalXP.toLocaleString()} XP
+                </span>
+                {!isMaxLevel && <span>{(xpNeeded - xpInLevel).toLocaleString()} XP to next level</span>}
+                {isMaxLevel && <span className="text-gold-magic font-semibold">MAX LEVEL 🎓</span>}
+              </div>
+              <div className="w-full h-3 rounded-full overflow-visible relative" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                <div
+                  className="h-full rounded-full transition-all duration-1000 ease-out relative"
+                  style={{
+                    width: `${barPercent}%`,
+                    background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                    boxShadow: '0 0 10px rgba(245,158,11,0.7)',
+                  }}
+                />
+                {/* Milestone dots */}
+                {[25, 50, 75].map((pct) => (
+                  <div
+                    key={pct}
+                    className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                    style={{
+                      left: `${pct}%`,
+                      background: barPercent >= pct ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                      boxShadow: barPercent >= pct ? '0 0 4px rgba(255,255,255,0.8)' : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Stars count */}
+            <div className="flex items-center gap-1.5 mt-3 text-xs text-white/70">
+              <Star size={13} className="text-yellow-300 fill-yellow-300" />
               <span>{activeChild.totalStars} stars earned</span>
             </div>
           </div>
         </div>
 
-        {/* Badges */}
-        {activeChild.badges.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Badges
-            </h2>
-            <div className="flex flex-wrap gap-3">
-              {activeChild.badges.map((badge) => (
+        {/* ── Stats Strip ── */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            {
+              label: 'Total XP',
+              value: activeChild.totalXP.toLocaleString(),
+              icon: '⚡',
+              gradient: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(109,40,217,0.08))',
+              border: 'rgba(139,92,246,0.2)',
+              color: '#8b5cf6',
+            },
+            {
+              label: 'Stars',
+              value: activeChild.totalStars.toString(),
+              icon: '⭐',
+              gradient: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,191,36,0.08))',
+              border: 'rgba(245,158,11,0.25)',
+              color: '#d97706',
+            },
+            {
+              label: 'Adventures',
+              value: isLoadingAdventures ? '…' : completedCount.toString(),
+              icon: '📖',
+              gradient: 'linear-gradient(135deg, rgba(52,211,153,0.15), rgba(16,185,129,0.08))',
+              border: 'rgba(52,211,153,0.25)',
+              color: '#059669',
+            },
+          ].map(({ label, value, icon, gradient, border, color }) => (
+            <div
+              key={label}
+              className="flex flex-col items-center justify-center py-4 px-2 rounded-2xl text-center"
+              style={{ background: gradient, border: `1px solid ${border}` }}
+            >
+              <span className="text-2xl mb-1">{icon}</span>
+              <span className="text-xl font-black animate-stat" style={{ color }}>{value}</span>
+              <span className="text-xs text-gray-500 font-medium mt-0.5">{label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Badges ── */}
+        <div
+          className="rounded-2xl p-5"
+          style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.1)', backdropFilter: 'blur(8px)' }}
+        >
+          <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span>🏅</span> Badges
+          </h2>
+
+          {activeChild.badges.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3">
+              {activeChild.badges.map((badge, i) => (
                 <div
                   key={badge.badgeType}
-                  className="flex items-center gap-2 bg-purple-wizzy/5 border border-purple-wizzy/10 rounded-xl px-3 py-2 text-sm"
+                  className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center"
+                  style={{
+                    background: BADGE_COLORS[badge.badgeType] ?? 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                    animation: `badge-pop 0.55s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms both`,
+                  }}
                   title={badge.description}
                 >
-                  <span className="text-lg">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
-                  <span className="font-medium text-gray-700">{badge.badgeName}</span>
+                  <span className="text-3xl mb-2">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
+                  <span className="text-xs font-bold text-white text-center leading-tight">{badge.badgeName}</span>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Resume card (conditional) */}
-        {isLoadingAdventures && (
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Continue Your Adventure
-            </h2>
-            <div className="flex flex-col gap-3">
-              {[0, 1].map((i) => (
-                <SkeletonCard key={i} kind="row" />
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {PLACEHOLDER_BADGES.map(({ type, label, hint }) => (
+                <div
+                  key={type}
+                  className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center border-2 border-dashed border-gray-200"
+                  title={hint}
+                >
+                  <span className="text-3xl mb-2 opacity-30">{BADGE_EMOJIS[type] ?? '🏅'}</span>
+                  <span className="text-xs text-gray-300 font-medium text-center leading-tight">{label}</span>
+                </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Resume card ── */}
+        {isLoadingAdventures && (
+          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.1)' }}>
+            <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">Continue Your Adventure</h2>
+            <div className="flex flex-col gap-3">
+              {[0, 1].map((i) => <SkeletonCard key={i} kind="row" />)}
             </div>
           </div>
         )}
-        {!isLoadingAdventures && hasInProgress && (
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Continue Your Adventure
+        {!isLoadingAdventures && inProgressAdventure && (
+          <div
+            className="rounded-2xl p-5"
+            style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.15)', backdropFilter: 'blur(8px)' }}
+          >
+            <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <span>🗺️</span> Continue Your Adventure
             </h2>
             <button
-              onClick={() => navigate(`/child/story/${inProgressAdventure!._id}`)}
-              className="w-full flex items-center gap-4 bg-purple-wizzy/5 hover:bg-purple-wizzy/10 border-2 border-purple-wizzy/20 hover:border-purple-wizzy/40 rounded-xl p-4 text-left transition-all group"
+              onClick={() => navigate(`/child/story/${inProgressAdventure._id}`)}
+              className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all group hover:scale-[1.01]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.07), rgba(109,40,217,0.04))',
+                border: '2px solid rgba(139,92,246,0.2)',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.45)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.2)'; }}
             >
-              <span className="text-3xl flex-shrink-0">
-                {WORLD_EMOJIS[inProgressAdventure!.storyWorld] ?? '✨'}
-              </span>
+              <span className="text-4xl flex-shrink-0">{WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}</span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                  {WORLD_NAMES[inProgressAdventure!.storyWorld] ?? inProgressAdventure!.storyWorld}
+                <p className="font-bold text-gray-800 group-hover:text-purple-wizzy transition-colors">
+                  {WORLD_NAMES[inProgressAdventure.storyWorld] ?? inProgressAdventure.storyWorld}
                 </p>
                 <p className="text-sm text-gray-400 mt-0.5">
-                  {TOPIC_ICONS[inProgressAdventure!.mathTopic] ?? '📚'}{' '}
-                  {TOPIC_NAMES[inProgressAdventure!.mathTopic] ?? inProgressAdventure!.mathTopic}
-                  {' · '}
-                  Step {inProgressAdventure!.currentStepIndex + 1} of{' '}
-                  {inProgressAdventure!.totalSteps}
+                  {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'} {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
+                  {' · '}Step {inProgressAdventure.currentStepIndex + 1} of {inProgressAdventure.totalSteps}
                 </p>
-                {/* Progress bar */}
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mt-2">
+                <div className="w-full h-1.5 rounded-full overflow-hidden mt-2" style={{ background: 'rgba(139,92,246,0.1)' }}>
                   <div
-                    className="h-full bg-purple-wizzy rounded-full"
+                    className="h-full rounded-full"
                     style={{
-                      width: `${Math.round(((inProgressAdventure!.currentStepIndex + 1) / inProgressAdventure!.totalSteps) * 100)}%`,
+                      width: `${Math.round(((inProgressAdventure.currentStepIndex + 1) / inProgressAdventure.totalSteps) * 100)}%`,
+                      background: 'linear-gradient(90deg, #8b5cf6, #f59e0b)',
                     }}
                   />
                 </div>
               </div>
-              <ChevronRight
-                size={20}
-                className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0"
-              />
+              <ChevronRight size={20} className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0" />
             </button>
           </div>
         )}
 
-        {/* Actions */}
-        <div className="bg-white rounded-2xl shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Ready to Play?
-          </h2>
+        {/* ── Start New Adventure CTA ── */}
+        <div
+          className="relative rounded-3xl p-6 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}
+        >
+          {/* Decorative sparkles */}
+          {['top-3 right-6', 'top-8 right-16', 'bottom-4 right-10', 'bottom-6 right-24'].map((pos, i) => (
+            <span
+              key={i}
+              className={`absolute text-white/25 select-none pointer-events-none text-${['lg', 'sm', 'xl', 'base'][i]}`}
+              style={{ top: pos.includes('top') ? pos.split(' ')[0].replace('top-', '') + 'px' : undefined, bottom: pos.includes('bottom') ? pos.split(' ')[0].replace('bottom-', '') + 'px' : undefined, right: pos.split(' ')[1].replace('right-', '') + 'px' }}
+            >
+              {['✦', '★', '✨', '✧'][i]}
+            </span>
+          ))}
+          <p className="text-white/70 text-sm mb-1">Ready for a new quest?</p>
+          <h3 className="text-white text-xl font-black mb-4">Start New Adventure</h3>
           <button
             onClick={() => navigate('/child/adventure')}
-            className="w-full flex items-center justify-center gap-2 bg-purple-wizzy text-white rounded-xl px-6 py-3 font-bold hover:bg-purple-700 transition-all"
+            className="flex items-center gap-2 text-purple-wizzy font-bold rounded-xl px-6 py-3 transition-all hover:scale-105 hover:shadow-lg active:scale-95"
+            style={{ background: 'rgba(255,255,255,0.95)' }}
           >
-            <BookOpen size={18} />
-            Start New Adventure
+            <Wand2 size={18} />
+            Choose Your Quest
+            <BookOpen size={16} />
           </button>
         </div>
+
       </div>
     </div>
   );
