@@ -18,32 +18,64 @@ import {
 const LEVEL_THRESHOLDS: readonly number[] = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
 
 const LEVEL_NAMES: readonly string[] = [
-  'Beginner', 'Math Explorer', 'Number Wizard', 'Problem Solver',
-  'Equation Master', 'Logic Hero', 'Calculation Champion', 'Formula Genius',
-  'Math Legend', 'Grand Wizard',
+  'Beginner',
+  'Math Explorer',
+  'Number Wizard',
+  'Problem Solver',
+  'Equation Master',
+  'Logic Hero',
+  'Calculation Champion',
+  'Formula Genius',
+  'Math Legend',
+  'Grand Wizard',
 ];
 
 const TOPIC_NAMES: Record<string, string> = {
-  addition: 'Addition', subtraction: 'Subtraction', multiplication: 'Multiplication',
-  division: 'Division', fractions: 'Fractions', patterns: 'Patterns',
-  time: 'Time', money: 'Money', measurement: 'Measurement', shapes: 'Shapes',
+  addition: 'Addition',
+  subtraction: 'Subtraction',
+  multiplication: 'Multiplication',
+  division: 'Division',
+  fractions: 'Fractions',
+  patterns: 'Patterns',
+  time: 'Time',
+  money: 'Money',
+  measurement: 'Measurement',
+  shapes: 'Shapes',
 };
 
 const TOPIC_ICONS: Record<string, string> = {
-  addition: '➕', subtraction: '➖', multiplication: '✖️', division: '➗',
-  fractions: '½', patterns: '🔷', time: '⏰', money: '💰', measurement: '📏', shapes: '🔺',
+  addition: '➕',
+  subtraction: '➖',
+  multiplication: '✖️',
+  division: '➗',
+  fractions: '½',
+  patterns: '🔷',
+  time: '⏰',
+  money: '💰',
+  measurement: '📏',
+  shapes: '🔺',
 };
 
 const WORLD_NAMES: Record<string, string> = {
-  space: 'Space Station', fantasy: 'Enchanted Kingdom', dinosaur: 'Dino Valley',
-  ocean: 'Deep Ocean', jungle: 'Jungle Explorer', pirates: 'Pirate Seas',
-  robots: 'Robot City', candy: 'Candy Land', 'magic-school': 'Magic School',
+  space: 'Space Station',
+  fantasy: 'Enchanted Kingdom',
+  dinosaur: 'Dino Valley',
+  ocean: 'Deep Ocean',
+  jungle: 'Jungle Explorer',
+  pirates: 'Pirate Seas',
+  robots: 'Robot City',
+  candy: 'Candy Land',
+  'magic-school': 'Magic School',
   'ancient-temple': 'Ancient Temple',
 };
 
 const BADGE_EMOJIS: Record<string, string> = {
-  'first-adventure': '🌟', 'perfect-score': '💯', '5-day-streak': '🔥',
-  'speed-master': '⚡', 'topic-master': '🎓', explorer: '🗺️',
+  'first-adventure': '🌟',
+  'perfect-score': '💯',
+  '5-day-streak': '🔥',
+  'speed-master': '⚡',
+  'topic-master': '🎓',
+  explorer: '🗺️',
 };
 
 const BADGE_COLORS: Record<string, string> = {
@@ -55,9 +87,26 @@ const BADGE_COLORS: Record<string, string> = {
   explorer: 'linear-gradient(135deg, #fb923c, #f59e0b)',
 };
 
+const WORLD_GRADIENTS: Record<string, string> = {
+  space: 'linear-gradient(135deg, #1e1b4b, #4c1d95)',
+  fantasy: 'linear-gradient(135deg, #6d28d9, #be185d)',
+  dinosaur: 'linear-gradient(135deg, #065f46, #047857)',
+  ocean: 'linear-gradient(135deg, #1e40af, #0891b2)',
+  jungle: 'linear-gradient(135deg, #14532d, #15803d)',
+  pirates: 'linear-gradient(135deg, #92400e, #b45309)',
+  robots: 'linear-gradient(135deg, #1e3a5f, #374151)',
+  candy: 'linear-gradient(135deg, #be185d, #e11d48)',
+  'magic-school': 'linear-gradient(135deg, #5b21b6, #1d4ed8)',
+  'ancient-temple': 'linear-gradient(135deg, #78350f, #d97706)',
+};
+
 const PLACEHOLDER_BADGES = [
   { type: 'first-adventure', label: 'First Adventure', hint: 'Complete your first adventure' },
-  { type: 'perfect-score', label: 'Perfect Score', hint: 'Get all questions right in an adventure' },
+  {
+    type: 'perfect-score',
+    label: 'Perfect Score',
+    hint: 'Get all questions right in an adventure',
+  },
   { type: '5-day-streak', label: '5-Day Streak', hint: 'Play 5 days in a row' },
 ];
 
@@ -67,7 +116,10 @@ function getLevelName(level: number): string {
   return LEVEL_NAMES[Math.min(level - 1, LEVEL_NAMES.length - 1)] ?? 'Grand Wizard';
 }
 
-function getXPProgress(totalXP: number, currentLevel: number): { xpInLevel: number; xpNeeded: number } {
+function getXPProgress(
+  totalXP: number,
+  currentLevel: number
+): { xpInLevel: number; xpNeeded: number } {
   const levelIndex = currentLevel - 1;
   const currentThreshold = LEVEL_THRESHOLDS[levelIndex] ?? 0;
   const nextThreshold = LEVEL_THRESHOLDS[levelIndex + 1] ?? null;
@@ -82,7 +134,8 @@ export default function ChildDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const recentCompletion =
-    (location.state as { completionData?: CompleteAdventureResponse } | null)?.completionData ?? null;
+    (location.state as { completionData?: CompleteAdventureResponse } | null)?.completionData ??
+    null;
 
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [isLoadingAdventures, setIsLoadingAdventures] = useState(true);
@@ -93,7 +146,8 @@ export default function ChildDashboard() {
   const currentLevel = activeChild?.currentLevel ?? 1;
   const isMaxLevel = currentLevel >= LEVEL_THRESHOLDS.length;
   const { xpInLevel, xpNeeded } = getXPProgress(totalXP, currentLevel);
-  const progressPercent = isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
+  const progressPercent =
+    isMaxLevel || xpNeeded === 0 ? 100 : Math.round((xpInLevel / xpNeeded) * 100);
 
   useEffect(() => {
     if (!activeChild) return;
@@ -118,7 +172,8 @@ export default function ChildDashboard() {
   if (!activeChild) return null;
 
   const inProgressAdventure = adventures.find((a) => a.status === 'in-progress') ?? null;
-  const completedCount = adventures.filter((a) => a.status === 'completed').length;
+  const completedAdventures = adventures.filter((a) => a.status === 'completed');
+  const completedCount = completedAdventures.length;
 
   const handleSwitchProfile = () => {
     setActiveChild(null);
@@ -133,7 +188,6 @@ export default function ChildDashboard() {
       <MagicBackground symbols="mixed" count={20} opacity={0.08} />
 
       <div className="relative z-10 w-full max-w-2xl flex flex-col gap-5">
-
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -163,7 +217,13 @@ export default function ChildDashboard() {
               <span className="text-sm font-semibold text-purple-wizzy uppercase tracking-wide flex items-center gap-1.5">
                 🎉 Adventure Reward
               </span>
-              <button onClick={() => setShowReward(false)} className="text-gray-300 hover:text-gray-400 text-lg leading-none" aria-label="Dismiss">×</button>
+              <button
+                onClick={() => setShowReward(false)}
+                className="text-gray-300 hover:text-gray-400 text-lg leading-none"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 bg-purple-wizzy/10 rounded-xl px-4 py-2">
@@ -172,7 +232,10 @@ export default function ChildDashboard() {
               </div>
               <div className="flex items-center gap-1.5 bg-yellow-50 rounded-xl px-4 py-2">
                 <Star size={15} className="text-yellow-400 fill-yellow-400" />
-                <span className="font-bold text-yellow-600">{recentCompletion.starsEarned} {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}</span>
+                <span className="font-bold text-yellow-600">
+                  {recentCompletion.starsEarned}{' '}
+                  {recentCompletion.starsEarned === 1 ? 'star' : 'stars'}
+                </span>
               </div>
               {recentCompletion.newLevel && (
                 <div
@@ -180,7 +243,9 @@ export default function ChildDashboard() {
                   style={{ animation: 'glow-pulse 2s ease-in-out infinite' }}
                 >
                   <Trophy size={15} className="text-gold-magic" />
-                  <span className="font-bold text-amber-700">Level {recentCompletion.newLevel}!</span>
+                  <span className="font-bold text-amber-700">
+                    Level {recentCompletion.newLevel}!
+                  </span>
                 </div>
               )}
             </div>
@@ -195,20 +260,35 @@ export default function ChildDashboard() {
           {/* Decorative dots pattern */}
           <div className="relative px-6 pt-6 pb-5">
             {/* Background decoration */}
-            <div className="absolute top-0 right-0 opacity-10 select-none pointer-events-none text-7xl">✦</div>
-            <div className="absolute bottom-2 left-4 opacity-10 select-none pointer-events-none text-4xl">★</div>
+            <div className="absolute top-0 right-0 opacity-10 select-none pointer-events-none text-7xl">
+              ✦
+            </div>
+            <div className="absolute bottom-2 left-4 opacity-10 select-none pointer-events-none text-4xl">
+              ★
+            </div>
 
             <div className="flex items-center gap-5">
               {/* Avatar with glow ring */}
               <div className="relative flex-shrink-0">
                 <div
                   className="w-24 h-24 rounded-full overflow-hidden"
-                  style={{ boxShadow: '0 0 0 3px rgba(255,255,255,0.3), 0 0 0 6px rgba(255,255,255,0.1), 0 0 24px rgba(139,92,246,0.6)' }}
+                  style={{
+                    boxShadow:
+                      '0 0 0 3px rgba(255,255,255,0.3), 0 0 0 6px rgba(255,255,255,0.1), 0 0 24px rgba(139,92,246,0.6)',
+                  }}
                 >
                   {activeChild.avatars[activeChild.activeAvatarIndex]?.imageData ? (
-                    <img src={activeChild.avatars[activeChild.activeAvatarIndex].imageData} alt={activeChild.name} className="w-full h-full object-cover" />
+                    <img
+                      src={activeChild.avatars[activeChild.activeAvatarIndex].imageData}
+                      alt={activeChild.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <img src={defaultAvatar} alt={activeChild.name} className="w-full h-full object-cover" />
+                    <img
+                      src={defaultAvatar}
+                      alt={activeChild.name}
+                      className="w-full h-full object-cover"
+                    />
                   )}
                 </div>
               </div>
@@ -221,7 +301,11 @@ export default function ChildDashboard() {
                 {/* Level badge */}
                 <div
                   className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-bold"
-                  style={{ background: 'rgba(245,158,11,0.25)', border: '1px solid rgba(245,158,11,0.4)', color: '#fbbf24' }}
+                  style={{
+                    background: 'rgba(245,158,11,0.25)',
+                    border: '1px solid rgba(245,158,11,0.4)',
+                    color: '#fbbf24',
+                  }}
                 >
                   <Trophy size={11} />
                   Level {activeChild.currentLevel} — {getLevelName(activeChild.currentLevel)}
@@ -236,10 +320,15 @@ export default function ChildDashboard() {
                   <Zap size={11} className="text-gold-magic" />
                   {activeChild.totalXP.toLocaleString()} XP
                 </span>
-                {!isMaxLevel && <span>{(xpNeeded - xpInLevel).toLocaleString()} XP to next level</span>}
+                {!isMaxLevel && (
+                  <span>{(xpNeeded - xpInLevel).toLocaleString()} XP to next level</span>
+                )}
                 {isMaxLevel && <span className="text-gold-magic font-semibold">MAX LEVEL 🎓</span>}
               </div>
-              <div className="w-full h-3 rounded-full overflow-visible relative" style={{ background: 'rgba(255,255,255,0.15)' }}>
+              <div
+                className="w-full h-3 rounded-full overflow-visible relative"
+                style={{ background: 'rgba(255,255,255,0.15)' }}
+              >
                 <div
                   className="h-full rounded-full transition-all duration-1000 ease-out relative"
                   style={{
@@ -255,7 +344,8 @@ export default function ChildDashboard() {
                     className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
                     style={{
                       left: `${pct}%`,
-                      background: barPercent >= pct ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                      background:
+                        barPercent >= pct ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
                       boxShadow: barPercent >= pct ? '0 0 4px rgba(255,255,255,0.8)' : 'none',
                     }}
                   />
@@ -305,7 +395,9 @@ export default function ChildDashboard() {
               style={{ background: gradient, border: `1px solid ${border}` }}
             >
               <span className="text-2xl mb-1">{icon}</span>
-              <span className="text-xl font-black animate-stat" style={{ color }}>{value}</span>
+              <span className="text-xl font-black animate-stat" style={{ color }}>
+                {value}
+              </span>
               <span className="text-xs text-gray-500 font-medium mt-0.5">{label}</span>
             </div>
           ))}
@@ -314,7 +406,11 @@ export default function ChildDashboard() {
         {/* ── Badges ── */}
         <div
           className="rounded-2xl p-5"
-          style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.1)', backdropFilter: 'blur(8px)' }}
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            border: '1px solid rgba(139,92,246,0.1)',
+            backdropFilter: 'blur(8px)',
+          }}
         >
           <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
             <span>🏅</span> Badges
@@ -327,13 +423,16 @@ export default function ChildDashboard() {
                   key={badge.badgeType}
                   className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center"
                   style={{
-                    background: BADGE_COLORS[badge.badgeType] ?? 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                    background:
+                      BADGE_COLORS[badge.badgeType] ?? 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
                     animation: `badge-pop 0.55s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms both`,
                   }}
                   title={badge.description}
                 >
                   <span className="text-3xl mb-2">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
-                  <span className="text-xs font-bold text-white text-center leading-tight">{badge.badgeName}</span>
+                  <span className="text-xs font-bold text-white text-center leading-tight">
+                    {badge.badgeName}
+                  </span>
                 </div>
               ))}
             </div>
@@ -346,7 +445,9 @@ export default function ChildDashboard() {
                   title={hint}
                 >
                   <span className="text-3xl mb-2 opacity-30">{BADGE_EMOJIS[type] ?? '🏅'}</span>
-                  <span className="text-xs text-gray-300 font-medium text-center leading-tight">{label}</span>
+                  <span className="text-xs text-gray-300 font-medium text-center leading-tight">
+                    {label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -355,17 +456,31 @@ export default function ChildDashboard() {
 
         {/* ── Resume card ── */}
         {isLoadingAdventures && (
-          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.1)' }}>
-            <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">Continue Your Adventure</h2>
+          <div
+            className="rounded-2xl p-5"
+            style={{
+              background: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(139,92,246,0.1)',
+            }}
+          >
+            <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">
+              Continue Your Adventure
+            </h2>
             <div className="flex flex-col gap-3">
-              {[0, 1].map((i) => <SkeletonCard key={i} kind="row" />)}
+              {[0, 1].map((i) => (
+                <SkeletonCard key={i} kind="row" />
+              ))}
             </div>
           </div>
         )}
         {!isLoadingAdventures && inProgressAdventure && (
           <div
             className="rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(139,92,246,0.15)', backdropFilter: 'blur(8px)' }}
+            style={{
+              background: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(139,92,246,0.15)',
+              backdropFilter: 'blur(8px)',
+            }}
           >
             <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <span>🗺️</span> Continue Your Adventure
@@ -377,19 +492,30 @@ export default function ChildDashboard() {
                 background: 'linear-gradient(135deg, rgba(139,92,246,0.07), rgba(109,40,217,0.04))',
                 border: '2px solid rgba(139,92,246,0.2)',
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.45)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.2)'; }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.45)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.2)';
+              }}
             >
-              <span className="text-4xl flex-shrink-0">{WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}</span>
+              <span className="text-4xl flex-shrink-0">
+                {WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}
+              </span>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-gray-800 group-hover:text-purple-wizzy transition-colors">
                   {WORLD_NAMES[inProgressAdventure.storyWorld] ?? inProgressAdventure.storyWorld}
                 </p>
                 <p className="text-sm text-gray-400 mt-0.5">
-                  {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'} {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
-                  {' · '}Step {inProgressAdventure.currentStepIndex + 1} of {inProgressAdventure.totalSteps}
+                  {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'}{' '}
+                  {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
+                  {' · '}Step {inProgressAdventure.currentStepIndex + 1} of{' '}
+                  {inProgressAdventure.totalSteps}
                 </p>
-                <div className="w-full h-1.5 rounded-full overflow-hidden mt-2" style={{ background: 'rgba(139,92,246,0.1)' }}>
+                <div
+                  className="w-full h-1.5 rounded-full overflow-hidden mt-2"
+                  style={{ background: 'rgba(139,92,246,0.1)' }}
+                >
                   <div
                     className="h-full rounded-full"
                     style={{
@@ -399,10 +525,99 @@ export default function ChildDashboard() {
                   />
                 </div>
               </div>
-              <ChevronRight size={20} className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0" />
+              <ChevronRight
+                size={20}
+                className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0"
+              />
             </button>
           </div>
         )}
+
+        {/* ── Adventure Library ── */}
+        <div
+          className="rounded-2xl p-5"
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            border: '1px solid rgba(139,92,246,0.1)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span>📚</span> My Adventure Library
+          </h2>
+
+          {isLoadingAdventures ? (
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((i) => (
+                <SkeletonCard key={i} kind="row" />
+              ))}
+            </div>
+          ) : completedAdventures.length === 0 ? (
+            <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+              <div
+                className="shrink-0 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 text-center px-3"
+                style={{ width: 140, height: 160 }}
+              >
+                <span className="text-3xl opacity-40">🔮</span>
+                <p className="text-xs text-gray-300 font-medium leading-tight">
+                  Complete adventures to fill your library!
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <style>{`.adventure-library::-webkit-scrollbar{display:none}`}</style>
+              <div
+                className="adventure-library flex gap-3 overflow-x-auto pb-2"
+                style={{ scrollbarWidth: 'none' }}
+              >
+                {completedAdventures.map((adventure) => (
+                  <div
+                    key={adventure._id}
+                    className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default"
+                    style={{
+                      width: 140,
+                      height: 160,
+                      background:
+                        WORLD_GRADIENTS[adventure.storyWorld] ??
+                        'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.boxShadow =
+                        '0 8px 24px rgba(0,0,0,0.25)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.boxShadow =
+                        '0 4px 12px rgba(0,0,0,0.15)';
+                    }}
+                  >
+                    <span className="text-4xl">{WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}</span>
+                    <p className="font-bold text-sm text-white truncate w-full text-center px-1">
+                      {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+                    </p>
+                    <p className="text-xs text-white/70 truncate w-full text-center">
+                      {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
+                      {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
+                    </p>
+                    <div className="flex items-center gap-0.5 mt-0.5">
+                      {[1, 2, 3].map((star) => (
+                        <Star
+                          key={star}
+                          size={14}
+                          className={
+                            star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/20'
+                          }
+                          fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* ── Start New Adventure CTA ── */}
         <div
@@ -410,15 +625,25 @@ export default function ChildDashboard() {
           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}
         >
           {/* Decorative sparkles */}
-          {['top-3 right-6', 'top-8 right-16', 'bottom-4 right-10', 'bottom-6 right-24'].map((pos, i) => (
-            <span
-              key={i}
-              className={`absolute text-white/25 select-none pointer-events-none text-${['lg', 'sm', 'xl', 'base'][i]}`}
-              style={{ top: pos.includes('top') ? pos.split(' ')[0].replace('top-', '') + 'px' : undefined, bottom: pos.includes('bottom') ? pos.split(' ')[0].replace('bottom-', '') + 'px' : undefined, right: pos.split(' ')[1].replace('right-', '') + 'px' }}
-            >
-              {['✦', '★', '✨', '✧'][i]}
-            </span>
-          ))}
+          {['top-3 right-6', 'top-8 right-16', 'bottom-4 right-10', 'bottom-6 right-24'].map(
+            (pos, i) => (
+              <span
+                key={i}
+                className={`absolute text-white/25 select-none pointer-events-none text-${['lg', 'sm', 'xl', 'base'][i]}`}
+                style={{
+                  top: pos.includes('top')
+                    ? pos.split(' ')[0].replace('top-', '') + 'px'
+                    : undefined,
+                  bottom: pos.includes('bottom')
+                    ? pos.split(' ')[0].replace('bottom-', '') + 'px'
+                    : undefined,
+                  right: pos.split(' ')[1].replace('right-', '') + 'px',
+                }}
+              >
+                {['✦', '★', '✨', '✧'][i]}
+              </span>
+            )
+          )}
           <p className="text-white/70 text-sm mb-1">Ready for a new quest?</p>
           <h3 className="text-white text-xl font-black mb-4">Start New Adventure</h3>
           <button
@@ -431,7 +656,6 @@ export default function ChildDashboard() {
             <BookOpen size={16} />
           </button>
         </div>
-
       </div>
     </div>
   );
