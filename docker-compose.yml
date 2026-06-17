@@ -1,0 +1,34 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - mathmagic-net
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.client
+    environment:
+      - CLIENT_PORT=5173
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    networks:
+      - mathmagic-net
+
+networks:
+  mathmagic-net:
+    driver: bridge
