@@ -41,6 +41,7 @@ export interface LLMStoryStepResponse extends LLMBaseStoryResponse {
 }
 
 export interface LLMMathQuestionResponse extends LLMBaseStoryResponse {
+  adventureNarrative: string;
   problemText: string;
   answerOptions: string[];
   correctAnswer: string;
