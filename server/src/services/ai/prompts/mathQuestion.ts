@@ -11,7 +11,7 @@ ${ctx.previousProblemTexts.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
 `
       : '';
 
-  return `Generate the next story segment that weaves a math challenge NATURALLY into the narrative.
+  return `Generate the next story segment that includes exactly one grade-appropriate math question, woven NATURALLY into the narrative.
 
 CHILD CONTEXT:
 - Child's name: ${ctx.childName}
