@@ -55,8 +55,9 @@ const storyStepSchema: GeminiResponseSchema = {
 
 const mathQuestionSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
-  required: ['wizzyDialogue', 'problemText', 'answerOptions', 'correctAnswer', 'imageDescription'],
+  required: ['adventureNarrative', 'wizzyDialogue', 'problemText', 'answerOptions', 'correctAnswer', 'imageDescription'],
   properties: {
+    adventureNarrative: { type: JSON_SCHEMA.STRING },
     wizzyDialogue: { type: JSON_SCHEMA.STRING },
     problemText: { type: JSON_SCHEMA.STRING },
     answerOptions: {
@@ -149,18 +150,13 @@ function fallbackByMode<K extends StoryMode>(
 
     case 'math_question': {
       const response = {
-        stepType: 'math_question',
-        isLastStep: false,
-        narrative: 'Wizzy draws a quick puzzle in sparkling chalk for a warm-up challenge.',
-        wizzyDialogue: `Nice effort, ${ctx.childName}! Let's do a quick one together.`,
+        adventureNarrative: `As ${ctx.childName} continues the journey, Wizzy points to a glowing puzzle stone on the path. "There are 2 bright stars on one side and 3 on the other — we need to count them all to unlock the way forward!" Wizzy exclaims.`,
+        wizzyDialogue: `You've got this, ${ctx.childName}! Let's solve it together.`,
         problemText: `What is 2 + 3?`,
-        expectedAnswerType: 'number',
-        answerFormatHint: 'Choose the number that equals 2 + 3.',
-        storyChoices: ['Try the puzzle', 'Ask for a hint'],
         answerOptions: ['4', '5', '6', '7'],
         correctAnswer: '5',
         imageDescription:
-          'A cheerful cartoon classroom scene with a child avatar and Wizzy pointing at a simple addition problem.',
+          'A cheerful cartoon scene with a child avatar and Wizzy pointing at a glowing stone with stars on both sides.',
       };
       return response as unknown as LLMModeResponseMap[K];
     }

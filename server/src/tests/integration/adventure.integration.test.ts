@@ -43,6 +43,7 @@ const MOCK_START_RESPONSE = {
 };
 
 const MOCK_MATH_RESPONSE = {
+  adventureNarrative: 'You find a glowing stone with 2 crystals on one side and 2 on the other. To pass, you must count them all!',
   wizzyDialogue: 'Solve this to continue!',
   problemText: '2 + 2 = ?',
   correctAnswer: '4',

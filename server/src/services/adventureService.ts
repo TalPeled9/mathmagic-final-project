@@ -186,7 +186,7 @@ export function mapMathQuestionResponse(
     attemptsCount: 0,
   };
   return {
-    narrative: llmResponse.wizzyDialogue,
+    narrative: llmResponse.adventureNarrative,
     wizzyDialogue: llmResponse.wizzyDialogue,
     choices: [],
     challenge,

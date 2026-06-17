@@ -11,7 +11,7 @@ ${ctx.previousProblemTexts.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
 `
       : '';
 
-  return `Generate the next story segment and include exactly one grade-appropriate math question.
+  return `Generate the next story segment that includes exactly one grade-appropriate math question, woven NATURALLY into the narrative.
 
 CHILD CONTEXT:
 - Child's name: ${ctx.childName}
@@ -24,7 +24,11 @@ CHILD CONTEXT:
 - What this means for this topic: ${ctx.difficultyDescription ?? ''}
 
 STORY RULES:
-- Continue naturally from the selected choice.
+- adventureNarrative MUST continue naturally from the selected choice.
+- The math situation must arise ORGANICALLY from the story — the actual numbers or quantities must appear INSIDE adventureNarrative as story elements (e.g. "5 golden keys on the left shelf and 7 on the right").
+- problemText then asks the child to solve what was just described in the narrative.
+- The math must feel like a natural story moment — NOT a school quiz interruption.
+- Do NOT re-introduce the world or restart the story; build directly on what already happened.
 
 DIFFICULTY RULES:
 - Generate a problem that exactly matches the difficulty description above.
@@ -33,7 +37,8 @@ DIFFICULTY RULES:
 - Do not make the problem easier or harder than the described level.
 ${uniquenessBlock}
 MATH RULES:
-- Include exactly one clear, solvable math problem in problemText.
+- Include exactly one clear, solvable math problem embedded within adventureNarrative.
+- problemText is a short, direct question referencing the story situation (may echo story elements).
 - Provide exactly 4 answer options in answerOptions.
 - Include exactly 1 correct answer in correctAnswer.
 - correctAnswer must match one item in answerOptions exactly.
@@ -45,8 +50,9 @@ ANSWER OPTIONS RULES:
 - Keep formatting consistent across options.
 
 FIELD GUIDELINES:
-- wizzyDialogue: spoken line from Wizzy
-- problemText: the challenge question only
+- adventureNarrative: 2-3 sentence story paragraph that continues the adventure and naturally introduces the math situation with the actual numbers woven into the scene
+- wizzyDialogue: short, encouraging spoken line from Wizzy that motivates the child to solve the challenge
+- problemText: the direct math question (can reference story elements, e.g. "How many keys are there in total?")
 - answerOptions: exactly 4 possible answers
 - correctAnswer: the one correct option from answerOptions
 - imageDescription: visual scene for image generation
