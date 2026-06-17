@@ -568,13 +568,13 @@ export default function ChildDashboard() {
             <>
               <style>{`.adventure-library::-webkit-scrollbar{display:none}`}</style>
               <div
-                className="adventure-library flex gap-3 overflow-x-auto pb-2"
+                className="adventure-library flex gap-3 overflow-x-auto py-3 px-1"
                 style={{ scrollbarWidth: 'none' }}
               >
                 {completedAdventures.map((adventure) => (
                   <div
                     key={adventure._id}
-                    className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default"
+                    className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default select-none"
                     style={{
                       width: 140,
                       height: 160,
