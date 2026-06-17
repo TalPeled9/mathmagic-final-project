@@ -64,6 +64,47 @@ npm run dev
 - Server: http://localhost:3000
 - Health check: http://localhost:3000/api/health
 
+## Docker
+
+Prerequisites: Docker Desktop running, MongoDB running locally.
+
+### 1. Configure environment
+
+```bash
+cp .env.server.example .env.server   # fill in secrets
+cp .env.client.example .env.client   # fill in VITE_GOOGLE_CLIENT_ID
+```
+
+### 2. Build and run
+
+```bash
+docker compose up --build
+```
+
+App is available at <http://localhost:5173>
+
+### 3. Subsequent runs (no code changes)
+
+```bash
+docker compose up
+```
+
+### 4. Restart after config changes (e.g. `nginx.conf`, env vars)
+
+```bash
+docker compose restart client
+```
+
+### 5. Stop
+
+```bash
+docker compose down
+```
+
+> `CLIENT_PORT` in `docker-compose.yml` controls the exposed port (default `5173`).  
+> Development: set `MONGODB_URI=mongodb://host.docker.internal:27017/mathmagic` in `.env.server` to connect to your local MongoDB instance.  
+> Production: replace with your Atlas or remote connection string.
+
 ## Available Scripts
 
 | Command          | Description                          |
