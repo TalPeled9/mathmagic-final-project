@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2 } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2, Volume2, VolumeX, Play } from 'lucide-react';
+import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
@@ -91,9 +92,9 @@ const STAR_BURST_PARTICLES = Array.from({ length: 8 }, (_, i) => ({
 // ── WIZZY STATUS MAP ──────────────────────────────────────────────────────────
 
 const WIZZY_STATUS_MAP = {
-  thinking: { text: 'Thinking…',   color: '#f59e0b', dot: '#fbbf24' },
-  talking:  { text: 'Just spoke!', color: '#8b5cf6', dot: '#a78bfa' },
-  idle:     { text: 'Ready!',      color: '#10b981', dot: '#34d399' },
+  thinking: { text: 'Thinking…',  color: '#f59e0b', dot: '#fbbf24' },
+  talking:  { text: 'Speaking…',  color: '#8b5cf6', dot: '#a78bfa' },
+  idle:     { text: 'Ready!',     color: '#10b981', dot: '#34d399' },
 } as const;
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -103,6 +104,10 @@ export default function StoryChat() {
   const { activeChild, setActiveChild } = useAuth();
   const navigate = useNavigate();
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const { speakQueue, stopAndSpeak, toggleMute, isSpeaking, isMuted } = useTTS(
+    activeChild?.narratorVoice ?? DEFAULT_TTS_VOICE_ID
+  );
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentChallenge, setCurrentChallenge] = useState<ICurrentChallenge | null>(null);
@@ -123,6 +128,8 @@ export default function StoryChat() {
     storyWorld: string;
   } | null>(null);
   const [showCorrectFlash, setShowCorrectFlash] = useState(false);
+  // Texts to speak after the initial history load completes (handled in a separate effect)
+  const [initialSpeakTexts, setInitialSpeakTexts] = useState<string[]>([]);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -136,6 +143,14 @@ export default function StoryChat() {
       if (segment.wizzyDialogue && segment.wizzyDialogue !== segment.narrative) {
         addMessage({ role: 'wizzy', text: segment.wizzyDialogue });
       }
+      const toSpeak = [segment.narrative];
+      if (segment.wizzyDialogue && segment.wizzyDialogue !== segment.narrative)
+        toSpeak.push(segment.wizzyDialogue);
+      if (segment.challenge?.problemText)
+        toSpeak.push(segment.challenge.problemText);
+      if (segment.choices?.length)
+        toSpeak.push(...segment.choices);
+      speakQueue(toSpeak);
       setCurrentChoices(segment.choices ?? []);
       setCurrentChallenge(segment.challenge);
       setIsLastStep(segment.isLastStep);
@@ -143,7 +158,7 @@ export default function StoryChat() {
       setLastSubmittedAnswer(null);
       setPendingContinue(false);
     },
-    [addMessage]
+    [addMessage, speakQueue]
   );
 
   // ── Mount: load adventure state (start or resume) ────────────────────────────
@@ -211,6 +226,15 @@ export default function StoryChat() {
         setIsLastStep(true);
       }
 
+      // Collect the trailing consecutive Wizzy messages (current step) to auto-speak
+      const trailingWizzy: string[] = [];
+      for (let i = adventure.conversationHistory.length - 1; i >= 0; i--) {
+        const entry = adventure.conversationHistory[i];
+        if (entry.role === 'wizzy') trailingWizzy.unshift(entry.content);
+        else break;
+      }
+      if (trailingWizzy.length > 0) setInitialSpeakTexts(trailingWizzy);
+
       setAdventureStatus('in-progress');
     };
 
@@ -219,6 +243,14 @@ export default function StoryChat() {
       setAdventureStatus('error');
     });
   }, [adventureId]);
+
+  // ── Speak current-step Wizzy messages after initial history load ────────────
+
+  useEffect(() => {
+    if (initialSpeakTexts.length === 0) return;
+    speakQueue(initialSpeakTexts);
+    setInitialSpeakTexts([]);
+  }, [initialSpeakTexts, speakQueue]);
 
   // ── Auto-scroll when messages update ────────────────────────────────────────
 
@@ -277,6 +309,7 @@ export default function StoryChat() {
         const response = await adventureService.answer(adventureId, { answer });
         const isCorrect = response.correct;
         addMessage({ role: 'system', text: response.feedback, isCorrect });
+        stopAndSpeak(response.feedback);
         setLastAnswerFeedback(response);
 
         if (isCorrect) {
@@ -297,7 +330,7 @@ export default function StoryChat() {
         setIsProcessing(false);
       }
     },
-    [adventureId, isProcessing, addMessage, isLastStep]
+    [adventureId, isProcessing, addMessage, isLastStep, stopAndSpeak]
   );
 
   const handleHint = useCallback(async () => {
@@ -310,6 +343,7 @@ export default function StoryChat() {
         ? `${response.hintText}\n\n💭 ${response.subQuestion}`
         : response.hintText;
       addMessage({ role: 'hint', text: hintText });
+      stopAndSpeak(hintText);
       setCurrentChallenge((prev) =>
         prev ? { ...prev, hintLevel: Math.min(prev.hintLevel + 1, 3) as 0 | 1 | 2 | 3 } : null
       );
@@ -318,7 +352,7 @@ export default function StoryChat() {
     } finally {
       setIsProcessing(false);
     }
-  }, [adventureId, isProcessing, addMessage]);
+  }, [adventureId, isProcessing, addMessage, stopAndSpeak]);
 
   const handleFinishAdventure = useCallback(async () => {
     if (!adventureId || isProcessing) return;
@@ -367,7 +401,7 @@ export default function StoryChat() {
 
   const wizzyStatus: keyof typeof WIZZY_STATUS_MAP = isProcessing
     ? 'thinking'
-    : messages.at(-1)?.role === 'wizzy'
+    : isSpeaking
     ? 'talking'
     : 'idle';
 
@@ -434,8 +468,18 @@ export default function StoryChat() {
             )}
           </div>
 
-          {/* Wizzy character status */}
+          {/* Wizzy character status + mute toggle */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMute}
+              title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
+            >
+              {isMuted
+                ? <VolumeX size={15} className="text-purple-wizzy/50" />
+                : <Volume2 size={15} className="text-purple-wizzy" />
+              }
+            </button>
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
               <div className="flex items-center gap-1">
@@ -444,7 +488,7 @@ export default function StoryChat() {
                   style={{
                     background: WIZZY_STATUS_MAP[wizzyStatus].dot,
                     boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
-                    animation: wizzyStatus === 'thinking' ? 'sparkle 0.8s ease-in-out infinite' : 'none',
+                    animation: wizzyStatus === 'thinking' || wizzyStatus === 'talking' ? 'sparkle 0.8s ease-in-out infinite' : 'none',
                   }}
                 />
                 <span
@@ -474,7 +518,14 @@ export default function StoryChat() {
         <div className="max-w-2xl mx-auto space-y-4 pb-4">
           {messages.map((msg) => {
             if (msg.role === 'wizzy')
-              return <WizzyMessage key={msg.id} text={msg.text} imageUrl={msg.imageUrl} />;
+              return (
+                <WizzyMessage
+                  key={msg.id}
+                  text={msg.text}
+                  imageUrl={msg.imageUrl}
+                  onReplay={() => stopAndSpeak(msg.text)}
+                />
+              );
             if (msg.role === 'child')
               return (
                 <ChildMessage
@@ -605,7 +656,7 @@ export default function StoryChat() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
+function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: string; onReplay?: () => void }) {
   return (
     <div className="story-message-enter">
       {/* Cinematic full-bleed image panel */}
@@ -658,6 +709,18 @@ function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
           }}
         >
           <p className="text-gray-800 leading-relaxed whitespace-pre-line break-words">{text}</p>
+          {onReplay && (
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={onReplay}
+                title="Replay Wizzy's voice"
+                className="flex items-center gap-1 text-[10px] text-purple-wizzy/60 hover:text-purple-wizzy transition-colors"
+              >
+                <Play size={10} />
+                replay
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
