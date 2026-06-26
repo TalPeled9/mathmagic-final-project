@@ -832,6 +832,7 @@ interface ChallengePanelProps {
   challenge: ICurrentChallenge;
   onAnswer: (answer: string) => void;
   onHint: () => void;
+  onHide: () => void;
   lastFeedback: AnswerChallengeResponse | null;
   lastSubmittedAnswer: string | null;
 }
@@ -840,6 +841,7 @@ function ChallengePanel({
   challenge,
   onAnswer,
   onHint,
+  onHide,
   lastFeedback,
   lastSubmittedAnswer,
 }: ChallengePanelProps) {
@@ -863,8 +865,8 @@ function ChallengePanel({
       />
 
       <div className="p-5">
-        {/* Challenge badge */}
-        <div className="flex items-center justify-center mb-4">
+        {/* Challenge badge + hide button */}
+        <div className="flex items-center justify-between mb-4">
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold text-white"
             style={{
@@ -876,6 +878,13 @@ function ChallengePanel({
             Math Challenge!
             <Zap size={14} className="text-yellow-300 fill-yellow-300" />
           </div>
+          <button
+            onClick={onHide}
+            aria-label="Hide challenge panel"
+            className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-purple-600 hover:bg-purple-wizzy/10 transition-colors px-2 py-1.5 rounded-lg"
+          >
+            Hide ✕
+          </button>
         </div>
 
         <p className="text-xl font-extrabold text-center mb-5 text-gray-800 tracking-tight">
