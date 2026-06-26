@@ -881,7 +881,7 @@ function ChallengePanel({
           <button
             onClick={onHide}
             aria-label="Hide challenge panel"
-            className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-purple-600 hover:bg-purple-wizzy/10 transition-colors px-2 py-1.5 rounded-lg"
+            className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-purple-600 hover:bg-purple-wizzy/10 transition-colors px-3 py-2 rounded-lg"
           >
             Hide ✕
           </button>
