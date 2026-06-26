@@ -123,6 +123,7 @@ export default function StoryChat() {
     storyWorld: string;
   } | null>(null);
   const [showCorrectFlash, setShowCorrectFlash] = useState(false);
+  const [panelVisible, setPanelVisible] = useState(false);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,11 @@ export default function StoryChat() {
     },
     [addMessage]
   );
+
+  // Auto-show the challenge panel whenever a new challenge arrives
+  useEffect(() => {
+    if (currentChallenge) setPanelVisible(true);
+  }, [currentChallenge]);
 
   // ── Mount: load adventure state (start or resume) ────────────────────────────
 
