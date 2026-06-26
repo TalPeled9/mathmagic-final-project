@@ -9,15 +9,13 @@ COPY shared/eslint-config/package.json ./shared/eslint-config/
 RUN npm ci
 
 COPY . .
+COPY .env.client .
 
-ARG VITE_API_URL=/api
-ARG VITE_GOOGLE_CLIENT_ID
-
-ENV VITE_API_URL=$VITE_API_URL
-ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
-
-RUN npm run build --workspace=shared/types
-RUN npm run build --workspace=client
+RUN set -a && \
+    . ./.env.client && \
+    set +a && \
+    npm run build --workspace=shared/types && \
+    npm run build --workspace=client
 
 
 FROM nginx:alpine AS production
