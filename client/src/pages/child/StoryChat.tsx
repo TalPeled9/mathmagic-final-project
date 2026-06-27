@@ -103,6 +103,9 @@ export default function StoryChat() {
   const { activeChild, setActiveChild } = useAuth();
   const navigate = useNavigate();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const panelAutoCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const challengePanelRef = useRef<HTMLElement>(null);
+  const showChallengePillRef = useRef<HTMLButtonElement>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentChallenge, setCurrentChallenge] = useState<ICurrentChallenge | null>(null);
@@ -151,6 +154,20 @@ export default function StoryChat() {
   useEffect(() => {
     if (currentChallenge) setPanelVisible(true);
   }, [currentChallenge]);
+
+  // Cleanup: cancel the auto-close timer if the component unmounts
+  useEffect(() => {
+    return () => {
+      if (panelAutoCloseRef.current) clearTimeout(panelAutoCloseRef.current);
+    };
+  }, []);
+
+  // Focus the challenge panel when it opens
+  useEffect(() => {
+    if (panelVisible && currentChallenge && challengePanelRef.current) {
+      challengePanelRef.current.focus();
+    }
+  }, [panelVisible, currentChallenge]);
 
   // ── Mount: load adventure state (start or resume) ────────────────────────────
 
@@ -201,6 +218,7 @@ export default function StoryChat() {
       }
 
       setCurrentChallenge(adventure.currentChallenge);
+      setPanelVisible(Boolean(adventure.currentChallenge));
 
       if (adventure.currentChallenge) {
         // Active challenge: choices are deferred until challenge resolves
@@ -288,7 +306,8 @@ export default function StoryChat() {
         if (isCorrect) {
           setShowCorrectFlash(true);
           setTimeout(() => setShowCorrectFlash(false), 1400);
-          setTimeout(() => setPanelVisible(false), 1500);
+          if (panelAutoCloseRef.current) clearTimeout(panelAutoCloseRef.current);
+          panelAutoCloseRef.current = setTimeout(() => setPanelVisible(false), 1500);
         }
 
         if (response.correct || response.correctAnswer !== undefined) {
@@ -529,6 +548,8 @@ export default function StoryChat() {
         {/* Challenge panel column */}
         {currentChallenge && panelVisible && (
           <aside
+            ref={challengePanelRef}
+            tabIndex={-1}
             className="challenge-panel-enter md:w-80 flex-shrink-0 overflow-y-auto border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
             style={{
               background: 'rgba(252,250,255,0.97)',
@@ -541,7 +562,10 @@ export default function StoryChat() {
                 challenge={currentChallenge}
                 onAnswer={handleAnswer}
                 onHint={handleHint}
-                onHide={() => setPanelVisible(false)}
+                onHide={() => {
+                  setPanelVisible(false);
+                  setTimeout(() => showChallengePillRef.current?.focus(), 50);
+                }}
                 lastFeedback={lastAnswerFeedback}
                 lastSubmittedAnswer={lastSubmittedAnswer}
               />
@@ -553,6 +577,7 @@ export default function StoryChat() {
       {/* ── Floating "Show Challenge" pill ── */}
       {currentChallenge && !panelVisible && (
         <button
+          ref={showChallengePillRef}
           onClick={() => setPanelVisible(true)}
           className="fixed bottom-6 right-6 z-30 flex items-center gap-2 text-white text-sm font-bold rounded-full px-5 py-3 min-h-[44px] shadow-lg hover:scale-105 active:scale-95 transition-all"
           style={{
