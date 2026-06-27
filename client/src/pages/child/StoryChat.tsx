@@ -490,7 +490,7 @@ export default function StoryChat() {
 
         {/* Chat column */}
         <main className="flex-1 overflow-y-auto px-4 py-6 min-w-0">
-          <div className="max-w-2xl mx-auto space-y-4 pb-4">
+          <div className={`${currentChallenge && panelVisible ? 'max-w-2xl' : 'max-w-4xl'} mx-auto space-y-4 pb-4`}>
             {messages.map((msg) => {
               if (msg.role === 'wizzy')
                 return <WizzyMessage key={msg.id} text={msg.text} imageUrl={msg.imageUrl} />;
@@ -645,12 +645,7 @@ function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
       {/* Cinematic full-bleed image panel */}
       {imageUrl && (
         <div
-          className="relative overflow-hidden rounded-2xl mb-3"
-          style={{
-            marginLeft: 'calc(-1rem - env(safe-area-inset-left, 0px))',
-            marginRight: 'calc(-1rem - env(safe-area-inset-right, 0px))',
-            height: 'clamp(220px, 56vw, 360px)',
-          }}
+          className="relative overflow-hidden rounded-2xl mb-3 max-w-2xl mx-auto aspect-video"
         >
           <img
             src={imageUrl}
