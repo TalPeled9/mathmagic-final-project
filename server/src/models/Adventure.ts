@@ -93,7 +93,7 @@ const adventureSchema = new Schema<IAdventureDocument>(
     storyWorld: { type: String, required: true },
     status: { type: String, enum: ['in-progress', 'completed'], default: 'in-progress' },
     currentStepIndex: { type: Number, default: 0 },
-    totalSteps: { type: Number, default: 6 },
+    totalSteps: { type: Number, default: 10 },
     currentChallenge: { type: currentChallengeSchema, default: null },
     conversationHistory: { type: [conversationEntrySchema], default: [] },
     lastChoices: { type: [String], default: [] },
