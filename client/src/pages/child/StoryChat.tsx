@@ -678,10 +678,9 @@ function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
       {/* Dialogue bubble */}
       <div className="flex items-start gap-3 max-w-[90%]">
         <div
-          className="wizzy-avatar flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md"
-          style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}
+          className="wizzy-avatar flex-shrink-0 w-14 h-14 rounded-full overflow-hidden shadow-md border-2 border-purple-wizzy/30"
         >
-          <Sparkles size={15} className="text-white" />
+          <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
         </div>
         <div
           className="rounded-2xl rounded-tl-sm p-4 min-w-0 flex-1"
@@ -701,7 +700,7 @@ function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
 function ChildMessage({ text, avatarUrl }: { text: string; avatarUrl?: string }) {
   return (
     <div className="child-message-enter flex items-start gap-3 max-w-[85%] ml-auto flex-row-reverse">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-wizzy overflow-hidden">
+      <div className="flex-shrink-0 w-14 h-14 rounded-full bg-purple-wizzy overflow-hidden border-2 border-purple-wizzy/30 shadow-sm">
         {avatarUrl ? (
           <img src={avatarUrl} alt="You" className="w-full h-full object-cover" />
         ) : (
