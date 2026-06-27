@@ -550,14 +550,14 @@ export default function StoryChat() {
           <aside
             ref={challengePanelRef}
             tabIndex={-1}
-            className="challenge-panel-enter md:w-80 flex-shrink-0 overflow-y-auto border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
+            className="challenge-panel-enter md:w-80 flex-shrink-0 flex flex-col overflow-hidden border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
             style={{
               background: 'rgba(252,250,255,0.97)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
             }}
           >
-            <div className="p-4">
+            <div className="flex-1 flex flex-col p-4 min-h-0">
               <ChallengePanel
                 challenge={currentChallenge}
                 onAnswer={handleAnswer}
@@ -874,7 +874,7 @@ function ChallengePanel({
 }: ChallengePanelProps) {
   return (
     <div
-      className="rounded-3xl overflow-hidden"
+      className="flex-1 flex flex-col rounded-3xl overflow-hidden min-h-0"
       style={{
         background: 'linear-gradient(160deg, #faf5ff 0%, #f3e8ff 40%, #ede9fe 100%)',
         border: '2px solid rgba(139,92,246,0.22)',
@@ -891,7 +891,7 @@ function ChallengePanel({
         }}
       />
 
-      <div className="p-5">
+      <div className="flex-1 flex flex-col p-5 min-h-0">
         {/* Challenge badge + hide button */}
         <div className="flex items-center justify-between mb-4">
           <div
@@ -918,7 +918,7 @@ function ChallengePanel({
           {challenge.problemText}
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 flex-1 content-start">
           {challenge.options.map((option, i) => {
             const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
             const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
@@ -951,22 +951,24 @@ function ChallengePanel({
               >
                 {/* Sparkle shimmer on hover */}
                 <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
-                {/* Letter badge */}
-                <div
-                  className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
-                  style={{
-                    background: wasWrong
-                      ? '#ef4444'
-                      : isRevealed
-                      ? '#10b981'
-                      : '#8b5cf6',
-                  }}
-                >
-                  {shape.label}
+                <div className="flex items-center gap-3 px-3 py-3">
+                  {/* Letter badge */}
+                  <div
+                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                    style={{
+                      background: wasWrong
+                        ? '#ef4444'
+                        : isRevealed
+                        ? '#10b981'
+                        : '#8b5cf6',
+                    }}
+                  >
+                    {shape.label}
+                  </div>
+                  <span className="font-bold text-gray-800 text-sm text-left flex-1">
+                    {option}
+                  </span>
                 </div>
-                <span className="block pt-3 pb-1.5 px-2 text-center font-bold text-gray-800 text-sm">
-                  {option}
-                </span>
               </button>
             );
           })}
