@@ -409,7 +409,7 @@ export default function StoryChat() {
         className="sticky top-0 z-10 backdrop-blur-md border-b border-purple-wizzy/10 px-4 py-2.5 flex-shrink-0"
         style={{ background: 'rgba(245,243,255,0.92)' }}
       >
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <button
             onClick={() => navigate('/child/dashboard')}
             className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3 py-2 rounded-lg min-h-[44px]"
@@ -493,7 +493,7 @@ export default function StoryChat() {
             {isProcessing && <TypingIndicator />}
 
             {/* Inline action controls */}
-            {!currentChallenge && pendingContinue && (
+            {!completionData && !currentChallenge && pendingContinue && (
               <div className="flex justify-center py-2">
                 <button
                   onClick={handleAutoContinue}
@@ -505,10 +505,10 @@ export default function StoryChat() {
                 </button>
               </div>
             )}
-            {!currentChallenge && currentChoices.length > 0 && (
+            {!completionData && !currentChallenge && currentChoices.length > 0 && (
               <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
             )}
-            {isLastStep && !currentChallenge && !pendingContinue && currentChoices.length === 0 && (
+            {!completionData && isLastStep && !currentChallenge && !pendingContinue && currentChoices.length === 0 && (
               <div className="flex justify-center py-2">
                 <button
                   onClick={handleFinishAdventure}
@@ -528,12 +528,11 @@ export default function StoryChat() {
         {/* Challenge panel column */}
         {currentChallenge && panelVisible && (
           <aside
-            className="md:w-80 flex-shrink-0 overflow-y-auto border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20"
+            className="challenge-panel-enter md:w-80 flex-shrink-0 overflow-y-auto border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
             style={{
               background: 'rgba(252,250,255,0.97)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
-              animation: 'slide-in-right 0.3s ease-out both',
             }}
           >
             <div className="p-4">
@@ -548,22 +547,13 @@ export default function StoryChat() {
             </div>
           </aside>
         )}
-
-        {/* Mobile: override animation for panel appearing below chat */}
-        {currentChallenge && panelVisible && (
-          <style>{`
-            @media (max-width: 767px) {
-              aside { animation: panel-slide-down 0.3s ease-out both !important; }
-            }
-          `}</style>
-        )}
       </div>
 
       {/* ── Floating "Show Challenge" pill ── */}
       {currentChallenge && !panelVisible && (
         <button
           onClick={() => setPanelVisible(true)}
-          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 text-white text-sm font-bold rounded-full px-5 py-3 shadow-lg hover:scale-105 active:scale-95 transition-all"
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 text-white text-sm font-bold rounded-full px-5 py-3 min-h-[44px] shadow-lg hover:scale-105 active:scale-95 transition-all"
           style={{
             background: 'linear-gradient(90deg, #7c3aed, #8b5cf6)',
             boxShadow: '0 4px 20px rgba(139,92,246,0.45)',
@@ -601,10 +591,10 @@ export default function StoryChat() {
             className="relative text-4xl font-black text-white select-none"
             style={{
               animation: 'pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
-              textShadow: '0 2px 20px rgba(16,185,129,0.6)',
+              textShadow: '0 2px 16px rgba(16,185,129,0.9)',
             }}
           >
-            Correct! 🌟
+            ✨ Correct! ✨
           </div>
         </div>
       )}

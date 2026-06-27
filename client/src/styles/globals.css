@@ -500,6 +500,15 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+.challenge-panel-enter {
+  animation: slide-in-right 0.3s ease-out both;
+}
+@media (max-width: 767px) {
+  .challenge-panel-enter {
+    animation: panel-slide-down 0.3s ease-out both;
+  }
+}
+
 .story-message-enter {
   animation: story-message-enter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
