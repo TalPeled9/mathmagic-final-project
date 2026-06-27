@@ -288,6 +288,7 @@ export default function StoryChat() {
         if (isCorrect) {
           setShowCorrectFlash(true);
           setTimeout(() => setShowCorrectFlash(false), 1400);
+          setTimeout(() => setPanelVisible(false), 1500);
         }
 
         if (response.correct || response.correctAnswer !== undefined) {
