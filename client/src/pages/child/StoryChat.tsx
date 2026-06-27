@@ -6,6 +6,7 @@ import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
 import wizzyImg from '@/assets/wizzy.png';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
 import type {
   ICurrentChallenge,
@@ -438,17 +439,7 @@ export default function StoryChat() {
             <span className="hidden sm:inline">Dashboard</span>
           </button>
 
-          <div className="flex flex-col items-center">
-            <Link to="/" className="flex items-center gap-1.5">
-              <Sparkles className="text-gold-magic" size={18} />
-              <span className="font-bold text-purple-wizzy">MathMagic</span>
-            </Link>
-            {adventureContext && (
-              <span className="text-xs text-gray-400 capitalize font-medium">
-                {adventureContext.storyWorld.replace(/-/g, ' ')} · {adventureContext.mathTopic}
-              </span>
-            )}
-          </div>
+          <img src={mathmagicLogo} alt="MathMagic" className="h-11 w-auto" />
 
           {/* Wizzy character status */}
           <div className="flex items-center gap-2">
@@ -660,13 +651,6 @@ function WizzyMessage({ text, imageUrl }: { text: string; imageUrl?: string }) {
               background: 'linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.78) 100%)',
             }}
           />
-          {/* World badge */}
-          <span
-            className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
-            style={{ background: 'rgba(139,92,246,0.78)', backdropFilter: 'blur(8px)' }}
-          >
-            ✨ Wizzy's World
-          </span>
         </div>
       )}
 
