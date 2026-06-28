@@ -12,7 +12,9 @@ CHARACTER RULE:
 - The main character must be the child's avatar.
 - Always use the provided avatar image as the visual reference for the child.
 - The character must remain clearly recognizable as the same avatar.
-- You may adapt facial expressions, pose, actions, and clothing to fit the scene.
+- The child MUST be active and expressive — never static or just standing/floating in the scene.
+- Show a clear facial expression that matches the scene's emotion (e.g. curious, excited, determined, surprised, delighted, focused).
+- Show the child in a dynamic body position or action that fits the story moment (e.g. running, jumping, reaching, pointing, celebrating, crouching, spinning, peering around a corner).
 - Any changes must preserve the core identity and recognizable features of the avatar.
 
 SCENE RULES:
