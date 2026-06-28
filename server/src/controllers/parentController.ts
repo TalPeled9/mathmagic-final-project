@@ -54,6 +54,7 @@ function toPublicChild(child: InstanceType<typeof Child>, topTopics: TopicSummar
     weeklyLearningMinutes: child.weeklyLearningMinutes,
     unlockedWorlds: child.unlockedWorlds,
     badges: child.badges,
+    narratorVoice: child.narratorVoice ?? 'UQ15q3Vf9AQQ2owcMKQ0',
     topTopics,
     createdAt: child.createdAt,
     updatedAt: child.updatedAt,
@@ -136,11 +137,17 @@ export async function getChild(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateChild(req: Request, res: Response): Promise<void> {
-  const { name, gradeLevel } = req.body as { name?: string; gradeLevel?: GradeLevel };
+  const { name, gradeLevel, narratorVoice } = req.body as {
+    name?: string;
+    gradeLevel?: GradeLevel;
+    narratorVoice?: string;
+  };
   const child = await Child.findOne({ _id: req.params.childId, parentId: req.user!.userId });
   if (!child) throw ApiError.notFound('Child not found');
   if (name) child.name = name;
   if (gradeLevel) child.gradeLevel = gradeLevel;
+  const ALLOWED_VOICES = new Set(['UQ15q3Vf9AQQ2owcMKQ0', 'O4NKp88bb2JkAnrCbwQt']);
+  if (narratorVoice && ALLOWED_VOICES.has(narratorVoice)) child.narratorVoice = narratorVoice;
   await child.save();
   res.json({ child: toPublicChild(child) });
 }

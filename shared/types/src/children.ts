@@ -23,6 +23,7 @@ export interface IChild {
   activeAvatarIndex: number;
   weeklyGenerationsRemaining: number; // 0–3
   weeklyGenerationsDaysUntilReset: number; // 0 when quota not exhausted
+  narratorVoice: string;
   currentLevel: number;
   totalXP: number;
   totalStars: number;
@@ -41,6 +42,7 @@ export interface CreateChildRequest {
 export interface UpdateChildRequest {
   name?: string;
   gradeLevel?: GradeLevel;
+  narratorVoice?: string;
 }
 
 export interface GenerateAvatarRequest {

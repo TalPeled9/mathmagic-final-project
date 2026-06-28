@@ -22,6 +22,7 @@ export interface IChildDocument extends Document {
   avatars: IAvatarSlot[];
   activeAvatarIndex: number;
   generationTimestamps: Date[];
+  narratorVoice: string;
   currentLevel: number;
   totalXP: number;
   totalStars: number;
@@ -51,6 +52,7 @@ const childSchema = new Schema<IChildDocument>(
     avatars: { type: [avatarSlotSchema], default: [] },
     activeAvatarIndex: { type: Number, default: 0, min: 0, max: 3 },
     generationTimestamps: { type: [Date], default: [] },
+    narratorVoice: { type: String, default: 'UQ15q3Vf9AQQ2owcMKQ0' },
     currentLevel: { type: Number, default: 1 },
     totalXP: { type: Number, default: 0 },
     totalStars: { type: Number, default: 0 },
