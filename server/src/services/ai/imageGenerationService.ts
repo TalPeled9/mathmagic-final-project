@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { config } from '../../config';
 import { logger } from '../../lib/logger';
 
@@ -69,15 +71,20 @@ function isSvgDataUrl(dataUrl: string): boolean {
   return dataUrl.startsWith('data:image/svg+xml');
 }
 
+function getDefaultAvatarDataUrl(): string {
+  const pngPath = join(__dirname, '../../assets/default_avatar.png');
+  const data = readFileSync(pngPath).toString('base64');
+  return `data:image/png;base64,${data}`;
+}
+
 // ---- public API ----
 
 /**
  * Generates a story scene image using Gemini image generation.
  *
  * @param imageDescription  The scene description returned by the LLM (imageDescription field).
- * @param avatarDataUrl     The child's avatar as a base64 data URL.
- *                          If the avatar is the SVG fallback, the reference image is omitted
- *                          and the scene is generated from the description alone.
+ * @param avatarDataUrl     The child's avatar as a base64 data URL. Empty string or SVG
+ *                          both fall back to the bundled default_avatar.png reference image.
  * @returns  A base64 data URL of the generated image, or null if generation fails.
  */
 export async function generateStoryImage(
@@ -91,14 +98,17 @@ export async function generateStoryImage(
     const ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
 
     // Build content parts — include avatar as inline image unless it is the SVG fallback,
-    // which Gemini does not accept as a valid image input.
+    // which Gemini does not accept as a valid image input. Fall back to the default avatar
+    // PNG when the child has no custom avatar (empty imageData).
     const parts: unknown[] = [];
 
-    if (!isSvgDataUrl(avatarDataUrl)) {
-      const parsed = parseDataUrl(avatarDataUrl);
-      if (parsed) {
-        parts.push({ inlineData: { mimeType: parsed.mimeType, data: parsed.base64 } });
-      }
+    const resolvedAvatarUrl = !avatarDataUrl || isSvgDataUrl(avatarDataUrl)
+      ? getDefaultAvatarDataUrl()
+      : avatarDataUrl;
+
+    const parsed = parseDataUrl(resolvedAvatarUrl);
+    if (parsed) {
+      parts.push({ inlineData: { mimeType: parsed.mimeType, data: parsed.base64 } });
     }
 
     parts.push({ text: imageDescription });
