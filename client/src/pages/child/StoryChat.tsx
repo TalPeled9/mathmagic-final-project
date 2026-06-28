@@ -1104,7 +1104,7 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-6">
       <div
-        className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-5 overflow-hidden"
+        className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-5 overflow-y-auto overflow-x-hidden max-h-[88vh] scrollbar-hide"
         style={{ animation: 'pop-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
       >
         {/* Confetti burst from bottom */}
