@@ -394,6 +394,14 @@
 
 /* ── Shared utility classes ────────────────────────────────── */
 
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .gradient-text {
   background: linear-gradient(90deg, #8b5cf6 0%, #a855f7 40%, #f59e0b 100%);
   background-size: 200% auto;
