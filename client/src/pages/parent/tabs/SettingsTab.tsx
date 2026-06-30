@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Save, User, Shield } from 'lucide-react';
+import { Save, User, Shield, Volume2 } from 'lucide-react';
 import { GradientRing } from '@/components/loaders';
 import { childService } from '../../../services/childService';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 import defaultAvatar from '@/assets/default_avatar.png';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
+
+const NARRATOR_VOICES = [
+  { id: 'UQ15q3Vf9AQQ2owcMKQ0', label: 'David', description: 'Boy narrator (default)' },
+  { id: 'O4NKp88bb2JkAnrCbwQt', label: 'Lauren', description: 'Girl narrator' },
+] as const;
 
 interface Props {
   child: IChild;
@@ -49,6 +54,9 @@ function PlaceholderToggle({ label, description }: { label: string; description?
 export function SettingsTab({ child, onChildUpdate }: Props) {
   const [name, setName] = useState(child.name);
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(child.gradeLevel);
+  const [narratorVoice, setNarratorVoice] = useState<string>(
+    child.narratorVoice ?? 'UQ15q3Vf9AQQ2owcMKQ0'
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const avatar = child.avatars[child.activeAvatarIndex];
@@ -57,7 +65,7 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const updated = await childService.update(child._id, { name, gradeLevel });
+      const updated = await childService.update(child._id, { name, gradeLevel, narratorVoice });
       onChildUpdate(updated);
       toast.success('Profile updated!');
     } catch (err) {
@@ -122,6 +130,29 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1.5 flex items-center gap-1.5">
+              <Volume2 size={14} className="text-purple-wizzy" />
+              Wizzy's Voice
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {NARRATOR_VOICES.map((voice) => (
+                <button
+                  key={voice.id}
+                  type="button"
+                  onClick={() => setNarratorVoice(voice.id)}
+                  className="flex flex-col items-start p-3 rounded-xl border-2 text-left transition-colors"
+                  style={{
+                    borderColor: narratorVoice === voice.id ? 'rgb(139,92,246)' : 'rgb(229,231,235)',
+                    background: narratorVoice === voice.id ? 'rgba(139,92,246,0.06)' : 'white',
+                  }}
+                >
+                  <span className="text-sm font-semibold text-gray-700">{voice.label}</span>
+                  <span className="text-xs text-gray-400 mt-0.5">{voice.description}</span>
+                </button>
+              ))}
+            </div>
           </div>
           <button
             type="submit"

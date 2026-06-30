@@ -28,6 +28,10 @@ export const config = {
     password: process.env.OLLAMA_PASSWORD ?? '',
     model: process.env.OLLAMA_MODEL || 'llama3.1:8b',
   },
+  elevenlabs: {
+    apiKey: process.env.ELEVENLABS_API_KEY ?? '',
+    paid: process.env.ELEVENLABS_PAID === 'true',
+  },
   isProduction: process.env.NODE_ENV === 'production',
 } as const;
 
