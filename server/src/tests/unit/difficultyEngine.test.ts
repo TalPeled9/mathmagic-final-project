@@ -56,16 +56,28 @@ describe('adjustDifficulty', () => {
     expect(adjustDifficulty('easy', [0, 0])).toBe('easy');
   });
 
-  it('holds steady on mixed scores [2, 0]', () => {
+  it('bumps down after [1, 1] — two non-perfect answers', () => {
+    expect(adjustDifficulty('medium', [1, 1])).toBe('easy');
+  });
+
+  it('bumps down after [0, 1] — failure then partial', () => {
+    expect(adjustDifficulty('medium', [0, 1])).toBe('easy');
+  });
+
+  it('bumps down after [1, 0] — partial then failure', () => {
+    expect(adjustDifficulty('medium', [1, 0])).toBe('easy');
+  });
+
+  it('holds steady on [2, 0] — one perfect breaks the bump-down streak', () => {
     expect(adjustDifficulty('medium', [2, 0])).toBe('medium');
   });
 
-  it('holds steady on mixed scores [0, 2]', () => {
+  it('holds steady on [0, 2] — one perfect breaks the bump-down streak', () => {
     expect(adjustDifficulty('medium', [0, 2])).toBe('medium');
   });
 
-  it('holds steady on [1, 1] (medium scores)', () => {
-    expect(adjustDifficulty('medium', [1, 1])).toBe('medium');
+  it('holds steady on [2, 1] — one perfect breaks the bump-down streak', () => {
+    expect(adjustDifficulty('medium', [2, 1])).toBe('medium');
   });
 
   it('ignores all scores before the last 2 — [2, 2, 0, 0] bumps down', () => {

@@ -150,8 +150,8 @@ export function buildAdventureState(
 export function determineNextMode(adventure: IAdventureDocument): StoryMode {
   const { currentStepIndex, totalSteps } = adventure;
   if (currentStepIndex >= totalSteps - 1) return 'end_story';
-  if (currentStepIndex % 2 !== 0) return 'math_question';
-  return 'story_step';
+  if (currentStepIndex % 3 === 0) return 'story_step';
+  return 'math_question';
 }
 
 // ─── Response Mapping ────────────────────────────────────────────────────────
@@ -355,9 +355,9 @@ export function prefetchForChoices(adventure: IAdventureDocument, child: IChildD
     prefetchNextStep(adventure, child);
     return;
   }
-  if (nextIndex % 2 === 0) {
+  if (nextIndex % 3 !== 1) {
     console.log(
-      `[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} is even (expected math step)`
+      `[prefetch] SKIP prefetchForChoices: nextIndex=${nextIndex} is not first-math-in-cycle (expected story step)`
     );
     return;
   }
@@ -484,9 +484,9 @@ export function prefetchNextStep(adventure: IAdventureDocument, child: IChildDoc
   const nextMode: StoryMode =
     nextIndex >= adventure.totalSteps - 1
       ? 'end_story'
-      : nextIndex % 2 !== 0
-        ? 'math_question'
-        : 'story_step';
+      : nextIndex % 3 === 0
+        ? 'story_step'
+        : 'math_question';
   console.log(
     `[prefetch] START prefetchNextStep adventure=${adventure._id.toString()} nextIndex=${nextIndex} mode=${nextMode}`
   );

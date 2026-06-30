@@ -55,6 +55,6 @@ FIELD GUIDELINES:
 - problemText: the direct math question (can reference story elements, e.g. "How many keys are there in total?")
 - answerOptions: exactly 4 possible answers
 - correctAnswer: the one correct option from answerOptions
-- imageDescription: visual scene for image generation
+- imageDescription: visual scene for image generation. MUST include: (1) the child's facial expression matching the story moment (e.g. puzzled, focused, determined), (2) the child's body position or action (e.g. counting on fingers, leaning forward, pointing at objects — never standing still), (3) the setting and math-relevant story elements visible in the scene
 `;
 }

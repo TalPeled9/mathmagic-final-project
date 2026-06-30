@@ -18,7 +18,7 @@ export function adjustDifficulty(current: Difficulty, recentScores: number[]): D
   if (last.length === STREAK_THRESHOLD && last.every((s) => s === 2)) {
     return bumpUp(current);
   }
-  if (last.length === STREAK_THRESHOLD && last.every((s) => s === 0)) {
+  if (last.length === STREAK_THRESHOLD && last.every((s) => s < 2)) {
     return bumpDown(current);
   }
   return current;

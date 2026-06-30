@@ -59,6 +59,6 @@ FIELD GUIDELINES:
 - adventureNarrative: describe the current scene clearly
 - wizzyDialogue: spoken line from Wizzy
 - storyChoices: array of short strings
-- imageDescription: a clear, visual, child-friendly description of the exact scene (characters, setting, mood, key elements)
+- imageDescription: a clear, visual, child-friendly description of the exact scene. MUST include: (1) the child's facial expression (e.g. curious, excited, nervous, delighted), (2) the child's body position or action (e.g. running toward, reaching up, crouching behind, jumping with arms raised — never standing still), (3) the setting and key elements that surround them
 `;
 }

@@ -30,6 +30,6 @@ FIELD GUIDELINES:
 - wizzyDialogue: celebration line
 - recap: 2-3 sentence summary of what the child achieved
 - celebration: one sentence of praise
-- imageDescription: final scene visual
+- imageDescription: final celebratory scene visual. MUST include: (1) the child's facial expression (e.g. beaming with pride, laughing, triumphant), (2) the child's body position or action (e.g. arms raised in victory, jumping for joy, holding a trophy — never standing still), (3) the setting and celebratory elements around them
 `;
 }

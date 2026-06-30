@@ -514,7 +514,7 @@ describe('adventure routes integration', () => {
     it('accumulates multiple problem texts across steps', async () => {
       const adventureId = await startAdventure();
 
-      // step 1 — first math question
+      // step 1 — first math question in cycle (1 % 3 === 1)
       await request(app)
         .post(`/api/adventures/${adventureId}/continue`)
         .set('Cookie', buildCookies(parentId))
@@ -530,20 +530,7 @@ describe('adventure routes integration', () => {
         .send({ answer: MOCK_MATH_RESPONSE.correctAnswer })
         .expect(200);
 
-      // Override math mock before the story_step so the background prefetch
-      // (which fires during the story_step response) picks up the new text.
-      const SECOND_MATH = { ...MOCK_MATH_RESPONSE, problemText: 'What is 6 + 2?' };
-      mockedLlm.generateMathQuestionFromState.mockResolvedValue(SECOND_MATH);
-
-      // step 2 — story_step; prefetchForChoices fires in background using SECOND_MATH
-      await request(app)
-        .post(`/api/adventures/${adventureId}/continue`)
-        .set('Cookie', buildCookies(parentId))
-        .set(csrfHeader())
-        .send({ choiceIndex: 0 })
-        .expect(200);
-
-      // step 3 — second math question served from cache (SECOND_MATH)
+      // step 2 — second math question in cycle (2 % 3 === 2); auto-continue, no choice needed
       await request(app)
         .post(`/api/adventures/${adventureId}/continue`)
         .set('Cookie', buildCookies(parentId))
@@ -553,7 +540,6 @@ describe('adventure routes integration', () => {
 
       const adventure = await Adventure.findById(adventureId);
       expect(adventure?.previousProblemTexts).toContain(MOCK_MATH_RESPONSE.problemText);
-      expect(adventure?.previousProblemTexts).toContain('What is 6 + 2?');
       expect(adventure?.previousProblemTexts).toHaveLength(2);
     });
   });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2, Volume2, VolumeX, Play } from 'lucide-react';
 import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
@@ -7,6 +7,7 @@ import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
 import wizzyImg from '@/assets/wizzy.png';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
 import type {
   ICurrentChallenge,
@@ -104,6 +105,9 @@ export default function StoryChat() {
   const { activeChild, setActiveChild } = useAuth();
   const navigate = useNavigate();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const panelAutoCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const challengePanelRef = useRef<HTMLElement>(null);
+  const showChallengePillRef = useRef<HTMLButtonElement>(null);
 
   const { speakQueue, stopAndSpeak, toggleMute, isSpeaking, isMuted } = useTTS(
     activeChild?.narratorVoice ?? DEFAULT_TTS_VOICE_ID
@@ -128,6 +132,7 @@ export default function StoryChat() {
     storyWorld: string;
   } | null>(null);
   const [showCorrectFlash, setShowCorrectFlash] = useState(false);
+  const [panelVisible, setPanelVisible] = useState(false);
   // Texts to speak after the initial history load completes (handled in a separate effect)
   const [initialSpeakTexts, setInitialSpeakTexts] = useState<string[]>([]);
 
@@ -160,6 +165,25 @@ export default function StoryChat() {
     },
     [addMessage, speakQueue]
   );
+
+  // Auto-show the challenge panel whenever a new challenge arrives
+  useEffect(() => {
+    if (currentChallenge) setPanelVisible(true);
+  }, [currentChallenge]);
+
+  // Cleanup: cancel the auto-close timer if the component unmounts
+  useEffect(() => {
+    return () => {
+      if (panelAutoCloseRef.current) clearTimeout(panelAutoCloseRef.current);
+    };
+  }, []);
+
+  // Focus the challenge panel when it opens
+  useEffect(() => {
+    if (panelVisible && currentChallenge && challengePanelRef.current) {
+      challengePanelRef.current.focus();
+    }
+  }, [panelVisible, currentChallenge]);
 
   // ── Mount: load adventure state (start or resume) ────────────────────────────
 
@@ -210,6 +234,7 @@ export default function StoryChat() {
       }
 
       setCurrentChallenge(adventure.currentChallenge);
+      setPanelVisible(Boolean(adventure.currentChallenge));
 
       if (adventure.currentChallenge) {
         // Active challenge: choices are deferred until challenge resolves
@@ -315,6 +340,8 @@ export default function StoryChat() {
         if (isCorrect) {
           setShowCorrectFlash(true);
           setTimeout(() => setShowCorrectFlash(false), 1400);
+          if (panelAutoCloseRef.current) clearTimeout(panelAutoCloseRef.current);
+          panelAutoCloseRef.current = setTimeout(() => setPanelVisible(false), 1500);
         }
 
         if (response.correct || response.correctAnswer !== undefined) {
@@ -405,16 +432,6 @@ export default function StoryChat() {
     ? 'talking'
     : 'idle';
 
-  const panelKey = currentChallenge
-    ? 'challenge'
-    : pendingContinue
-    ? 'continue'
-    : currentChoices.length > 0
-    ? 'choices'
-    : isLastStep
-    ? 'finish'
-    : 'empty';
-
   if (adventureStatus === 'loading') {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
@@ -439,15 +456,15 @@ export default function StoryChat() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: worldBg }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: worldBg }}>
       <WorldParticleLayer world={adventureContext?.storyWorld ?? 'default'} />
 
       {/* ── Header ── */}
       <header
-        className="sticky top-0 z-10 backdrop-blur-md border-b border-purple-wizzy/10 px-4 py-2.5"
+        className="sticky top-0 z-10 backdrop-blur-md border-b border-purple-wizzy/10 px-4 py-2.5 flex-shrink-0"
         style={{ background: 'rgba(245,243,255,0.92)' }}
       >
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <button
             onClick={() => navigate('/child/dashboard')}
             className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3 py-2 rounded-lg min-h-[44px]"
@@ -456,17 +473,7 @@ export default function StoryChat() {
             <span className="hidden sm:inline">Dashboard</span>
           </button>
 
-          <div className="flex flex-col items-center">
-            <Link to="/" className="flex items-center gap-1.5">
-              <Sparkles className="text-gold-magic" size={18} />
-              <span className="font-bold text-purple-wizzy">MathMagic</span>
-            </Link>
-            {adventureContext && (
-              <span className="text-xs text-gray-400 capitalize font-medium">
-                {adventureContext.storyWorld.replace(/-/g, ' ')} · {adventureContext.mathTopic}
-              </span>
-            )}
-          </div>
+          <img src={mathmagicLogo} alt="MathMagic" className="h-11 w-auto" />
 
           {/* Wizzy character status + mute toggle */}
           <div className="flex items-center gap-2">
@@ -513,40 +520,117 @@ export default function StoryChat() {
         </div>
       </header>
 
-      {/* ── Message list ── */}
-      <main className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="max-w-2xl mx-auto space-y-4 pb-4">
-          {messages.map((msg) => {
-            if (msg.role === 'wizzy')
-              return (
-                <WizzyMessage
-                  key={msg.id}
-                  text={msg.text}
-                  imageUrl={msg.imageUrl}
-                  onReplay={() => stopAndSpeak(msg.text)}
-                />
-              );
-            if (msg.role === 'child')
-              return (
-                <ChildMessage
-                  key={msg.id}
-                  text={msg.text}
-                  avatarUrl={
-                    activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar
-                  }
-                />
-              );
-            if (msg.role === 'hint') return <HintMessage key={msg.id} text={msg.text} />;
-            return (
-              <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
-            );
-          })}
+      {/* ── Content area: chat + optional challenge panel ── */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
 
-          {isProcessing && <TypingIndicator />}
+        {/* Chat column */}
+        <main className="flex-1 overflow-y-auto px-4 py-6 min-w-0">
+          <div className={`${currentChallenge && panelVisible ? 'max-w-2xl' : 'max-w-4xl'} mx-auto space-y-4 pb-4`}>
+            {messages.map((msg) => {
+              if (msg.role === 'wizzy')
+                return (
+                  <WizzyMessage
+                    key={msg.id}
+                    text={msg.text}
+                    imageUrl={msg.imageUrl}
+                    onReplay={() => stopAndSpeak(msg.text)}
+                  />
+                );
+              if (msg.role === 'child')
+                return (
+                  <ChildMessage
+                    key={msg.id}
+                    text={msg.text}
+                    avatarUrl={
+                      activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar
+                    }
+                  />
+                );
+              if (msg.role === 'hint') return <HintMessage key={msg.id} text={msg.text} />;
+              return (
+                <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
+              );
+            })}
 
-          <div ref={bottomRef} />
-        </div>
-      </main>
+            {isProcessing && <TypingIndicator />}
+
+            {/* Inline action controls */}
+            {!completionData && !currentChallenge && pendingContinue && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={handleAutoContinue}
+                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)', boxShadow: '0 6px 20px rgba(139,92,246,0.4)' }}
+                >
+                  <Wand2 size={18} />
+                  Continue Story
+                </button>
+              </div>
+            )}
+            {!completionData && !currentChallenge && currentChoices.length > 0 && (
+              <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
+            )}
+            {!completionData && isLastStep && !currentChallenge && !pendingContinue && currentChoices.length === 0 && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={handleFinishAdventure}
+                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
+                >
+                  <Trophy size={18} />
+                  Finish Adventure!
+                </button>
+              </div>
+            )}
+
+            <div ref={bottomRef} />
+          </div>
+        </main>
+
+        {/* Challenge panel column */}
+        {currentChallenge && panelVisible && (
+          <aside
+            ref={challengePanelRef}
+            tabIndex={-1}
+            className="challenge-panel-enter md:w-80 flex-shrink-0 flex flex-col overflow-hidden border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
+            style={{
+              background: 'rgba(252,250,255,0.97)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+          >
+            <div className="flex-1 flex flex-col p-4 min-h-0">
+              <ChallengePanel
+                challenge={currentChallenge}
+                onAnswer={handleAnswer}
+                onHint={handleHint}
+                onHide={() => {
+                  setPanelVisible(false);
+                  setTimeout(() => showChallengePillRef.current?.focus(), 50);
+                }}
+                lastFeedback={lastAnswerFeedback}
+                lastSubmittedAnswer={lastSubmittedAnswer}
+              />
+            </div>
+          </aside>
+        )}
+      </div>
+
+      {/* ── Floating "Show Challenge" pill ── */}
+      {currentChallenge && !panelVisible && (
+        <button
+          ref={showChallengePillRef}
+          onClick={() => setPanelVisible(true)}
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 text-white text-sm font-bold rounded-full px-5 py-3 min-h-[44px] shadow-lg hover:scale-105 active:scale-95 transition-all"
+          style={{
+            background: 'linear-gradient(90deg, #7c3aed, #8b5cf6)',
+            boxShadow: '0 4px 20px rgba(139,92,246,0.45)',
+          }}
+        >
+          <Zap size={15} className="fill-yellow-300 text-yellow-300" />
+          Show Challenge
+        </button>
+      )}
 
       {/* ── Correct answer flash overlay ── */}
       {showCorrectFlash && (
@@ -583,65 +667,6 @@ export default function StoryChat() {
         </div>
       )}
 
-      {/* ── Interactive panel ── */}
-      {adventureStatus === 'in-progress' && !isProcessing && !completionData && (
-        <div
-          key={panelKey}
-          className="sticky bottom-0 z-[1]"
-          style={{
-            background: 'rgba(252,250,255,0.97)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderTop: '1px solid rgba(139,92,246,0.12)',
-            borderRadius: '24px 24px 0 0',
-            boxShadow: '0 -8px 32px rgba(139,92,246,0.10), 0 -2px 8px rgba(0,0,0,0.06)',
-            paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-            paddingLeft: 'max(16px, env(safe-area-inset-left))',
-            paddingRight: 'max(16px, env(safe-area-inset-right))',
-            paddingTop: '12px',
-            animation: 'sheet-slide-up 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both',
-          }}
-        >
-          <div className="max-w-2xl mx-auto">
-            {/* Drag handle */}
-            <div className="w-10 h-1 rounded-full bg-gray-200 mx-auto mb-3" aria-hidden="true" />
-            {currentChallenge ? (
-              <ChallengePanel
-                challenge={currentChallenge}
-                onAnswer={handleAnswer}
-                onHint={handleHint}
-                lastFeedback={lastAnswerFeedback}
-                lastSubmittedAnswer={lastSubmittedAnswer}
-              />
-            ) : pendingContinue ? (
-              <div className="flex justify-center py-2">
-                <button
-                  onClick={handleAutoContinue}
-                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)', boxShadow: '0 6px 20px rgba(139,92,246,0.4)' }}
-                >
-                  <Wand2 size={18} />
-                  Continue Story
-                </button>
-              </div>
-            ) : currentChoices.length > 0 ? (
-              <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
-            ) : isLastStep ? (
-              <div className="flex justify-center py-2">
-                <button
-                  onClick={handleFinishAdventure}
-                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
-                >
-                  <Trophy size={18} />
-                  Finish Adventure!
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      )}
-
       {/* ── Completion overlay ── */}
       {completionData && (
         <CompletionOverlay
@@ -662,12 +687,7 @@ function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: s
       {/* Cinematic full-bleed image panel */}
       {imageUrl && (
         <div
-          className="relative overflow-hidden rounded-2xl mb-3"
-          style={{
-            marginLeft: 'calc(-1rem - env(safe-area-inset-left, 0px))',
-            marginRight: 'calc(-1rem - env(safe-area-inset-right, 0px))',
-            height: 'clamp(220px, 56vw, 360px)',
-          }}
+          className="relative overflow-hidden rounded-2xl mb-3 max-w-2xl mx-auto aspect-video"
         >
           <img
             src={imageUrl}
@@ -682,23 +702,15 @@ function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: s
               background: 'linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.78) 100%)',
             }}
           />
-          {/* World badge */}
-          <span
-            className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
-            style={{ background: 'rgba(139,92,246,0.78)', backdropFilter: 'blur(8px)' }}
-          >
-            ✨ Wizzy's World
-          </span>
         </div>
       )}
 
       {/* Dialogue bubble */}
       <div className="flex items-start gap-3 max-w-[90%]">
         <div
-          className="wizzy-avatar flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md"
-          style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' }}
+          className="wizzy-avatar flex-shrink-0 w-14 h-14 rounded-full overflow-hidden shadow-md border-2 border-purple-wizzy/30"
         >
-          <Sparkles size={15} className="text-white" />
+          <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
         </div>
         <div
           className="rounded-2xl rounded-tl-sm p-4 min-w-0 flex-1"
@@ -730,7 +742,7 @@ function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: s
 function ChildMessage({ text, avatarUrl }: { text: string; avatarUrl?: string }) {
   return (
     <div className="child-message-enter flex items-start gap-3 max-w-[85%] ml-auto flex-row-reverse">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-wizzy overflow-hidden">
+      <div className="flex-shrink-0 w-14 h-14 rounded-full bg-purple-wizzy overflow-hidden border-2 border-purple-wizzy/30 shadow-sm">
         {avatarUrl ? (
           <img src={avatarUrl} alt="You" className="w-full h-full object-cover" />
         ) : (
@@ -889,6 +901,7 @@ interface ChallengePanelProps {
   challenge: ICurrentChallenge;
   onAnswer: (answer: string) => void;
   onHint: () => void;
+  onHide: () => void;
   lastFeedback: AnswerChallengeResponse | null;
   lastSubmittedAnswer: string | null;
 }
@@ -897,12 +910,13 @@ function ChallengePanel({
   challenge,
   onAnswer,
   onHint,
+  onHide,
   lastFeedback,
   lastSubmittedAnswer,
 }: ChallengePanelProps) {
   return (
     <div
-      className="rounded-3xl overflow-hidden"
+      className="flex-1 flex flex-col rounded-3xl overflow-hidden min-h-0"
       style={{
         background: 'linear-gradient(160deg, #faf5ff 0%, #f3e8ff 40%, #ede9fe 100%)',
         border: '2px solid rgba(139,92,246,0.22)',
@@ -919,9 +933,9 @@ function ChallengePanel({
         }}
       />
 
-      <div className="p-5">
-        {/* Challenge badge */}
-        <div className="flex items-center justify-center mb-4">
+      <div className="flex-1 flex flex-col p-5 min-h-0">
+        {/* Challenge badge + hide button */}
+        <div className="flex items-center justify-between mb-4">
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold text-white"
             style={{
@@ -933,13 +947,20 @@ function ChallengePanel({
             Math Challenge!
             <Zap size={14} className="text-yellow-300 fill-yellow-300" />
           </div>
+          <button
+            onClick={onHide}
+            aria-label="Hide challenge panel"
+            className="flex items-center gap-1 text-xs font-semibold text-purple-400 hover:text-purple-600 hover:bg-purple-wizzy/10 transition-colors px-3 py-2 rounded-lg"
+          >
+            Hide ✕
+          </button>
         </div>
 
         <p className="text-xl font-extrabold text-center mb-5 text-gray-800 tracking-tight">
           {challenge.problemText}
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 flex-1 content-start">
           {challenge.options.map((option, i) => {
             const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
             const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
@@ -972,22 +993,24 @@ function ChallengePanel({
               >
                 {/* Sparkle shimmer on hover */}
                 <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
-                {/* Letter badge */}
-                <div
-                  className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
-                  style={{
-                    background: wasWrong
-                      ? '#ef4444'
-                      : isRevealed
-                      ? '#10b981'
-                      : '#8b5cf6',
-                  }}
-                >
-                  {shape.label}
+                <div className="flex items-center gap-3 px-3 py-3">
+                  {/* Letter badge */}
+                  <div
+                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                    style={{
+                      background: wasWrong
+                        ? '#ef4444'
+                        : isRevealed
+                        ? '#10b981'
+                        : '#8b5cf6',
+                    }}
+                  >
+                    {shape.label}
+                  </div>
+                  <span className="font-bold text-gray-800 text-sm text-left flex-1">
+                    {option}
+                  </span>
                 </div>
-                <span className="block pt-3 pb-1.5 px-2 text-center font-bold text-gray-800 text-sm">
-                  {option}
-                </span>
               </button>
             );
           })}
@@ -1144,7 +1167,7 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-6">
       <div
-        className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-5 overflow-hidden"
+        className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-5 overflow-y-auto overflow-x-hidden max-h-[88vh] scrollbar-hide"
         style={{ animation: 'pop-in 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
       >
         {/* Confetti burst from bottom */}
