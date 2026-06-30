@@ -11,7 +11,8 @@ RUN npm ci
 COPY . .
 COPY .env.client .
 
-RUN set -a && \
+RUN sed -i 's/\r//' .env.client && \
+    set -a && \
     . ./.env.client && \
     set +a && \
     npm run build --workspace=shared/types && \
