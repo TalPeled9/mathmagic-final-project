@@ -90,7 +90,10 @@ export interface AnswerChallengeResponse {
 export interface HintResponse {
   hintText: string; // Wizzy's hint message
   hintLevel: number; // current hint level (0–3)
-  subQuestion?: string; // optional scaffolded sub-question
+  subQuestion: string; // scaffolded sub-question — always present
+  subQuestionOptions: string[]; // exactly 4 answer options for subQuestion
+  subQuestionAnswer: string; // correct option for subQuestion (checked client-side)
+  encouragement: string; // shown when the child answers subQuestion correctly
 }
 
 export interface CompleteAdventureResponse {
