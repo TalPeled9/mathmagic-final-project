@@ -212,13 +212,11 @@ export function mapEndStoryResponse(
 }
 
 export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number): HintResponse {
+  const sq = llmResponse.scaffoldingQuestion;
   return {
     hintText: llmResponse.hintText,
     hintLevel,
-    subQuestion: llmResponse.scaffoldingQuestion,
-    subQuestionOptions: llmResponse.answerOptions,
-    subQuestionAnswer: llmResponse.correctAnswer,
-    encouragement: llmResponse.encouragement,
+    subQuestion: sq && sq !== 'null' ? sq : undefined,
   };
 }
 
