@@ -73,7 +73,7 @@ const mathQuestionSchema: GeminiResponseSchema = {
 
 const hintSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
-  required: ['hintText', 'encouragement', 'answerOptions', 'correctAnswer'],
+  required: ['hintText', 'scaffoldingQuestion', 'encouragement', 'answerOptions', 'correctAnswer'],
   properties: {
     hintText: { type: JSON_SCHEMA.STRING },
     scaffoldingQuestion: { type: JSON_SCHEMA.STRING },
@@ -162,17 +162,14 @@ function fallbackByMode<K extends StoryMode>(
     }
 
     case 'hint': {
-      const hintCtx = ctx as LLMHintContext;
       const response = {
         stepType: 'hint',
         isLastStep: false,
         hintText: `Try breaking the problem into smaller steps and solve one part at a time.`,
+        scaffoldingQuestion: 'What do you get when you add 2 and then 3?',
         encouragement: `You're doing great, ${ctx.childName}. Keep going!`,
         answerOptions: ['4', '5', '6', '7'],
         correctAnswer: '5',
-        ...(hintCtx.hintLevel >= 3
-          ? { scaffoldingQuestion: 'What do you get when you add 2 and then 3?' }
-          : {}),
       };
       return response as unknown as LLMModeResponseMap[K];
     }
