@@ -14,17 +14,12 @@ ${ctx.previousProblemTexts.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
   const expressionBlock = ctx.requireExpression
     ? `
 MATH EXPRESSION RULES:
-- Also return mathExpression: the symbolic form of the exact problem
-  described in the narrative.
+- Also return mathExpression: the symbolic form of the exact problem described in the narrative.
 - Use the exact numbers that appear in adventureNarrative.
-- Use "?" for the unknown value (e.g. "3 + 5 = ?", "15 − ? = 7",
-  "6 + ? = 14").
-- Use only digits, operator symbols (+ − × ÷ =), fraction/decimal
-  notation, and "?" — no words.
-- The expression must NOT reveal the answer — the unknown is always
-  "?".
-- The expression and problemText must describe the SAME problem:
-  replacing "?" with correctAnswer makes the expression true.
+- Use "?" for the unknown value (e.g. "3 + 5 = ?", "15 − ? = 7", "6 + ? = 14").
+- Use only digits, operator symbols (+ − × ÷ =), fraction/decimal notation, and "?" — no words.
+- The expression must NOT reveal the answer — the unknown is always "?".
+- The expression and problemText must describe the SAME problem: replacing "?" with correctAnswer makes the expression true.
 `
     : '';
 
