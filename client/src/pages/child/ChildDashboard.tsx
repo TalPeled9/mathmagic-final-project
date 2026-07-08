@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Star, Zap, LogOut, ChevronRight, BookOpen, Trophy, Wand2 } from 'lucide-react';
+import { Star, Zap, LogOut, ChevronRight, BookOpen, Trophy, Wand2 } from 'lucide-react';
 import { SkeletonCard } from '@/components/loaders';
 import MagicBackground from '@/components/MagicBackground';
 import defaultAvatar from '@/assets/default_avatar.png';
+import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
 import {
@@ -191,8 +192,7 @@ export default function ChildDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="text-gold-magic" size={22} />
-            <span className="text-lg font-bold text-purple-wizzy">MathMagic</span>
+            <img src={mathmagicLogo} alt="MathMagic" className="h-9 w-auto" />
           </Link>
           <button
             onClick={handleSwitchProfile}
