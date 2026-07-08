@@ -130,6 +130,7 @@ export function buildAdventureState(
     conversationTurns,
     previousHints: adventure.currentHints ?? [],
     lastProblemText: adventure.currentChallenge?.problemText,
+    lastMathExpression: adventure.currentChallenge?.mathExpression,
     correctAnswer: adventure.currentChallenge?.correctAnswer,
     lastChildAnswer,
     attemptCount: adventure.currentChallenge?.attemptsCount ?? 0,
@@ -181,6 +182,7 @@ export function mapMathQuestionResponse(
   }
   const challenge: ICurrentChallenge = {
     problemText: llmResponse.problemText,
+    mathExpression: llmResponse.mathExpression,
     options: rawOptions as [string, string, string, string],
     hintLevel: 0,
     attemptsCount: 0,
