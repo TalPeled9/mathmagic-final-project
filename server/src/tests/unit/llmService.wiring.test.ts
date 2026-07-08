@@ -55,7 +55,8 @@ describe('llmService provider wiring', () => {
     expect(typeof result.wizzyDialogue).toBe('string');
     expect(result.wizzyDialogue.length).toBeGreaterThan(0);
     expect(Array.isArray(result.storyChoices)).toBe(true);
-    expect(result.storyChoices).toHaveLength(3);
+    // The static fallback (and the Gemini schema: minItems/maxItems 2) provides exactly 2 choices
+    expect(result.storyChoices).toHaveLength(2);
   });
 });
 
