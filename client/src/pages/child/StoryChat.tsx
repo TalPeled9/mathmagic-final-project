@@ -1112,74 +1112,80 @@ function ChallengePanel({
           </button>
         </div>
 
-        <p
-          className={`text-xl font-extrabold text-center text-gray-800 tracking-tight ${
-            challenge.mathExpression ? 'mb-3' : 'mb-5'
-          }`}
-        >
-          {challenge.problemText}
-        </p>
+        {/* Scrollable middle region (scrollbar hidden) — question, expression, and options
+            scroll together so the hint button below always stays visible */}
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+          <p
+            className={`text-xl font-extrabold text-center text-gray-800 tracking-tight ${
+              challenge.mathExpression ? 'mb-3' : 'mb-5'
+            }`}
+          >
+            {challenge.problemText}
+          </p>
 
-        {challenge.mathExpression && (
-          <div className="flex justify-center mb-5">
-            <div
-              className="px-6 py-2.5 rounded-2xl text-3xl font-black text-purple-800 tracking-widest"
-              style={{
-                background: 'white',
-                border: '2px solid rgba(139,92,246,0.25)',
-                boxShadow: '0 2px 10px rgba(139,92,246,0.14)',
-              }}
-            >
-              {challenge.mathExpression}
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-3 flex-1 content-start">
-          {challenge.options.map((option, i) => {
-            const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
-            const wasWrong =
-              lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
-            const isRevealed = lastFeedback?.correctAnswer === option;
-
-            return (
-              <button
-                key={i}
-                onClick={() => onAnswer(option)}
-                disabled={Boolean(lastFeedback?.correct)}
-                className={`relative group rounded-2xl overflow-hidden transition-all active:scale-[0.96] ${
-                  wasWrong
-                    ? 'animate-shake'
-                    : 'hover:scale-[1.03] hover:shadow-md hover:border-purple-wizzy/40'
-                }`}
+          {challenge.mathExpression && (
+            <div className="flex justify-center mb-4">
+              <div
+                className="px-5 py-1.5 rounded-2xl text-2xl font-black text-purple-800 tracking-widest"
                 style={{
-                  minHeight: 56,
-                  background: wasWrong ? '#fef2f2' : isRevealed ? '#f0fdf4' : 'white',
-                  border: wasWrong
-                    ? '2px solid #fca5a5'
-                    : isRevealed
-                      ? '2px solid #6ee7b7'
-                      : '2px solid rgba(139,92,246,0.15)',
-                  boxShadow: wasWrong ? 'none' : '0 2px 6px rgba(139,92,246,0.08)',
+                  background: 'white',
+                  border: '2px solid rgba(139,92,246,0.25)',
+                  boxShadow: '0 2px 10px rgba(139,92,246,0.14)',
                 }}
               >
-                {/* Sparkle shimmer on hover */}
-                <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
-                <div className="flex items-center gap-3 px-3 py-3">
-                  {/* Letter badge */}
-                  <div
-                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
-                    style={{
-                      background: wasWrong ? '#ef4444' : isRevealed ? '#10b981' : '#8b5cf6',
-                    }}
-                  >
-                    {shape.label}
+                {challenge.mathExpression}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 content-start">
+            {challenge.options.map((option, i) => {
+              const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
+              const wasWrong =
+                lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
+              const isRevealed = lastFeedback?.correctAnswer === option;
+
+              return (
+                <button
+                  key={i}
+                  onClick={() => onAnswer(option)}
+                  disabled={Boolean(lastFeedback?.correct)}
+                  className={`relative group rounded-2xl overflow-hidden transition-all active:scale-[0.96] ${
+                    wasWrong
+                      ? 'animate-shake'
+                      : 'hover:scale-[1.03] hover:shadow-md hover:border-purple-wizzy/40'
+                  }`}
+                  style={{
+                    minHeight: 56,
+                    background: wasWrong ? '#fef2f2' : isRevealed ? '#f0fdf4' : 'white',
+                    border: wasWrong
+                      ? '2px solid #fca5a5'
+                      : isRevealed
+                        ? '2px solid #6ee7b7'
+                        : '2px solid rgba(139,92,246,0.15)',
+                    boxShadow: wasWrong ? 'none' : '0 2px 6px rgba(139,92,246,0.08)',
+                  }}
+                >
+                  {/* Sparkle shimmer on hover */}
+                  <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    {/* Letter badge */}
+                    <div
+                      className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                      style={{
+                        background: wasWrong ? '#ef4444' : isRevealed ? '#10b981' : '#8b5cf6',
+                      }}
+                    >
+                      {shape.label}
+                    </div>
+                    <span className="font-bold text-gray-800 text-sm text-left flex-1">
+                      {option}
+                    </span>
                   </div>
-                  <span className="font-bold text-gray-800 text-sm text-left flex-1">{option}</span>
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Retry / revealed answer prompt */}
