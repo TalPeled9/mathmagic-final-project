@@ -122,3 +122,49 @@ describe('buildMathQuestionContext — previousProblemTexts', () => {
     expect(ctx.previousProblemTexts).toEqual([]);
   });
 });
+
+describe('buildMathQuestionContext — requireExpression', () => {
+  it('is true when the topic flags the current difficulty', () => {
+    const ctx = buildMathQuestionContext({
+      ...baseState,
+      mathTopic: 'g1_addition',
+      currentDifficulty: 'easy',
+    });
+    expect(ctx.requireExpression).toBe(true);
+  });
+
+  it('is false when the topic does not flag the current difficulty', () => {
+    const ctx = buildMathQuestionContext({
+      ...baseState,
+      mathTopic: 'g2_addition_subtraction',
+      currentDifficulty: 'hard',
+    });
+    expect(ctx.requireExpression).toBe(false);
+  });
+
+  it('is false for a topic without expressionFor', () => {
+    const ctx = buildMathQuestionContext({
+      ...baseState,
+      mathTopic: 'g1_2d_shapes',
+      currentDifficulty: 'easy',
+    });
+    expect(ctx.requireExpression).toBe(false);
+  });
+
+  it('is false for an unknown topic', () => {
+    const ctx = buildMathQuestionContext({ ...baseState, mathTopic: 'nonexistent-topic' });
+    expect(ctx.requireExpression).toBe(false);
+  });
+});
+
+describe('buildHintContext — mathExpression', () => {
+  it('passes lastMathExpression through', () => {
+    const ctx = buildHintContext({ ...baseState, lastMathExpression: '2 + 3 = ?' });
+    expect(ctx.mathExpression).toBe('2 + 3 = ?');
+  });
+
+  it('is undefined when state has no lastMathExpression', () => {
+    const ctx = buildHintContext(baseState);
+    expect(ctx.mathExpression).toBeUndefined();
+  });
+});

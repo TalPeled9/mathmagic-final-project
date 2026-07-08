@@ -86,6 +86,7 @@ export function buildStoryStepContext(state: AdventureState): LLMStoryPromptCont
 export function buildMathQuestionContext(state: AdventureState): LLMMathQuestionContext {
   const topic = getCurriculumTopicById(state.mathTopic);
   const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
+  const requireExpression = topic?.expressionFor?.includes(state.currentDifficulty) ?? false;
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
@@ -95,6 +96,7 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     selectedChoice: state.selectedChoices[state.selectedChoices.length - 1] || 'adventure begins',
     currentDifficulty: state.currentDifficulty,
     difficultyDescription,
+    requireExpression,
     previousProblemTexts: state.previousProblemTexts ?? [],
   };
 }
@@ -114,6 +116,7 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
     storySummary: buildStorySummary(state),
     conversationTranscript: buildConversationTranscript(state.conversationTurns),
     problemText: state.lastProblemText || '',
+    mathExpression: state.lastMathExpression,
     childAnswer: state.lastChildAnswer || '',
     hintLevel: state.hintLevel,
     previousHints: state.previousHints ?? [],
