@@ -362,7 +362,7 @@ export default function ChildDashboard() {
         </div>
 
         {/* ── Wide-screen content grid: stats/badges/resume left, library right ── */}
-        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-5 lg:items-stretch">
           <div className="flex flex-col gap-5 lg:col-span-1">
             {/* ── Stats Strip ── */}
             <div className="grid grid-cols-3 gap-3">
@@ -542,12 +542,15 @@ export default function ChildDashboard() {
             )}
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 lg:h-full">
             {/* ── Adventure Library ── */}
             <div
-              className="rounded-2xl p-5"
+              className="rounded-2xl p-5 lg:h-full lg:flex lg:flex-col"
               style={{
-                background: 'rgba(255,255,255,0.75)',
+                background:
+                  !isLoadingAdventures && completedAdventures.length === 0
+                    ? 'linear-gradient(135deg, rgba(139,92,246,0.10), rgba(245,158,11,0.14))'
+                    : 'rgba(255,255,255,0.75)',
                 border: '1px solid rgba(139,92,246,0.1)',
                 backdropFilter: 'blur(8px)',
               }}
@@ -563,7 +566,10 @@ export default function ChildDashboard() {
                   ))}
                 </div>
               ) : completedAdventures.length === 0 ? (
-                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+                <div
+                  className="flex gap-3 overflow-x-auto pb-2 lg:flex-1 lg:items-center lg:justify-center"
+                  style={{ scrollbarWidth: 'none' }}
+                >
                   <div
                     className="shrink-0 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 text-center px-3"
                     style={{ width: 140, height: 160 }}
