@@ -71,6 +71,20 @@ const mathQuestionSchema: GeminiResponseSchema = {
   },
 };
 
+export function buildMathQuestionSchema(requireExpression: boolean): GeminiResponseSchema {
+  if (!requireExpression) return mathQuestionSchema;
+  const required = (mathQuestionSchema.required as string[] | undefined) ?? [];
+  const properties = (mathQuestionSchema.properties as Record<string, unknown> | undefined) ?? {};
+  return {
+    ...mathQuestionSchema,
+    required: [...required, 'mathExpression'],
+    properties: {
+      ...properties,
+      mathExpression: { type: JSON_SCHEMA.STRING },
+    },
+  };
+}
+
 const hintSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
   required: ['hintText', 'scaffoldingQuestion', 'encouragement', 'answerOptions', 'correctAnswer'],
@@ -149,10 +163,12 @@ function fallbackByMode<K extends StoryMode>(
     }
 
     case 'math_question': {
+      const requireExpression = Boolean((ctx as LLMMathQuestionContext).requireExpression);
       const response = {
         adventureNarrative: `As ${ctx.childName} continues the journey, Wizzy points to a glowing puzzle stone on the path. "There are 2 bright stars on one side and 3 on the other — we need to count them all to unlock the way forward!" Wizzy exclaims.`,
         wizzyDialogue: `You've got this, ${ctx.childName}! Let's solve it together.`,
         problemText: `What is 2 + 3?`,
+        ...(requireExpression ? { mathExpression: '2 + 3 = ?' } : {}),
         answerOptions: ['4', '5', '6', '7'],
         correctAnswer: '5',
         imageDescription:
@@ -268,10 +284,15 @@ class LLMService {
     console.log(`[LLM] PROMPT:\n${prompt}`);
     console.log('='.repeat(60));
 
+    const schema =
+      mode === 'math_question'
+        ? buildMathQuestionSchema(Boolean((ctx as LLMMathQuestionContext).requireExpression))
+        : definition.schema;
+
     let response: LLMModeResponseMap[K];
     try {
       response = await this.client.generateJson<LLMModeResponseMap[K]>({
-        schema: definition.schema,
+        schema,
         prompt,
         temperature: mode === 'hint' ? 0.4 : 0.8,
         maxOutputTokens: 2048,

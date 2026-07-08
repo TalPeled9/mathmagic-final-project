@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { GeminiJsonClient } from '../../services/ai/geminiClient';
-import { llmService } from '../../services/ai/llmService';
+import { llmService, buildMathQuestionSchema } from '../../services/ai/llmService';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {
@@ -71,5 +71,49 @@ describe('llmService hint fallback', () => {
 
     expect(typeof result.scaffoldingQuestion).toBe('string');
     expect(result.scaffoldingQuestion.length).toBeGreaterThan(0);
+  });
+});
+
+describe('buildMathQuestionSchema', () => {
+  it('requires mathExpression when requireExpression is true', () => {
+    const schema = buildMathQuestionSchema(true);
+    expect(schema.properties).toHaveProperty('mathExpression');
+    expect(schema.required).toContain('mathExpression');
+  });
+
+  it('omits mathExpression entirely when requireExpression is false', () => {
+    const schema = buildMathQuestionSchema(false);
+    expect(schema.properties).not.toHaveProperty('mathExpression');
+    expect(schema.required).not.toContain('mathExpression');
+  });
+});
+
+describe('llmService math_question fallback', () => {
+  it('includes mathExpression in the fallback for a flagged topic+difficulty', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g1_addition',
+      currentDifficulty: 'easy',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+    expect(result.mathExpression).toBe('2 + 3 = ?');
+  });
+
+  it('omits mathExpression in the fallback for an unflagged topic', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g1_2d_shapes',
+      currentDifficulty: 'easy',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+    expect(result.mathExpression).toBeUndefined();
   });
 });
