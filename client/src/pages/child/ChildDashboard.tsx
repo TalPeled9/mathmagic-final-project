@@ -420,7 +420,7 @@ export default function ChildDashboard() {
               </h2>
 
               {activeChild.badges.length > 0 ? (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-3 lg:grid-cols-2">
                   {activeChild.badges.map((badge, i) => (
                     <div
                       key={badge.badgeType}
@@ -441,7 +441,7 @@ export default function ChildDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-3 lg:grid-cols-2">
                   {PLACEHOLDER_BADGES.map(({ type, label, hint }) => (
                     <div
                       key={type}
