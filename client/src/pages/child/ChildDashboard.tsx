@@ -578,7 +578,7 @@ export default function ChildDashboard() {
                 <>
                   <style>{`.adventure-library::-webkit-scrollbar{display:none}`}</style>
                   <div
-                    className="adventure-library flex gap-3 overflow-x-auto py-3 px-1"
+                    className="adventure-library flex gap-3 overflow-x-auto py-3 px-1 lg:flex-wrap lg:overflow-x-visible"
                     style={{ scrollbarWidth: 'none' }}
                   >
                     {completedAdventures.map((adventure) => (
