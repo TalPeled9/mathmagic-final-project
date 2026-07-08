@@ -11,6 +11,23 @@ ${ctx.previousProblemTexts.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
 `
       : '';
 
+  const expressionBlock = ctx.requireExpression
+    ? `
+MATH EXPRESSION RULES:
+- Also return mathExpression: the symbolic form of the exact problem
+  described in the narrative.
+- Use the exact numbers that appear in adventureNarrative.
+- Use "?" for the unknown value (e.g. "3 + 5 = ?", "15 − ? = 7",
+  "6 + ? = 14").
+- Use only digits, operator symbols (+ − × ÷ =), fraction/decimal
+  notation, and "?" — no words.
+- The expression must NOT reveal the answer — the unknown is always
+  "?".
+- The expression and problemText must describe the SAME problem:
+  replacing "?" with correctAnswer makes the expression true.
+`
+    : '';
+
   return `Generate the next story segment that includes exactly one grade-appropriate math question, woven NATURALLY into the narrative.
 
 CHILD CONTEXT:
@@ -35,8 +52,7 @@ DIFFICULTY RULES:
 - Wrong answer options must reflect realistic student mistakes for this level:
   off-by-one errors, wrong operation, misplaced digit, forgetting order of operations.
 - Do not make the problem easier or harder than the described level.
-${uniquenessBlock}
-MATH RULES:
+${uniquenessBlock}${expressionBlock}MATH RULES:
 - Include exactly one clear, solvable math problem embedded within adventureNarrative.
 - problemText is a short, direct question referencing the story situation (may echo story elements).
 - Provide exactly 4 answer options in answerOptions.
