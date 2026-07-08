@@ -644,33 +644,28 @@ export default function ChildDashboard() {
           className="relative rounded-3xl p-6 overflow-hidden flex flex-col items-center text-center"
           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}
         >
-          {/* Decorative glowing gold stars */}
-          {[
-            { top: 3, right: 6, size: 'lg', symbol: '✦' },
-            { top: 8, right: 16, size: 'sm', symbol: '★' },
-            { bottom: 4, right: 10, size: 'xl', symbol: '✨' },
-            { bottom: 6, right: 24, size: 'base', symbol: '✧' },
-            { top: 3, left: 6, size: 'lg', symbol: '✧' },
-            { top: 8, left: 16, size: 'sm', symbol: '✦' },
-            { bottom: 4, left: 10, size: 'xl', symbol: '★' },
-            { bottom: 6, left: 24, size: 'base', symbol: '✨' },
-          ].map((star, i) => (
-            <span
-              key={i}
-              className={`absolute select-none pointer-events-none text-${star.size}`}
-              style={{
-                top: star.top !== undefined ? `${star.top}px` : undefined,
-                bottom: star.bottom !== undefined ? `${star.bottom}px` : undefined,
-                left: star.left !== undefined ? `${star.left}px` : undefined,
-                right: star.right !== undefined ? `${star.right}px` : undefined,
-                color: '#fde68a',
-                textShadow: '0 0 6px rgba(251,191,36,0.9), 0 0 14px rgba(245,158,11,0.7)',
-                animation: `sparkle ${2 + (i % 3)}s ease-in-out ${i * 0.3}s infinite`,
-              }}
-            >
-              {star.symbol}
-            </span>
-          ))}
+          {/* Decorative glowing gold stars scattered across the whole card */}
+          {Array.from({ length: 18 }, (_, i) => {
+            const left = (i * 137.508 + 4) % 96;
+            const top = (i * 3 * 137.508 + 6) % 90;
+            const size = ['text-sm', 'text-base', 'text-lg', 'text-xl'][i % 4];
+            const symbol = ['★', '✦', '✧', '✨'][i % 4];
+            return (
+              <span
+                key={i}
+                className={`absolute select-none pointer-events-none ${size}`}
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                  color: '#fde68a',
+                  textShadow: '0 0 6px rgba(251,191,36,0.9), 0 0 14px rgba(245,158,11,0.7)',
+                  animation: `sparkle ${2 + (i % 3)}s ease-in-out ${(i * 0.3) % 3}s infinite`,
+                }}
+              >
+                {symbol}
+              </span>
+            );
+          })}
           <p className="text-white/70 text-sm mb-1">Ready for a new quest?</p>
           <h3 className="text-white text-xl font-black mb-4">Start New Adventure</h3>
           <button
