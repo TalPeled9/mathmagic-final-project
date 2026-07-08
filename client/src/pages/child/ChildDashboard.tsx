@@ -641,7 +641,7 @@ export default function ChildDashboard() {
 
         {/* ── Start New Adventure CTA ── */}
         <div
-          className="relative rounded-3xl p-6 overflow-hidden"
+          className="relative rounded-3xl p-6 overflow-hidden flex flex-col items-center text-center"
           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}
         >
           {/* Decorative sparkles */}
@@ -669,7 +669,10 @@ export default function ChildDashboard() {
           <button
             onClick={() => navigate('/child/adventure')}
             className="flex items-center gap-2 text-purple-wizzy font-bold rounded-xl px-6 py-3 transition-all hover:scale-105 hover:shadow-lg active:scale-95"
-            style={{ background: 'rgba(255,255,255,0.95)' }}
+            style={{
+              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+              boxShadow: '0 4px 14px rgba(245,158,11,0.45)',
+            }}
           >
             <Wand2 size={18} />
             Choose Your Quest
