@@ -187,7 +187,7 @@ export default function ChildDashboard() {
     >
       <MagicBackground symbols="mixed" count={20} opacity={0.08} />
 
-      <div className="relative z-10 w-full max-w-2xl flex flex-col gap-5">
+      <div className="relative z-10 w-full max-w-2xl lg:max-w-6xl flex flex-col gap-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -361,262 +361,276 @@ export default function ChildDashboard() {
           </div>
         </div>
 
-        {/* ── Stats Strip ── */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            {
-              label: 'Total XP',
-              value: activeChild.totalXP.toLocaleString(),
-              icon: '⚡',
-              gradient: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(109,40,217,0.08))',
-              border: 'rgba(139,92,246,0.2)',
-              color: '#8b5cf6',
-            },
-            {
-              label: 'Stars',
-              value: activeChild.totalStars.toString(),
-              icon: '⭐',
-              gradient: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,191,36,0.08))',
-              border: 'rgba(245,158,11,0.25)',
-              color: '#d97706',
-            },
-            {
-              label: 'Adventures',
-              value: isLoadingAdventures ? '…' : completedCount.toString(),
-              icon: '📖',
-              gradient: 'linear-gradient(135deg, rgba(52,211,153,0.15), rgba(16,185,129,0.08))',
-              border: 'rgba(52,211,153,0.25)',
-              color: '#059669',
-            },
-          ].map(({ label, value, icon, gradient, border, color }) => (
-            <div
-              key={label}
-              className="flex flex-col items-center justify-center py-4 px-2 rounded-2xl text-center"
-              style={{ background: gradient, border: `1px solid ${border}` }}
-            >
-              <span className="text-2xl mb-1">{icon}</span>
-              <span className="text-xl font-black animate-stat" style={{ color }}>
-                {value}
-              </span>
-              <span className="text-xs text-gray-500 font-medium mt-0.5">{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Badges ── */}
-        <div
-          className="rounded-2xl p-5"
-          style={{
-            background: 'rgba(255,255,255,0.75)',
-            border: '1px solid rgba(139,92,246,0.1)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span>🏅</span> Badges
-          </h2>
-
-          {activeChild.badges.length > 0 ? (
+        {/* ── Wide-screen content grid: stats/badges/resume left, library right ── */}
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+          <div className="flex flex-col gap-5 lg:col-span-1">
+            {/* ── Stats Strip ── */}
             <div className="grid grid-cols-3 gap-3">
-              {activeChild.badges.map((badge, i) => (
+              {[
+                {
+                  label: 'Total XP',
+                  value: activeChild.totalXP.toLocaleString(),
+                  icon: '⚡',
+                  gradient: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(109,40,217,0.08))',
+                  border: 'rgba(139,92,246,0.2)',
+                  color: '#8b5cf6',
+                },
+                {
+                  label: 'Stars',
+                  value: activeChild.totalStars.toString(),
+                  icon: '⭐',
+                  gradient: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,191,36,0.08))',
+                  border: 'rgba(245,158,11,0.25)',
+                  color: '#d97706',
+                },
+                {
+                  label: 'Adventures',
+                  value: isLoadingAdventures ? '…' : completedCount.toString(),
+                  icon: '📖',
+                  gradient: 'linear-gradient(135deg, rgba(52,211,153,0.15), rgba(16,185,129,0.08))',
+                  border: 'rgba(52,211,153,0.25)',
+                  color: '#059669',
+                },
+              ].map(({ label, value, icon, gradient, border, color }) => (
                 <div
-                  key={badge.badgeType}
-                  className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center"
+                  key={label}
+                  className="flex flex-col items-center justify-center py-4 px-2 rounded-2xl text-center"
+                  style={{ background: gradient, border: `1px solid ${border}` }}
+                >
+                  <span className="text-2xl mb-1">{icon}</span>
+                  <span className="text-xl font-black animate-stat" style={{ color }}>
+                    {value}
+                  </span>
+                  <span className="text-xs text-gray-500 font-medium mt-0.5">{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Badges ── */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'rgba(255,255,255,0.75)',
+                border: '1px solid rgba(139,92,246,0.1)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <span>🏅</span> Badges
+              </h2>
+
+              {activeChild.badges.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {activeChild.badges.map((badge, i) => (
+                    <div
+                      key={badge.badgeType}
+                      className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center"
+                      style={{
+                        background:
+                          BADGE_COLORS[badge.badgeType] ??
+                          'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                        animation: `badge-pop 0.55s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms both`,
+                      }}
+                      title={badge.description}
+                    >
+                      <span className="text-3xl mb-2">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
+                      <span className="text-xs font-bold text-white text-center leading-tight">
+                        {badge.badgeName}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {PLACEHOLDER_BADGES.map(({ type, label, hint }) => (
+                    <div
+                      key={type}
+                      className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center border-2 border-dashed border-gray-200"
+                      title={hint}
+                    >
+                      <span className="text-3xl mb-2 opacity-30">{BADGE_EMOJIS[type] ?? '🏅'}</span>
+                      <span className="text-xs text-gray-300 font-medium text-center leading-tight">
+                        {label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── Resume card ── */}
+            {isLoadingAdventures && (
+              <div
+                className="rounded-2xl p-5"
+                style={{
+                  background: 'rgba(255,255,255,0.75)',
+                  border: '1px solid rgba(139,92,246,0.1)',
+                }}
+              >
+                <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">
+                  Continue Your Adventure
+                </h2>
+                <div className="flex flex-col gap-3">
+                  {[0, 1].map((i) => (
+                    <SkeletonCard key={i} kind="row" />
+                  ))}
+                </div>
+              </div>
+            )}
+            {!isLoadingAdventures && inProgressAdventure && (
+              <div
+                className="rounded-2xl p-5"
+                style={{
+                  background: 'rgba(255,255,255,0.75)',
+                  border: '1px solid rgba(139,92,246,0.15)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <span>🗺️</span> Continue Your Adventure
+                </h2>
+                <button
+                  onClick={() => navigate(`/child/story/${inProgressAdventure._id}`)}
+                  className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all group hover:scale-[1.01]"
                   style={{
                     background:
-                      BADGE_COLORS[badge.badgeType] ?? 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                    animation: `badge-pop 0.55s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms both`,
+                      'linear-gradient(135deg, rgba(139,92,246,0.07), rgba(109,40,217,0.04))',
+                    border: '2px solid rgba(139,92,246,0.2)',
                   }}
-                  title={badge.description}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor =
+                      'rgba(139,92,246,0.45)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor =
+                      'rgba(139,92,246,0.2)';
+                  }}
                 >
-                  <span className="text-3xl mb-2">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
-                  <span className="text-xs font-bold text-white text-center leading-tight">
-                    {badge.badgeName}
+                  <span className="text-4xl flex-shrink-0">
+                    {WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}
                   </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              {PLACEHOLDER_BADGES.map(({ type, label, hint }) => (
-                <div
-                  key={type}
-                  className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center border-2 border-dashed border-gray-200"
-                  title={hint}
-                >
-                  <span className="text-3xl mb-2 opacity-30">{BADGE_EMOJIS[type] ?? '🏅'}</span>
-                  <span className="text-xs text-gray-300 font-medium text-center leading-tight">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Resume card ── */}
-        {isLoadingAdventures && (
-          <div
-            className="rounded-2xl p-5"
-            style={{
-              background: 'rgba(255,255,255,0.75)',
-              border: '1px solid rgba(139,92,246,0.1)',
-            }}
-          >
-            <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3">
-              Continue Your Adventure
-            </h2>
-            <div className="flex flex-col gap-3">
-              {[0, 1].map((i) => (
-                <SkeletonCard key={i} kind="row" />
-              ))}
-            </div>
-          </div>
-        )}
-        {!isLoadingAdventures && inProgressAdventure && (
-          <div
-            className="rounded-2xl p-5"
-            style={{
-              background: 'rgba(255,255,255,0.75)',
-              border: '1px solid rgba(139,92,246,0.15)',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <span>🗺️</span> Continue Your Adventure
-            </h2>
-            <button
-              onClick={() => navigate(`/child/story/${inProgressAdventure._id}`)}
-              className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all group hover:scale-[1.01]"
-              style={{
-                background: 'linear-gradient(135deg, rgba(139,92,246,0.07), rgba(109,40,217,0.04))',
-                border: '2px solid rgba(139,92,246,0.2)',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.45)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,92,246,0.2)';
-              }}
-            >
-              <span className="text-4xl flex-shrink-0">
-                {WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                  {WORLD_NAMES[inProgressAdventure.storyWorld] ?? inProgressAdventure.storyWorld}
-                </p>
-                <p className="text-sm text-gray-400 mt-0.5">
-                  {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'}{' '}
-                  {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
-                  {' · '}Step {inProgressAdventure.currentStepIndex + 1} of{' '}
-                  {inProgressAdventure.totalSteps}
-                </p>
-                <div
-                  className="w-full h-1.5 rounded-full overflow-hidden mt-2"
-                  style={{ background: 'rgba(139,92,246,0.1)' }}
-                >
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${Math.round(((inProgressAdventure.currentStepIndex + 1) / inProgressAdventure.totalSteps) * 100)}%`,
-                      background: 'linear-gradient(90deg, #8b5cf6, #f59e0b)',
-                    }}
-                  />
-                </div>
-              </div>
-              <ChevronRight
-                size={20}
-                className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0"
-              />
-            </button>
-          </div>
-        )}
-
-        {/* ── Adventure Library ── */}
-        <div
-          className="rounded-2xl p-5"
-          style={{
-            background: 'rgba(255,255,255,0.75)',
-            border: '1px solid rgba(139,92,246,0.1)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span>📚</span> My Adventure Library
-          </h2>
-
-          {isLoadingAdventures ? (
-            <div className="flex flex-col gap-3">
-              {[0, 1, 2].map((i) => (
-                <SkeletonCard key={i} kind="row" />
-              ))}
-            </div>
-          ) : completedAdventures.length === 0 ? (
-            <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-              <div
-                className="shrink-0 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 text-center px-3"
-                style={{ width: 140, height: 160 }}
-              >
-                <span className="text-3xl opacity-40">🔮</span>
-                <p className="text-xs text-gray-300 font-medium leading-tight">
-                  Complete adventures to fill your library!
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <style>{`.adventure-library::-webkit-scrollbar{display:none}`}</style>
-              <div
-                className="adventure-library flex gap-3 overflow-x-auto py-3 px-1"
-                style={{ scrollbarWidth: 'none' }}
-              >
-                {completedAdventures.map((adventure) => (
-                  <div
-                    key={adventure._id}
-                    className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default select-none"
-                    style={{
-                      width: 140,
-                      height: 160,
-                      background:
-                        WORLD_GRADIENTS[adventure.storyWorld] ??
-                        'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.boxShadow =
-                        '0 8px 24px rgba(0,0,0,0.25)';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.boxShadow =
-                        '0 4px 12px rgba(0,0,0,0.15)';
-                    }}
-                  >
-                    <span className="text-4xl">{WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}</span>
-                    <p className="font-bold text-sm text-white truncate w-full text-center px-1">
-                      {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 group-hover:text-purple-wizzy transition-colors">
+                      {WORLD_NAMES[inProgressAdventure.storyWorld] ??
+                        inProgressAdventure.storyWorld}
                     </p>
-                    <p className="text-xs text-white/70 truncate w-full text-center">
-                      {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
-                      {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
+                    <p className="text-sm text-gray-400 mt-0.5">
+                      {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'}{' '}
+                      {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
+                      {' · '}Step {inProgressAdventure.currentStepIndex + 1} of{' '}
+                      {inProgressAdventure.totalSteps}
                     </p>
-                    <div className="flex items-center gap-0.5 mt-0.5">
-                      {[1, 2, 3].map((star) => (
-                        <Star
-                          key={star}
-                          size={14}
-                          className={
-                            star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/20'
-                          }
-                          fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
-                        />
-                      ))}
+                    <div
+                      className="w-full h-1.5 rounded-full overflow-hidden mt-2"
+                      style={{ background: 'rgba(139,92,246,0.1)' }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.round(((inProgressAdventure.currentStepIndex + 1) / inProgressAdventure.totalSteps) * 100)}%`,
+                          background: 'linear-gradient(90deg, #8b5cf6, #f59e0b)',
+                        }}
+                      />
                     </div>
                   </div>
-                ))}
+                  <ChevronRight
+                    size={20}
+                    className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0"
+                  />
+                </button>
               </div>
-            </>
-          )}
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            {/* ── Adventure Library ── */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'rgba(255,255,255,0.75)',
+                border: '1px solid rgba(139,92,246,0.1)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <span>📚</span> My Adventure Library
+              </h2>
+
+              {isLoadingAdventures ? (
+                <div className="flex flex-col gap-3">
+                  {[0, 1, 2].map((i) => (
+                    <SkeletonCard key={i} kind="row" />
+                  ))}
+                </div>
+              ) : completedAdventures.length === 0 ? (
+                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+                  <div
+                    className="shrink-0 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 text-center px-3"
+                    style={{ width: 140, height: 160 }}
+                  >
+                    <span className="text-3xl opacity-40">🔮</span>
+                    <p className="text-xs text-gray-300 font-medium leading-tight">
+                      Complete adventures to fill your library!
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <style>{`.adventure-library::-webkit-scrollbar{display:none}`}</style>
+                  <div
+                    className="adventure-library flex gap-3 overflow-x-auto py-3 px-1"
+                    style={{ scrollbarWidth: 'none' }}
+                  >
+                    {completedAdventures.map((adventure) => (
+                      <div
+                        key={adventure._id}
+                        className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default select-none"
+                        style={{
+                          width: 140,
+                          height: 160,
+                          background:
+                            WORLD_GRADIENTS[adventure.storyWorld] ??
+                            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.boxShadow =
+                            '0 8px 24px rgba(0,0,0,0.25)';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLDivElement).style.boxShadow =
+                            '0 4px 12px rgba(0,0,0,0.15)';
+                        }}
+                      >
+                        <span className="text-4xl">
+                          {WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}
+                        </span>
+                        <p className="font-bold text-sm text-white truncate w-full text-center px-1">
+                          {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+                        </p>
+                        <p className="text-xs text-white/70 truncate w-full text-center">
+                          {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
+                          {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
+                        </p>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          {[1, 2, 3].map((star) => (
+                            <Star
+                              key={star}
+                              size={14}
+                              className={
+                                star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/20'
+                              }
+                              fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── Start New Adventure CTA ── */}
