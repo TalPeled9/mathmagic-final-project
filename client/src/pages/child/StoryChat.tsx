@@ -1005,9 +1005,28 @@ function ChallengePanel({
           </button>
         </div>
 
-        <p className="text-xl font-extrabold text-center mb-5 text-gray-800 tracking-tight">
+        <p
+          className={`text-xl font-extrabold text-center text-gray-800 tracking-tight ${
+            challenge.mathExpression ? 'mb-3' : 'mb-5'
+          }`}
+        >
           {challenge.problemText}
         </p>
+
+        {challenge.mathExpression && (
+          <div className="flex justify-center mb-5">
+            <div
+              className="px-6 py-2.5 rounded-2xl text-3xl font-black text-purple-800 tracking-widest"
+              style={{
+                background: 'white',
+                border: '2px solid rgba(139,92,246,0.25)',
+                boxShadow: '0 2px 10px rgba(139,92,246,0.14)',
+              }}
+            >
+              {challenge.mathExpression}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3 flex-1 content-start">
           {challenge.options.map((option, i) => {
