@@ -49,7 +49,7 @@ export interface LLMMathQuestionResponse extends LLMBaseStoryResponse {
 
 export interface LLMHintResponse {
   hintText: string;
-  scaffoldingQuestion?: string;
+  scaffoldingQuestion: string;
   encouragement: string;
   answerOptions: string[];
   correctAnswer: string;

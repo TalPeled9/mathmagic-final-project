@@ -25,6 +25,7 @@ interface ChatMessage {
   text: string;
   imageUrl?: string;
   isCorrect?: boolean; // for system messages
+  hint?: HintResponse; // for hint messages — carries the mini-quiz data
 }
 
 // ── BADGE EMOJI MAP ───────────────────────────────────────────────────────────
@@ -366,11 +367,8 @@ export default function StoryChat() {
 
     try {
       const response: HintResponse = await adventureService.hint(adventureId);
-      const hintText = response.subQuestion
-        ? `${response.hintText}\n\n💭 ${response.subQuestion}`
-        : response.hintText;
-      addMessage({ role: 'hint', text: hintText });
-      stopAndSpeak(hintText);
+      addMessage({ role: 'hint', text: response.hintText, hint: response });
+      stopAndSpeak(response.hintText);
       setCurrentChallenge((prev) =>
         prev ? { ...prev, hintLevel: Math.min(prev.hintLevel + 1, 3) as 0 | 1 | 2 | 3 } : null
       );
@@ -546,7 +544,7 @@ export default function StoryChat() {
                     }
                   />
                 );
-              if (msg.role === 'hint') return <HintMessage key={msg.id} text={msg.text} />;
+              if (msg.role === 'hint' && msg.hint) return <HintMessage key={msg.id} hint={msg.hint} />;
               return (
                 <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
               );
@@ -775,14 +773,65 @@ function SystemMessage({ text, isCorrect }: { text: string; isCorrect: boolean }
   );
 }
 
-function HintMessage({ text }: { text: string }) {
+function HintMessage({ hint }: { hint: HintResponse }) {
+  const [wrongOption, setWrongOption] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  const handlePick = (option: string) => {
+    if (isCorrect) return;
+    if (option === hint.subQuestionAnswer) {
+      setIsCorrect(true);
+      setWrongOption(null);
+    } else {
+      setWrongOption(option);
+    }
+  };
+
   return (
     <div className="hint-message-enter flex items-start gap-3 max-w-[85%]">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gold-magic/10 flex items-center justify-center">
         <Lightbulb size={15} className="text-gold-magic" />
       </div>
-      <div className="bg-amber-50 rounded-2xl rounded-tl-sm p-4 border-l-4 border-gold-magic/50 min-w-0">
-        <p className="text-amber-800 leading-relaxed whitespace-pre-line break-words">{text}</p>
+      <div className="bg-amber-50 rounded-2xl rounded-tl-sm p-4 border-l-4 border-gold-magic/50 min-w-0 flex-1">
+        <p className="text-amber-800 leading-relaxed whitespace-pre-line break-words">{hint.hintText}</p>
+
+        <p className="text-amber-900 font-bold text-sm mt-3 mb-2">{hint.subQuestion}</p>
+
+        <div className="grid grid-cols-2 gap-2">
+          {hint.subQuestionOptions.map((option, i) => {
+            const wasWrong = wrongOption === option;
+            const isPicked = isCorrect && option === hint.subQuestionAnswer;
+            return (
+              <button
+                key={i}
+                onClick={() => handlePick(option)}
+                disabled={isCorrect}
+                className={`px-3 py-2 rounded-xl text-sm font-bold text-left transition-all active:scale-[0.96] ${
+                  wasWrong ? 'animate-shake' : 'hover:scale-[1.02]'
+                }`}
+                style={{
+                  background: wasWrong ? '#fef2f2' : isPicked ? '#f0fdf4' : 'white',
+                  border: wasWrong
+                    ? '2px solid #fca5a5'
+                    : isPicked
+                    ? '2px solid #6ee7b7'
+                    : '2px solid rgba(217,119,6,0.2)',
+                }}
+              >
+                {OPTION_SHAPES[i]?.label ?? ''}. {option}
+              </button>
+            );
+          })}
+        </div>
+
+        {isCorrect && (
+          <p
+            className="text-emerald-600 font-semibold text-sm mt-3"
+            style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
+          >
+            {hint.encouragement}
+          </p>
+        )}
       </div>
     </div>
   );

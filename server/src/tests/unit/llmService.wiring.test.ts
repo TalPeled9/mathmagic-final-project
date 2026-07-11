@@ -58,3 +58,17 @@ describe('llmService provider wiring', () => {
     expect(result.storyChoices).toHaveLength(3);
   });
 });
+
+describe('llmService hint fallback', () => {
+  it('includes scaffoldingQuestion even at hint level 1', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 1 };
+    const result = await llmService.generateHintFromState(state);
+
+    expect(typeof result.scaffoldingQuestion).toBe('string');
+    expect(result.scaffoldingQuestion.length).toBeGreaterThan(0);
+  });
+});
