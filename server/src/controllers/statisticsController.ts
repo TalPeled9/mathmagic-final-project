@@ -49,7 +49,9 @@ export async function getChildStatistics(req: Request, res: Response): Promise<v
       incorrectAnswers: t.incorrectAnswers,
       hintsUsed: t.hintsUsed,
       accuracyPercent:
-        t.totalChallenges > 0 ? Math.round((t.correctAnswers / t.totalChallenges) * 100) : 0,
+        (t.correctAnswers + t.incorrectAnswers) > 0
+          ? Math.round((t.correctAnswers / (t.correctAnswers + t.incorrectAnswers)) * 100)
+          : 0,
       masteryLevel: t.masteryLevel,
       currentDifficulty: t.currentDifficulty,
       lastPracticedAt: t.lastPracticedAt ?? null,

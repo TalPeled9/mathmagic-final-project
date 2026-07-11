@@ -536,6 +536,7 @@ export async function answerChallenge(req: Request, res: Response): Promise<void
   }
 
   appendToHistory(adventure, 'system', 'Incorrect, try again');
+  await updateTopicProgress(child._id.toString(), adventure.mathTopic, false, false, false);
   await adventure.save();
 
   res.json({ correct: false, feedback: 'Almost! Try again.' });
