@@ -32,7 +32,7 @@ export function getLevelForXP(totalXP: number): LevelInfo {
   }
 
   const isMaxLevel = level === LEVEL_THRESHOLDS.length;
-  const xpToNext = isMaxLevel ? null : LEVEL_THRESHOLDS[level] - totalXP;
+  const xpToNext = isMaxLevel ? null : LEVEL_THRESHOLDS[level] - LEVEL_THRESHOLDS[level - 1];
 
   return {
     level,

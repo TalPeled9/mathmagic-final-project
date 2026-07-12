@@ -83,14 +83,6 @@ export function ParentSettingsModal({ isOpen, onClose }: Props) {
                   label="Weekly Progress Report"
                   description="Weekly learning summary per child"
                 />
-                <PlaceholderToggle
-                  label="Milestone Alerts"
-                  description="Badges, level-ups and streaks"
-                />
-                <PlaceholderToggle
-                  label="Streak Reminders"
-                  description="Daily nudges to keep the streak going"
-                />
               </div>
             </div>
 

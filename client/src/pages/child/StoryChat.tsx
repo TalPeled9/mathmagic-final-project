@@ -522,66 +522,72 @@ export default function StoryChat() {
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
 
         {/* Chat column */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 min-w-0">
-          <div className={`${currentChallenge && panelVisible ? 'max-w-2xl' : 'max-w-4xl'} mx-auto space-y-4 pb-4`}>
-            {messages.map((msg) => {
-              if (msg.role === 'wizzy')
+        <main className="flex-1 min-w-0 min-h-0 flex justify-center overflow-hidden">
+          <div
+            className={`${
+              currentChallenge && panelVisible ? 'max-w-2xl' : 'max-w-4xl'
+            } w-full overflow-y-auto scrollbar-hide px-4 py-6`}
+          >
+            <div className="space-y-4 pb-4">
+              {messages.map((msg) => {
+                if (msg.role === 'wizzy')
+                  return (
+                    <WizzyMessage
+                      key={msg.id}
+                      text={msg.text}
+                      imageUrl={msg.imageUrl}
+                      onReplay={() => stopAndSpeak(msg.text)}
+                    />
+                  );
+                if (msg.role === 'child')
+                  return (
+                    <ChildMessage
+                      key={msg.id}
+                      text={msg.text}
+                      avatarUrl={
+                        activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar
+                      }
+                    />
+                  );
+                if (msg.role === 'hint' && msg.hint) return <HintMessage key={msg.id} hint={msg.hint} />;
                 return (
-                  <WizzyMessage
-                    key={msg.id}
-                    text={msg.text}
-                    imageUrl={msg.imageUrl}
-                    onReplay={() => stopAndSpeak(msg.text)}
-                  />
+                  <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
                 );
-              if (msg.role === 'child')
-                return (
-                  <ChildMessage
-                    key={msg.id}
-                    text={msg.text}
-                    avatarUrl={
-                      activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar
-                    }
-                  />
-                );
-              if (msg.role === 'hint' && msg.hint) return <HintMessage key={msg.id} hint={msg.hint} />;
-              return (
-                <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
-              );
-            })}
+              })}
 
-            {isProcessing && <TypingIndicator />}
+              {isProcessing && <TypingIndicator />}
 
-            {/* Inline action controls */}
-            {!completionData && !currentChallenge && pendingContinue && (
-              <div className="flex justify-center py-2">
-                <button
-                  onClick={handleAutoContinue}
-                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)', boxShadow: '0 6px 20px rgba(139,92,246,0.4)' }}
-                >
-                  <Wand2 size={18} />
-                  Continue Story
-                </button>
-              </div>
-            )}
-            {!completionData && !currentChallenge && currentChoices.length > 0 && (
-              <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
-            )}
-            {!completionData && isLastStep && !currentChallenge && !pendingContinue && currentChoices.length === 0 && (
-              <div className="flex justify-center py-2">
-                <button
-                  onClick={handleFinishAdventure}
-                  className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
-                >
-                  <Trophy size={18} />
-                  Finish Adventure!
-                </button>
-              </div>
-            )}
+              {/* Inline action controls */}
+              {!completionData && !currentChallenge && pendingContinue && (
+                <div className="flex justify-center py-2">
+                  <button
+                    onClick={handleAutoContinue}
+                    className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                    style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)', boxShadow: '0 6px 20px rgba(139,92,246,0.4)' }}
+                  >
+                    <Wand2 size={18} />
+                    Continue Story
+                  </button>
+                </div>
+              )}
+              {!completionData && !currentChallenge && currentChoices.length > 0 && (
+                <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
+              )}
+              {!completionData && isLastStep && !currentChallenge && !pendingContinue && currentChoices.length === 0 && (
+                <div className="flex justify-center py-2">
+                  <button
+                    onClick={handleFinishAdventure}
+                    className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                    style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
+                  >
+                    <Trophy size={18} />
+                    Finish Adventure!
+                  </button>
+                </div>
+              )}
 
-            <div ref={bottomRef} />
+              <div ref={bottomRef} />
+            </div>
           </div>
         </main>
 
@@ -590,7 +596,7 @@ export default function StoryChat() {
           <aside
             ref={challengePanelRef}
             tabIndex={-1}
-            className="challenge-panel-enter md:w-80 flex-shrink-0 flex flex-col overflow-hidden border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
+            className="challenge-panel-enter md:w-96 lg:w-[28rem] flex-shrink-0 flex flex-col overflow-hidden border-t-2 md:border-t-0 md:border-l-2 border-purple-wizzy/20 max-h-[50vh] md:max-h-none"
             style={{
               background: 'rgba(252,250,255,0.97)',
               backdropFilter: 'blur(16px)',

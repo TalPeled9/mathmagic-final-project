@@ -97,7 +97,9 @@ export async function getChildren(req: Request, res: Response): Promise<void> {
         totalChallenges: t.totalChallenges,
         correctAnswers: t.correctAnswers,
         accuracyPercent:
-          t.totalChallenges > 0 ? Math.round((t.correctAnswers / t.totalChallenges) * 100) : 0,
+          (t.correctAnswers + t.incorrectAnswers) > 0
+            ? Math.round((t.correctAnswers / (t.correctAnswers + t.incorrectAnswers)) * 100)
+            : 0,
       }));
     return toPublicChild(child, topTopics);
   });

@@ -1,17 +1,28 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Save, User, Shield, Volume2 } from 'lucide-react';
+import { Save, User, Volume2 } from 'lucide-react';
 import { GradientRing } from '@/components/loaders';
 import { childService } from '../../../services/childService';
+import { api } from '@/lib/api';
 import type { IChild, GradeLevel } from '@mathmagic/types';
 import defaultAvatar from '@/assets/default_avatar.png';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
 
 const NARRATOR_VOICES = [
-  { id: 'UQ15q3Vf9AQQ2owcMKQ0', label: 'David', description: 'Boy narrator (default)' },
-  { id: 'O4NKp88bb2JkAnrCbwQt', label: 'Lauren', description: 'Girl narrator' },
+  {
+    id: 'UQ15q3Vf9AQQ2owcMKQ0',
+    label: 'David',
+    description: 'Boy narrator (default)',
+    sample: "Hi there! I'm David, and I can't wait to take you on an adventure!",
+  },
+  {
+    id: 'O4NKp88bb2JkAnrCbwQt',
+    label: 'Lauren',
+    description: 'Girl narrator',
+    sample: "Hi there! I'm Lauren, and I can't wait to take you on an adventure!",
+  },
 ] as const;
 
 interface Props {
@@ -28,29 +39,6 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
   );
 }
 
-function PlaceholderToggle({ label, description }: { label: string; description?: string }) {
-  return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-gray-700">{label}</p>
-        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-300 bg-gray-100 px-2 py-0.5 rounded-full">
-          Coming soon
-        </span>
-        <button
-          disabled
-          className="w-10 h-5 bg-gray-100 rounded-full relative cursor-not-allowed opacity-50"
-          aria-label={`Toggle ${label}`}
-        >
-          <span className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function SettingsTab({ child, onChildUpdate }: Props) {
   const [name, setName] = useState(child.name);
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(child.gradeLevel);
@@ -58,8 +46,27 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
     child.narratorVoice ?? 'UQ15q3Vf9AQQ2owcMKQ0'
   );
   const [isSaving, setIsSaving] = useState(false);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const avatar = child.avatars[child.activeAvatarIndex];
+
+  const selectNarratorVoice = async (voiceId: string, sampleText: string) => {
+    setNarratorVoice(voiceId);
+    if (voiceId === narratorVoice) return;
+
+    previewAudioRef.current?.pause();
+    try {
+      const data = await api.post<{ audioBase64: string; contentType: string }>('/tts', {
+        text: sampleText,
+        voiceId,
+      });
+      const audio = new Audio(`data:${data.contentType};base64,${data.audioBase64}`);
+      previewAudioRef.current = audio;
+      await audio.play();
+    } catch {
+      /* voice sample is a nice-to-have; ignore playback failures */
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +148,7 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
                 <button
                   key={voice.id}
                   type="button"
-                  onClick={() => setNarratorVoice(voice.id)}
+                  onClick={() => selectNarratorVoice(voice.id, voice.sample)}
                   className="flex flex-col items-start p-3 rounded-xl border-2 text-left transition-colors"
                   style={{
                     borderColor: narratorVoice === voice.id ? 'rgb(139,92,246)' : 'rgb(229,231,235)',
@@ -163,23 +170,6 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
-      </div>
-
-      {/* Parental controls */}
-      <div className="bg-white rounded-2xl shadow-sm p-5">
-        <SectionHeader icon={Shield} title="Parental Controls" />
-        <PlaceholderToggle
-          label="Daily Time Limit"
-          description="Set a maximum daily learning time for this child"
-        />
-        <PlaceholderToggle
-          label="Topic Restrictions"
-          description="Limit which math topics are available"
-        />
-        <PlaceholderToggle
-          label="Difficulty Cap"
-          description="Prevent the game from advancing past a certain difficulty"
-        />
       </div>
     </div>
   );

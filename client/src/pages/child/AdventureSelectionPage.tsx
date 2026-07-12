@@ -124,7 +124,7 @@ export default function AdventureSelectionPage() {
       <MagicBackground symbols="math" count={16} opacity={0.06} />
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-8 py-4">
+      <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-4">
         <button
           onClick={step === 'world' ? goBackToTopics : () => navigate('/child/dashboard')}
           className="flex items-center gap-1.5 text-sm font-semibold text-purple-wizzy bg-white/70 hover:bg-white/90 backdrop-blur-sm transition-all px-4 py-2 rounded-xl shadow-sm hover:shadow-md"
@@ -135,11 +135,11 @@ export default function AdventureSelectionPage() {
         <Link to="/" className="flex items-center justify-center">
           <img src={mathmagicLogo} alt="MathMagic" className="h-12 w-auto" />
         </Link>
-        <div style={{ width: 100 }} />
+        <div className="hidden sm:block" style={{ width: 100 }} />
       </div>
 
       {/* Hero */}
-      <div className="relative z-10 text-center pt-2 pb-2 px-8">
+      <div className="relative z-10 text-center pt-2 pb-2 px-4 sm:px-8">
         {/* Step chip */}
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3"
@@ -153,7 +153,7 @@ export default function AdventureSelectionPage() {
         </div>
 
         <h1
-          className="text-4xl font-black tracking-tight gradient-text"
+          className="text-2xl sm:text-4xl font-black tracking-tight gradient-text"
         >
           {step === 'topic' ? 'Choose a Math Topic' : 'Choose a Story World'}
         </h1>
@@ -181,21 +181,25 @@ export default function AdventureSelectionPage() {
       </div>
 
       {/* Card grid */}
-      <div className={`relative z-10 px-8 pb-12 mt-6 ${gridAnimClass}`}>
+      <div
+        className={`relative z-10 px-4 sm:px-8 mt-6 pb-12 ${gridAnimClass} ${
+          step === 'world' && selectedWorld ? 'md:pb-36' : ''
+        }`}
+      >
         {isFetching ? (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="rounded-2xl bg-purple-wizzy/10 animate-pulse" style={{ aspectRatio: '3 / 4' }} />
             ))}
           </div>
         ) : step === 'topic' ? (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {topics.map((topic, i) => (
               <TopicCard key={topic.id} topic={topic} isSelected={selectedTopic === topic.id} onClick={() => goToWorlds(topic.id)} animationDelay={i * 55} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {worlds.map((world, i) => (
               <WorldCard key={world.id} world={world} isSelected={selectedWorld === world.id} onClick={() => setSelectedWorld(world.id)} animationDelay={i * 55} />
             ))}
@@ -205,11 +209,16 @@ export default function AdventureSelectionPage() {
 
       {/* Start Adventure button */}
       {step === 'world' && selectedWorld && (
-        <div className="relative z-10 flex justify-center pb-12 animate-pop-in">
+        <div className="relative flex justify-center pb-8 md:pb-6 md:pt-10 md:fixed md:inset-x-0 md:bottom-0 z-20 animate-pop-in">
+          {/* Scrim so the button reads clearly over busy card artwork behind it */}
+          <div
+            className="hidden md:block absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(253,244,255,0.95) 30%, rgba(253,244,255,0.7) 65%, transparent 100%)' }}
+          />
           <button
             onClick={handleStartAdventure}
             disabled={isLoading}
-            className="flex items-center gap-2.5 text-white rounded-2xl px-12 py-4 font-bold text-base transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+            className="relative flex items-center gap-2.5 text-white rounded-2xl px-12 py-4 font-bold text-base transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
             style={{
               background: 'linear-gradient(90deg, #8b5cf6 0%, #6d28d9 100%)',
               boxShadow: '0 8px 30px rgba(139,92,246,0.45)',

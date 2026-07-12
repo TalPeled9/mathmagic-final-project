@@ -15,10 +15,11 @@ export async function updateTopicMastery(
   childId: string,
   mathTopic: string,
   correct: boolean,
-  hintUsed: boolean
+  hintUsed: boolean,
+  countAsChallenge: boolean = true
 ): Promise<void> {
   const inc: Record<string, number> = {
-    totalChallenges: 1,
+    ...(countAsChallenge ? { totalChallenges: 1 } : {}),
     ...(correct ? { correctAnswers: 1 } : { incorrectAnswers: 1 }),
     ...(hintUsed ? { hintsUsed: 1 } : {}),
   };
@@ -29,7 +30,7 @@ export async function updateTopicMastery(
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  if (doc && doc.totalChallenges > 0) {
+  if (countAsChallenge && doc && doc.totalChallenges > 0) {
     const rawMastery = (doc.correctAnswers / doc.totalChallenges) * 100 - doc.hintsUsed * 5;
     const masteryLevel = Math.max(0, Math.floor(rawMastery));
     await TopicProgress.updateOne({ _id: doc._id }, { $set: { masteryLevel } });
