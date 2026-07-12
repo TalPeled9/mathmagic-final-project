@@ -59,3 +59,21 @@ describe('buildMathQuestionPrompt — MATH EXPRESSION RULES', () => {
     expect(prompt).not.toContain('MATH EXPRESSION RULES');
   });
 });
+
+describe('buildMathQuestionPrompt — TOPIC FIDELITY RULES', () => {
+  it('always includes the topic fidelity block', () => {
+    const prompt = buildMathQuestionPrompt(baseCtx);
+    expect(prompt).toContain('TOPIC FIDELITY RULES');
+    expect(prompt).toContain('NEVER fall back to a generic addition word problem');
+    expect(prompt).toContain('Never copy the example numbers');
+    expect(prompt).toContain('metric units only');
+    expect(prompt).toContain('mixed numbers');
+    expect(prompt).toContain('must NOT state or reveal the correct answer');
+  });
+
+  it('instructs precise image descriptions for readable math objects', () => {
+    const prompt = buildMathQuestionPrompt(baseCtx);
+    expect(prompt).toContain('read information from the image');
+    expect(prompt).toContain('hour hand');
+  });
+});
