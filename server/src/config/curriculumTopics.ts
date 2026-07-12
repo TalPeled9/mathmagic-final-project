@@ -10,9 +10,18 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#4CAF50',
     description: 'Recognizing, reading, writing, and ordering numbers; counting forward/backward',
     difficulty: {
-      easy: 'Numbers up to 10; identify or order a single number.',
-      medium: 'Numbers up to 20; compare or order 2–3 numbers.',
-      hard: 'Numbers up to 100; complete a sequence with a missing term.',
+      easy: [
+        'Count a group of objects shown in the story (up to 10). NEVER an addition or subtraction problem.',
+        'Say which number comes right before or right after a given number up to 10. NEVER an addition or subtraction problem.',
+      ],
+      medium: [
+        'Compare two numbers up to 20: which is larger or smaller. NEVER an addition or subtraction problem.',
+        'Order three numbers up to 20 from smallest to largest or largest to smallest. NEVER an addition or subtraction problem.',
+      ],
+      hard: [
+        'Complete a sequence with one missing term, counting forward by 2s, 5s, or 10s, numbers up to 100. NEVER an addition or subtraction problem.',
+        'Complete a sequence with one missing term, counting backward by 1s or 10s, numbers up to 100. NEVER an addition or subtraction problem.',
+      ],
     },
   },
   {
@@ -53,7 +62,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: 'Classify a single number as odd or even.',
       medium: 'Count how many odd or even numbers exist within a range.',
-      hard: 'Reason about parity in a real-world sharing context.',
+      hard: 'Decide whether a quantity up to 50 can be shared equally between two characters — even numbers can, odd numbers leave one left over. The question asks about odd/even, never about computing the shares.',
     },
   },
   {
@@ -64,9 +73,10 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#FF9800',
     description: 'Understanding two-digit numbers as tens and ones; composing and decomposing',
     difficulty: {
-      easy: 'Identify the tens or ones digit in a two-digit number.',
-      medium: 'Compose or decompose a two-digit number into tens and ones.',
-      hard: 'Recognise equivalent representations of a two-digit number.',
+      easy: 'Identify the tens or ones digit in a two-digit number. Use a different two-digit number in every question.',
+      medium:
+        'Compose or decompose a two-digit number into tens and ones. Use a different two-digit number in every question.',
+      hard: 'Recognise equivalent representations of a two-digit number. Use a different two-digit number in every question.',
     },
   },
   {
@@ -90,9 +100,17 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#E91E63',
     description: 'Recognizing and naming basic shapes; identifying vertices, sides, and corners',
     difficulty: {
-      easy: 'Name a shape when given a picture or description.',
-      medium: 'Count sides or vertices of a named polygon.',
-      hard: 'Identify a shape from a list of properties (side lengths, corners).',
+      easy: [
+        'Shape recognition ONLY: the image and story show one CIRCLE (described, not named) and the child names it. All four answer options are shape names. NEVER an addition, subtraction, or counting question.',
+        'Shape recognition ONLY: the image and story show one TRIANGLE (described, not named) and the child names it. All four answer options are shape names. NEVER an addition, subtraction, or counting question.',
+        'Shape recognition ONLY: the image and story show one SQUARE (described, not named) and the child names it. All four answer options are shape names. NEVER an addition, subtraction, or counting question.',
+        'Shape recognition ONLY: the image and story show one RECTANGLE (described, not named) and the child names it. All four answer options are shape names. NEVER an addition, subtraction, or counting question.',
+      ],
+      medium: [
+        'Count the sides of a named polygon (triangle, square, rectangle, pentagon, or hexagon).',
+        'Count the corners (vertices) of a named polygon (triangle, square, rectangle, pentagon, or hexagon).',
+      ],
+      hard: 'Identify a shape from a list of its properties (number of sides, corners, equal side lengths). All four answer options are shape names.',
     },
   },
   {
