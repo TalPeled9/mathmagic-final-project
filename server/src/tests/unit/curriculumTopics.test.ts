@@ -8,9 +8,9 @@ const EASY_MEDIUM: Array<'easy' | 'medium' | 'hard'> = ['easy', 'medium'];
 const EXPECTED_FLAGS: Record<string, Array<'easy' | 'medium' | 'hard'>> = {
   g1_addition: ALL,
   g1_subtraction: ALL,
-  g2_addition_subtraction: EASY_MEDIUM,
+  g2_addition_subtraction: ALL,
   g2_multiplication_intro: ALL,
-  g2_division_intro: EASY_MEDIUM,
+  g2_division_intro: ALL,
   g3_addition_subtraction: EASY_MEDIUM,
   g3_multiplication_table: EASY_MEDIUM,
   g3_division_remainder: EASY_MEDIUM,

@@ -136,9 +136,12 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#4CAF50',
     description: 'Reading, writing, comparing, and ordering numbers up to 1,000',
     difficulty: {
-      easy: 'Compare two two-digit numbers.',
-      medium: 'Order three three-digit numbers from smallest to largest.',
-      hard: 'Identify a number from its hundreds, tens, and ones place values.',
+      easy: 'Compare two three-digit numbers (which is larger or smaller). Must be a comparison question — NEVER an addition or subtraction word problem.',
+      medium: 'Order four three-digit numbers from smallest to largest or largest to smallest.',
+      hard: [
+        'Identify a number from its hundreds, tens, and ones place values.',
+        'Find the number that is 10 or 100 more or less than a given three-digit number.',
+      ],
     },
   },
   {
@@ -149,11 +152,15 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#F44336',
     description: 'Vertical and mental calculation including regrouping, up to 1,000',
     difficulty: {
-      easy: 'Two-digit addition within 100, no regrouping.',
-      medium: 'Two-digit addition with regrouping.',
-      hard: 'Two-step problem within 1,000 (add then subtract or vice versa).',
+      easy: [
+        'Add two two-digit numbers within 100, no regrouping.',
+        'Subtract two two-digit numbers within 100, no borrowing.',
+      ],
+      medium:
+        'Two-step expression combining addition and subtraction of two-digit numbers within 100 (e.g., a + b − c), at most one regrouping.',
+      hard: 'Two-step expression combining addition and subtraction of three-digit numbers within 1,000, with regrouping.',
     },
-    expressionFor: ['easy', 'medium'],
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g2_multiplication_intro',
@@ -179,9 +186,12 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: 'Simple equal-sharing within ×2/×5 tables.',
       medium: 'Find the number of equal groups within ×3/×4 tables.',
-      hard: 'Word problem requiring interpretation of a division situation.',
+      hard: [
+        'Missing dividend within the single-digit tables (e.g., ? ÷ 4 = 6).',
+        'Missing divisor within the single-digit tables (e.g., 24 ÷ ? = 8).',
+      ],
     },
-    expressionFor: ['easy', 'medium'],
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g2_word_problems',
@@ -205,9 +215,19 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Recognizing and naming 3D bodies (cube, box, cylinder, pyramid, cone); identifying vertices, sides, and faces; matching bodies to drawings or photographs',
     difficulty: {
-      easy: 'Name a 3D body (cube, box, cylinder, pyramid, cone) from a picture or description.',
-      medium: 'Identify the number of vertices, sides (edges), or faces of a named 3D body.',
-      hard: 'Compare two 3D bodies and describe a similarity or difference between them.',
+      easy: [
+        'Name a CUBE from the image and a story description that never says its name. All four answer options are 3D body names.',
+        'Name a BOX (rectangular prism) from the image and a story description that never says its name. All four answer options are 3D body names.',
+        'Name a CYLINDER from the image and a story description that never says its name. All four answer options are 3D body names.',
+        'Name a PYRAMID from the image and a story description that never says its name. All four answer options are 3D body names.',
+        'Name a CONE from the image and a story description that never says its name. All four answer options are 3D body names.',
+      ],
+      medium: [
+        'State the number of faces of a named 3D body (cube, box, cylinder, pyramid, or cone). The story must not state the count anywhere.',
+        'State the number of edges of a named 3D body (cube, box, or pyramid). The story must not state the count anywhere.',
+        'State the number of vertices of a named 3D body (cube, box, or pyramid). The story must not state the count anywhere.',
+      ],
+      hard: 'Given one property (e.g., "has 6 identical square faces", "has a circular base and a point on top", "can roll"), identify which 3D body matches. All four answer options are 3D body names.',
     },
   },
   {
@@ -219,7 +239,8 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description: 'Reading and interpreting clocks at half and quarter hours; calculating durations',
     difficulty: {
       easy: 'Read a clock showing a half or quarter hour.',
-      medium: 'Calculate the hour given a start time and duration in hours and half hours.',
+      medium:
+        'Given a start time and a duration in whole or half hours, find the end time. Must be a clock/time question with simple, direct wording — NEVER a generic addition word problem.',
       hard: 'Calculate the duration between two given times in half or quarter hours.',
     },
   },
