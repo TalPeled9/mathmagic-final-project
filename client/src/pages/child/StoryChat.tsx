@@ -1011,11 +1011,33 @@ function ChallengePanel({
           </button>
         </div>
 
-        <p className="text-xl font-extrabold text-center mb-5 text-gray-800 tracking-tight">
-          {challenge.problemText}
-        </p>
+        {/* Scrollable middle region (scrollbar hidden) — question, expression, and options
+            scroll together so the hint button below always stays visible */}
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+          <p
+            className={`text-xl font-extrabold text-center text-gray-800 tracking-tight ${
+              challenge.mathExpression ? 'mb-3' : 'mb-5'
+            }`}
+          >
+            {challenge.problemText}
+          </p>
 
-        <div className="grid grid-cols-2 gap-3 flex-1 content-start">
+          {challenge.mathExpression && (
+            <div className="flex justify-center mb-4">
+              <div
+                className="px-5 py-1.5 rounded-2xl text-2xl font-black text-purple-800 tracking-widest"
+                style={{
+                  background: 'white',
+                  border: '2px solid rgba(139,92,246,0.25)',
+                  boxShadow: '0 2px 10px rgba(139,92,246,0.14)',
+                }}
+              >
+                {challenge.mathExpression}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 content-start">
           {challenge.options.map((option, i) => {
             const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
             const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
@@ -1069,6 +1091,7 @@ function ChallengePanel({
               </button>
             );
           })}
+          </div>
         </div>
 
         {/* Retry / revealed answer prompt */}
