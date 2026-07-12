@@ -35,6 +35,8 @@ export interface AdventureState {
   hintLevel: 0 | 1 | 2 | 3;
   hintUsed: boolean;
   currentDifficulty: 'easy' | 'medium' | 'hard';
+  /** Deterministic per-adventure seed (hash of adventure id) for difficulty-variant rotation. */
+  variantSeed?: number;
   recentPerformanceScores: number[];
 
   storySummary: string;
@@ -121,9 +123,10 @@ export interface MathTopicConfig {
   description: string;
   color: string;
   difficulty: {
-    easy: string;
-    medium: string;
-    hard: string;
+    /** One description, or an array of variants — the server picks one variant per question. */
+    easy: string | string[];
+    medium: string | string[];
+    hard: string | string[];
   };
   /** Difficulties at which a symbolic math expression (e.g. "3 + 5 = ?") must accompany the question. */
   expressionFor?: Array<'easy' | 'medium' | 'hard'>;
