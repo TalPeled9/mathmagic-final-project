@@ -281,8 +281,14 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Written and mental addition and subtraction of 4-digit numbers, including regrouping',
     difficulty: {
-      easy: 'Add or subtract two 3-digit numbers, no regrouping.',
-      medium: 'Add or subtract two 4-digit numbers with regrouping.',
+      easy: [
+        'Add two 3-digit numbers, no regrouping. Use varied, non-round numbers — do not use numbers ending in 0.',
+        'Subtract two 3-digit numbers, no borrowing. Use varied, non-round numbers — do not use numbers ending in 0.',
+      ],
+      medium: [
+        'Add two 4-digit numbers with regrouping.',
+        'Subtract two 4-digit numbers with borrowing.',
+      ],
       hard: 'Two-step problem within 10,000 (add then subtract or vice versa).',
     },
     expressionFor: ['easy', 'medium'],
@@ -297,9 +303,9 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: 'Single multiplication fact within the 10×10 table.',
       medium: '2-digit or 3-digit × 1-digit vertical multiplication.',
-      hard: 'Find the missing digit in a 2-digit × 1-digit product.',
+      hard: 'Find the missing digit in a 2-digit × 1-digit multiplication given the final result (e.g., 2? × 3 = 72). Show the missing digit as "?" in the expression.',
     },
-    expressionFor: ['easy', 'medium'],
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g3_division_remainder',
@@ -323,9 +329,19 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#795548',
     description: 'Correct order of operations, including parentheses',
     difficulty: {
-      easy: 'Two operations, no parentheses (multiplication before addition).',
-      medium: 'Expression with parentheses.',
-      hard: 'Translate a word description into the correct expression.',
+      easy: [
+        'Evaluate an expression of the form a + b × c (multiplication first), single-digit and small two-digit numbers.',
+        'Evaluate an expression of the form a − b × c (multiplication first), single-digit and small two-digit numbers.',
+        'Evaluate an expression of the form a + b ÷ c (division first, exact), single-digit and small two-digit numbers.',
+        'Evaluate an expression of the form a × b − c, single-digit and small two-digit numbers.',
+      ],
+      medium: [
+        'Evaluate (a + b) × c with small numbers, where evaluating without the parentheses would give a different answer.',
+        'Evaluate (a − b) × c with small numbers, where evaluating without the parentheses would give a different answer.',
+        'Evaluate (a + b) ÷ c with small numbers and exact division, where evaluating without the parentheses would give a different answer.',
+        'Evaluate a − (b + c) with small numbers, where evaluating without the parentheses would give a different answer.',
+      ],
+      hard: 'Describe a two-step situation in the story, then ask which expression solves it. All four answer options must be mathematical expressions (e.g., "(4 + 3) × 2") differing in operations or parentheses; exactly one is correct.',
     },
     expressionFor: ['easy', 'medium'],
   },
@@ -337,7 +353,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#9C27B0',
     description: 'Basic fractions (half, third, quarter, fifth) as parts of a whole or quantity',
     difficulty: {
-      easy: 'Identify a fraction from a picture showing equal parts.',
+      easy: 'Identify a fraction (1/2, 1/3, 1/4, or 1/5) from a picture showing equal parts. The image description must state exactly how many equal parts there are and how many are shaded, matching the correct answer.',
       medium: 'Compare two unit fractions (e.g., 1/2 vs 1/3).',
       hard: 'Find a unit fraction of a quantity (e.g., 1/4 of 20).',
     },
@@ -351,7 +367,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#F44336',
     description: 'Problems requiring two calculation steps; emphasis on identifying the steps',
     difficulty: {
-      easy: 'Same operation twice (add two equal amounts for two days).',
+      easy: 'The same operation used twice in one story situation.',
       medium: 'Two different operations (multiply then subtract).',
       hard: 'Multi-step with reasoning backward (work out an unknown component).',
     },
@@ -364,9 +380,18 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#607D8B',
     description: 'Measuring with appropriate units; converting between standard units',
     difficulty: {
-      easy: 'State the number of grams in 1 kg or cm in 1 m.',
-      medium: 'Convert between units (e.g., 3.5 m to cm).',
-      hard: 'Word problem involving measurement with conversion.',
+      easy: [
+        'A direct conversion fact about WEIGHT: how many grams are in N kilograms. Must be a conversion question — NEVER a plain addition problem.',
+        'A direct conversion fact about LENGTH: how many centimeters are in N meters. Must be a conversion question — NEVER a plain addition problem.',
+      ],
+      medium: [
+        'Convert a LENGTH measurement between units (m ↔ cm or km ↔ m), including non-whole values (e.g., 3.5 m to cm). The focus is the conversion itself, not multiplication practice.',
+        'Convert a WEIGHT measurement between units (kg ↔ g), including non-whole values (e.g., 2.5 kg to grams). The focus is the conversion itself, not multiplication practice.',
+      ],
+      hard: [
+        'Word problem about LENGTH where quantities appear in two different units (m and cm, or km and m) and must be converted before adding or comparing.',
+        'Word problem about WEIGHT where quantities appear in two different units (kg and g) and must be converted before adding or comparing.',
+      ],
     },
   },
 

@@ -12,7 +12,7 @@ const EXPECTED_FLAGS: Record<string, Array<'easy' | 'medium' | 'hard'>> = {
   g2_multiplication_intro: ALL,
   g2_division_intro: ALL,
   g3_addition_subtraction: EASY_MEDIUM,
-  g3_multiplication_table: EASY_MEDIUM,
+  g3_multiplication_table: ALL,
   g3_division_remainder: EASY_MEDIUM,
   g3_order_of_operations: EASY_MEDIUM,
   g3_simple_fractions: ['hard'],
