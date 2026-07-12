@@ -138,7 +138,7 @@ describe('buildMathQuestionContext — requireExpression', () => {
   it('is false when the topic does not flag the current difficulty', () => {
     const ctx = buildMathQuestionContext({
       ...baseState,
-      mathTopic: 'g2_addition_subtraction',
+      mathTopic: 'g3_addition_subtraction',
       currentDifficulty: 'hard',
     });
     expect(ctx.requireExpression).toBe(false);
