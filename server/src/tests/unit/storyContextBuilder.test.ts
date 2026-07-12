@@ -4,6 +4,8 @@ import {
   buildMathQuestionContext,
   buildStorySummary,
   buildHintContext,
+  pickVariant,
+  hashStringToSeed,
 } from '../../services/ai/storyContextBuilder';
 import type { AdventureState } from '@mathmagic/types';
 
@@ -166,5 +168,52 @@ describe('buildHintContext — mathExpression', () => {
   it('is undefined when state has no lastMathExpression', () => {
     const ctx = buildHintContext(baseState);
     expect(ctx.mathExpression).toBeUndefined();
+  });
+});
+
+describe('pickVariant', () => {
+  it('returns a plain string unchanged', () => {
+    expect(pickVariant('single description', 7, 3)).toBe('single description');
+  });
+
+  it('returns empty string for an empty array', () => {
+    expect(pickVariant([], 7, 3)).toBe('');
+  });
+
+  it('picks (seed + stepIndex) % length from an array', () => {
+    const variants = ['add', 'subtract'];
+    expect(pickVariant(variants, 0, 0)).toBe('add');
+    expect(pickVariant(variants, 0, 1)).toBe('subtract');
+    expect(pickVariant(variants, 0, 2)).toBe('add');
+    expect(pickVariant(variants, 1, 0)).toBe('subtract');
+  });
+
+  it('is deterministic: same inputs always give the same variant', () => {
+    const variants = ['a', 'b', 'c'];
+    expect(pickVariant(variants, 42, 5)).toBe(pickVariant(variants, 42, 5));
+  });
+});
+
+describe('hashStringToSeed', () => {
+  it('returns a non-negative integer and is deterministic', () => {
+    const seed = hashStringToSeed('507f1f77bcf86cd799439011');
+    expect(Number.isInteger(seed)).toBe(true);
+    expect(seed).toBeGreaterThanOrEqual(0);
+    expect(hashStringToSeed('507f1f77bcf86cd799439011')).toBe(seed);
+  });
+
+  it('gives different seeds for different ids (typical case)', () => {
+    expect(hashStringToSeed('adventure-one')).not.toBe(hashStringToSeed('adventure-two'));
+  });
+});
+
+describe('buildMathQuestionContext / buildHintContext — variant consistency', () => {
+  it('resolves the same difficultyDescription for question and hint at the same step', () => {
+    // Use any topic id; with a string difficulty this is trivially equal, and once
+    // variant arrays land (Tasks 5-10) this guards the question/hint consistency contract.
+    const state = { ...baseState, variantSeed: 3, currentStepIndex: 4 };
+    const q = buildMathQuestionContext(state);
+    const h = buildHintContext(state);
+    expect(h.difficultyDescription).toBe(q.difficultyDescription);
   });
 });

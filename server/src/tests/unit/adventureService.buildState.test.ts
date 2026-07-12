@@ -5,6 +5,7 @@ import type { IChildDocument } from '../../models/Child';
 
 function makeAdventure(overrides: Partial<IAdventureDocument> = {}): IAdventureDocument {
   return {
+    _id: '507f1f77bcf86cd799439011',
     conversationHistory: [],
     currentChallenge: null,
     currentHints: [],

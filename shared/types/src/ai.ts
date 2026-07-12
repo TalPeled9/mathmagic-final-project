@@ -9,7 +9,7 @@ export interface LLMStoryPromptContext {
   conversationTranscript?: string; // formatted turn-by-turn history window
   selectedChoice?: string;
   currentDifficulty?: 'easy' | 'medium' | 'hard';
-  difficultyDescription?: string | string[];
+  difficultyDescription?: string;
 }
 
 export interface LLMMathQuestionContext extends LLMStoryPromptContext {

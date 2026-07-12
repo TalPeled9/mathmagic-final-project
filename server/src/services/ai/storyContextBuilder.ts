@@ -80,12 +80,42 @@ export function buildStoryStepContext(state: AdventureState): LLMStoryPromptCont
 }
 
 /**
+ * Deterministically picks one difficulty-description variant.
+ * Plain strings pass through; arrays rotate by (seed + stepIndex) % length.
+ * MUST stay deterministic from (description, seed, stepIndex): the same variant is
+ * resolved at pre-generation time, serve time, and hint time (currentStepIndex is
+ * stable across all three for a given question).
+ */
+export function pickVariant(
+  description: string | string[],
+  seed: number,
+  stepIndex: number
+): string {
+  if (!Array.isArray(description)) return description;
+  if (description.length === 0) return '';
+  return description[(seed + stepIndex) % description.length];
+}
+
+/** Cheap deterministic string hash → non-negative int, for per-adventure variant rotation. */
+export function hashStringToSeed(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+/**
  * Build the complete LLMMathQuestionContext from AdventureState.
  * Extends base context with math-specific fields.
  */
 export function buildMathQuestionContext(state: AdventureState): LLMMathQuestionContext {
   const topic = getCurriculumTopicById(state.mathTopic);
-  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
+  const difficultyDescription = pickVariant(
+    topic?.difficulty[state.currentDifficulty] ?? '',
+    state.variantSeed ?? 0,
+    state.currentStepIndex
+  );
   const requireExpression = topic?.expressionFor?.includes(state.currentDifficulty) ?? false;
   return {
     childName: state.childName,
@@ -107,7 +137,11 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
  */
 export function buildHintContext(state: AdventureState): LLMHintContext {
   const topic = getCurriculumTopicById(state.mathTopic);
-  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
+  const difficultyDescription = pickVariant(
+    topic?.difficulty[state.currentDifficulty] ?? '',
+    state.variantSeed ?? 0,
+    state.currentStepIndex
+  );
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,
