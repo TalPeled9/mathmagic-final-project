@@ -418,8 +418,14 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Written and mental addition and subtraction of multi-digit numbers without an upper limit',
     difficulty: {
-      easy: 'Add or subtract two 4-digit numbers with regrouping.',
-      medium: 'Add or subtract two large numbers (5–6 digits) with regrouping.',
+      easy: [
+        'Add two 4-digit numbers with regrouping.',
+        'Subtract two 4-digit numbers with borrowing.',
+      ],
+      medium: [
+        'Add two large numbers (5–6 digits) with regrouping.',
+        'Subtract two large numbers (5–6 digits) with borrowing.',
+      ],
       hard: 'Multi-step problem combining addition and subtraction of large numbers.',
     },
     expressionFor: ['easy', 'medium'],
@@ -433,9 +439,12 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Vertical multiplication with multi-digit factors; long division with 1- or 2-digit divisors',
     difficulty: {
-      easy: '3-digit × 1-digit multiplication.',
-      medium: '3-digit × 2-digit multiplication.',
-      hard: 'Long division by a 2-digit divisor (exact).',
+      easy: ['3-digit × 1-digit multiplication.', '3-digit ÷ 1-digit exact division.'],
+      medium: ['3-digit × 2-digit multiplication.', '4-digit ÷ 1-digit division.'],
+      hard: [
+        '4-digit × 2-digit multiplication.',
+        'Long division by a 2-digit divisor (exact).',
+      ],
     },
     expressionFor: ['easy', 'medium', 'hard'],
   },
@@ -447,9 +456,12 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#9C27B0',
     description: 'Equivalent fractions, comparing fractions, fractions greater than 1',
     difficulty: {
-      easy: 'Determine whether two fractions are equivalent.',
+      easy: [
+        'Decide whether two given fractions are equivalent.',
+        'Compare two different fractions and say which is larger.',
+      ],
       medium: 'Compare two fractions with different denominators.',
-      hard: 'Adding and subtracting mixed numbers when the denominators are equal or close',
+      hard: 'Add or subtract mixed numbers with equal or related denominators. Write mixed numbers with a space (e.g., "2 3/4") and spell them out in the story (e.g., "two and three quarters").',
     },
     expressionFor: ['hard'],
   },
@@ -462,9 +474,19 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Solving multi-step expressions following the conventional order, with parentheses',
     difficulty: {
-      easy: 'Two operations — multiplication before addition.',
-      medium: 'Multiple operations with parentheses.',
-      hard: 'Translate a multi-step word problem into the correct expression and solve it.',
+      easy: [
+        'Evaluate an expression of the form a + b × c (multiplication first), with two-digit numbers.',
+        'Evaluate an expression of the form a − b × c (multiplication first), with two-digit numbers.',
+        'Evaluate an expression of the form a + b ÷ c (division first, exact), with two-digit numbers.',
+        'Evaluate an expression of the form a × b − c, with two-digit numbers.',
+      ],
+      medium: [
+        'Evaluate (a + b) × c − d with two-digit numbers, where evaluating without the parentheses would give a different answer.',
+        'Evaluate (a − b) × c with two-digit numbers, where evaluating without the parentheses would give a different answer.',
+        'Evaluate (a + b) ÷ c with exact division, where evaluating without the parentheses would give a different answer.',
+        'Evaluate a − (b + c) ÷ d with exact division, where evaluating without the parentheses would give a different answer.',
+      ],
+      hard: 'Describe a multi-step situation in the story, then ask which expression solves it. All four answer options must be mathematical expressions differing in operations or parentheses; exactly one is correct.',
     },
     expressionFor: ['easy', 'medium'],
   },
@@ -490,9 +512,20 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#E91E63',
     description: 'Perimeter and area of rectangles, squares, right triangles',
     difficulty: {
-      easy: 'Calculate the perimeter of a rectangle, square, or right triangle.',
-      medium: 'Calculate the area of a rectangle, square, or right triangle.',
-      hard: 'Find a missing side length given the area and one dimension.',
+      easy: [
+        'Calculate the perimeter of a rectangle. All lengths in meters or centimeters.',
+        'Calculate the perimeter of a square. All lengths in meters or centimeters.',
+        'Calculate the perimeter of a right triangle. All lengths in meters or centimeters.',
+      ],
+      medium: [
+        'Calculate the area of a rectangle. All lengths in meters or centimeters.',
+        'Calculate the area of a square. All lengths in meters or centimeters.',
+        'Calculate the area of a right triangle. All lengths in meters or centimeters.',
+      ],
+      hard: [
+        'Find a missing side of a rectangle given its area and one side. All lengths in meters or centimeters.',
+        'Find a missing side of a rectangle given its perimeter and one side. All lengths in meters or centimeters.',
+      ],
     },
   },
   {
@@ -503,9 +536,9 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#F44336',
     description: 'Multi-step problems combining operations; reading double bar graphs and tables',
     difficulty: {
-      easy: 'Two clear steps (e.g: multiply two prices then add totals).',
+      easy: 'Two clear steps with 2-digit numbers (e.g., multiply two 2-digit quantities, then add or subtract a total).',
       medium: 'Three or more steps involving a fraction.',
-      hard: 'Rate-based reasoning (pages per day, distance at speed).',
+      hard: 'Rate-based reasoning (pages per day, distance at a speed) requiring at least three steps or a comparison between two rates.',
     },
   },
 
