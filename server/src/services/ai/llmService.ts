@@ -85,6 +85,15 @@ export function buildMathQuestionSchema(requireExpression: boolean): GeminiRespo
   };
 }
 
+/**
+ * Gemini occasionally uses "*" for multiplication despite the prompt's
+ * symbol rules — normalize to the kid-friendly "×" before the expression
+ * is cached, persisted, or rendered.
+ */
+export function normalizeMathExpression(expression: string): string {
+  return expression.replace(/\*/g, '×');
+}
+
 const hintSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
   required: ['hintText', 'scaffoldingQuestion', 'encouragement', 'answerOptions', 'correctAnswer'],
@@ -307,7 +316,14 @@ class LLMService {
     console.log(`[LLM] RESPONSE (mode=${mode}):\n${JSON.stringify(response, null, 2)}\n`);
 
     try {
-      return sanitizeAndValidateAIResponse(response);
+      const sanitized = sanitizeAndValidateAIResponse(response);
+      if (mode === 'math_question') {
+        const mathResponse = sanitized as LLMMathQuestionResponse;
+        if (mathResponse.mathExpression) {
+          mathResponse.mathExpression = normalizeMathExpression(mathResponse.mathExpression);
+        }
+      }
+      return sanitized;
     } catch (err) {
       if (isUnsafeContentError(err)) {
         if (strict) throw err;

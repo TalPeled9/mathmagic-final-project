@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { GeminiJsonClient } from '../../services/ai/geminiClient';
-import { llmService, buildMathQuestionSchema } from '../../services/ai/llmService';
+import {
+  llmService,
+  buildMathQuestionSchema,
+  normalizeMathExpression,
+} from '../../services/ai/llmService';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {
@@ -25,6 +29,45 @@ const baseState: AdventureState = {
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+describe('normalizeMathExpression', () => {
+  it('converts * to × (Gemini sometimes ignores the prompt symbol rules)', () => {
+    expect(normalizeMathExpression('3 * 4 = ?')).toBe('3 × 4 = ?');
+  });
+
+  it('converts every occurrence, not just the first', () => {
+    expect(normalizeMathExpression('2 * 3 * 4 = ?')).toBe('2 × 3 × 4 = ?');
+  });
+
+  it('leaves already-correct expressions untouched', () => {
+    expect(normalizeMathExpression('3 × 4 = ?')).toBe('3 × 4 = ?');
+    expect(normalizeMathExpression('15 − ? = 7')).toBe('15 − ? = 7');
+  });
+});
+
+describe('llmService math_question expression normalization', () => {
+  it('normalizes * to × in mathExpression on the live-response path', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      adventureNarrative: 'You see 3 rows of 4 glowing crystals.',
+      wizzyDialogue: 'Count them all!',
+      problemText: 'How many crystals are there in total?',
+      mathExpression: '3 * 4 = ?',
+      answerOptions: ['7', '12', '11', '15'],
+      correctAnswer: '12',
+      imageDescription: 'Crystals in rows.',
+    });
+
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g2_multiplication_intro',
+      currentDifficulty: 'easy',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+
+    expect(result.mathExpression).toBe('3 × 4 = ?');
+  });
 });
 
 describe('llmService provider wiring', () => {
