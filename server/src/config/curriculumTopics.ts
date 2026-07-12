@@ -552,10 +552,18 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Equivalent/reduced fractions; adding and subtracting with same and different denominators; mixed numbers',
     difficulty: {
-      easy: 'Add two fractions with the same denominator.',
-      medium:
-        'Add or subtract two fractions with different denominators using a common denominator.',
-      hard: 'Add or subtract mixed numbers with different denominators using a common denominator.',
+      easy: [
+        'Add two fractions with the same denominator.',
+        'Subtract two fractions with the same denominator.',
+      ],
+      medium: [
+        'Add two fractions with different denominators using a common denominator.',
+        'Subtract two fractions with different denominators using a common denominator.',
+      ],
+      hard: [
+        'Add mixed numbers with different denominators using a common denominator. Write mixed numbers with a space (e.g., "2 3/4") and spell them out in the story.',
+        'Subtract mixed numbers with different denominators using a common denominator. Write mixed numbers with a space (e.g., "2 3/4") and spell them out in the story.',
+      ],
     },
     expressionFor: ['easy', 'medium', 'hard'],
   },
@@ -567,9 +575,19 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#FF9800',
     description: 'Tenths, hundredths, thousandths; reading, writing, comparing; add and subtract',
     difficulty: {
-      easy: 'Add or subtract two tenths-place decimals.',
-      medium: 'Add or subtract two hundredths-place decimals with regrouping.',
-      hard: 'Add or subtract two thousandths-place decimals with regrouping; compare two decimals to determine which is larger.',
+      easy: [
+        'Add two tenths-place decimals. Use different, varied numbers in every question.',
+        'Subtract two tenths-place decimals. Use different, varied numbers in every question.',
+      ],
+      medium: [
+        'Add two hundredths-place decimals with regrouping.',
+        'Subtract two hundredths-place decimals with borrowing.',
+      ],
+      hard: [
+        'Add two thousandths-place decimals with regrouping.',
+        'Subtract two thousandths-place decimals with borrowing.',
+        'Compare two decimals with different numbers of decimal places and determine which is larger.',
+      ],
     },
     expressionFor: ['easy', 'medium', 'hard'],
   },
@@ -596,7 +614,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: '3-digit × 2-digit multiplication.',
       medium: '4-digit ÷ 2-digit division.',
-      hard: 'Large-number addition, subtraction, multiplication, or division word problem.',
+      hard: 'Multi-step word problem combining two operations on large numbers (e.g., multiply, then subtract from a total).',
     },
     expressionFor: ['easy', 'medium'],
   },
@@ -608,7 +626,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#F44336',
     description: 'Combining several operations and number types (whole, fraction, decimal)',
     difficulty: {
-      easy: 'Two operations with whole numbers.',
+      easy: 'Two operations with whole numbers in the hundreds (results up to 1,000).',
       medium: 'One operation with fractions or decimals mixed with whole numbers.',
       hard: 'Sequential fraction reasoning (fraction of a fraction of a total).',
     },
@@ -635,9 +653,9 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Heights of triangles and parallelograms; area of triangles, parallelograms; composite shapes',
     difficulty: {
-      easy: 'Area of a triangle (base × height ÷ 2).',
-      medium: 'Area of a parallelogram (base × height).',
-      hard: 'Area of a composite shape (rectangle + triangle).',
+      easy: 'Area of a triangle (base × height ÷ 2). All lengths in meters or centimeters.',
+      medium: 'Area of a parallelogram (base × height). All lengths in meters or centimeters.',
+      hard: 'Area of a composite shape (rectangle + triangle). All lengths in meters or centimeters.',
     },
   },
   {
