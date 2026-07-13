@@ -49,7 +49,13 @@ describe('maskClockTimeLeaks', () => {
       'The clock reads _______ tonight.'
     );
     expect(maskClockTimeLeaks('It shows 03:30 now.', '3:30')).toBe('It shows _______ now.');
-    expect(maskClockTimeLeaks('At 3.30 sharp.', '3:30')).toBe('At _______ sharp.');
+  });
+
+  it('does not mask dot form to avoid colliding with decimal measurements', () => {
+    expect(maskClockTimeLeaks('At 3.30 sharp.', '3:30')).toBe('At 3.30 sharp.');
+    expect(maskClockTimeLeaks('The rope was 3.00 meters long.', '3:00')).toBe(
+      'The rope was 3.00 meters long.'
+    );
   });
 
   it('does not mask a different time or embedded digits', () => {

@@ -87,14 +87,11 @@ export function maskClockTimeLeaks(text: string, clockTime: string): string {
   const nextHour = (hour % 12) + 1;
   const nextHourWord = HOUR_WORDS[nextHour - 1];
 
-  const phrases = [`${hour}:${mm}`, `0${hour}:${mm}`, `${hour}.${mm}`];
+  // Digital forms (deliberately no "H.MM" form — it collides with decimal measurements in story text)
+  const phrases = [`${hour}:${mm}`, `0${hour}:${mm}`];
+  // Word forms (enumeration is deliberately non-exhaustive; prompt rule is the primary defense)
   if (minute === 0) {
-    phrases.push(
-      `${hourWord} o'clock`,
-      `${hour} o'clock`,
-      `${hourWord} o'clock`,
-      `${hour} o'clock`
-    );
+    phrases.push(`${hourWord} o'clock`, `${hour} o'clock`);
   } else if (minute === 30) {
     phrases.push(`half past ${hourWord}`, `half past ${hour}`, `${hourWord} thirty`);
   } else if (minute === 15) {
