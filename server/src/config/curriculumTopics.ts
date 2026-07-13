@@ -340,10 +340,10 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description: 'Correct order of operations, including parentheses',
     difficulty: {
       easy: [
-        'Evaluate an expression of the form a + b × c (multiplication first), single-digit and small two-digit numbers.',
-        'Evaluate an expression of the form a − b × c (multiplication first), single-digit and small two-digit numbers.',
-        'Evaluate an expression of the form a + b ÷ c (division first, exact), single-digit and small two-digit numbers.',
-        'Evaluate an expression of the form a × b − c, single-digit and small two-digit numbers.',
+        'Evaluate an expression of the form a + b × c (multiplication first), single-digit and small two-digit numbers. Do not use any parentheses in the expression or the question.',
+        'Evaluate an expression of the form a − b × c (multiplication first), single-digit and small two-digit numbers. Do not use any parentheses in the expression or the question.',
+        'Evaluate an expression of the form a + b ÷ c (division first, exact), single-digit and small two-digit numbers. Do not use any parentheses in the expression or the question.',
+        'Evaluate an expression of the form a × b − c, single-digit and small two-digit numbers. Do not use any parentheses in the expression or the question.',
       ],
       medium: [
         'Evaluate (a + b) × c with small numbers, where evaluating without the parentheses would give a different answer.',
@@ -464,10 +464,11 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description: 'Equivalent fractions, comparing fractions, fractions greater than 1',
     difficulty: {
       easy: [
-        'Decide whether two given fractions are equivalent.',
-        'Compare two different fractions and say which is larger.',
+        'Decide whether two given fractions are equivalent. Write all fractions in the question and answer options in digits (e.g., a/b), never spelled out in words.',
+        'Compare two different fractions and say which is larger. Write all fractions in the question and answer options in digits (e.g., a/b), never spelled out in words.',
       ],
-      medium: 'Compare two fractions with different denominators.',
+      medium:
+        'Compare two fractions with different denominators. Write all fractions in the question and answer options in digits (e.g., a/b), never spelled out in words.',
       hard: 'Add or subtract mixed numbers with equal or related denominators. Write mixed numbers with a space (e.g., "2 3/4") and spell them out in the story (e.g., "two and three quarters").',
     },
     expressionFor: ['hard'],
@@ -482,10 +483,10 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       'Solving multi-step expressions following the conventional order, with parentheses',
     difficulty: {
       easy: [
-        'Evaluate an expression of the form a + b × c (multiplication first), with two-digit numbers.',
-        'Evaluate an expression of the form a − b × c (multiplication first), with two-digit numbers.',
-        'Evaluate an expression of the form a + b ÷ c (division first, exact), with two-digit numbers.',
-        'Evaluate an expression of the form a × b − c, with two-digit numbers.',
+        'Evaluate an expression of the form a + b × c (multiplication first), with two-digit numbers. Do not use any parentheses in the expression or the question.',
+        'Evaluate an expression of the form a − b × c (multiplication first), with two-digit numbers. Do not use any parentheses in the expression or the question.',
+        'Evaluate an expression of the form a + b ÷ c (division first, exact), with two-digit numbers. Do not use any parentheses in the expression or the question.',
+        'Evaluate an expression of the form a × b − c, with two-digit numbers. Do not use any parentheses in the expression or the question.',
       ],
       medium: [
         'Evaluate (a + b) × c − d with two-digit numbers, where evaluating without the parentheses would give a different answer.',
@@ -633,7 +634,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#F44336',
     description: 'Combining several operations and number types (whole, fraction, decimal)',
     difficulty: {
-      easy: 'Two operations with whole numbers in the hundreds (results up to 1,000). Numbers don\'t always end in 0 or 5. The story must not state the answer anywhere.',
+      easy: "Two operations with whole numbers in the hundreds (results up to 1,000). Numbers don't always end in 0 or 5. The story must not state the answer anywhere.",
       medium: 'One operation with fractions or decimals mixed with whole numbers.',
       hard: 'Sequential fraction reasoning (fraction of a fraction of a total).',
     },

@@ -63,3 +63,41 @@ describe('curriculumTopics — clockFor flags', () => {
     }
   });
 });
+
+describe('curriculumTopics — format-rule sentences', () => {
+  const NO_PARENS = 'Do not use any parentheses in the expression or the question.';
+  const DIGIT_FRACTIONS =
+    'Write all fractions in the question and answer options in digits (e.g., a/b), never spelled out in words.';
+
+  it('every order-of-operations easy variant forbids parentheses', () => {
+    for (const id of ['g3_order_of_operations', 'g4_order_of_operations_advanced']) {
+      const easy = getCurriculumTopicById(id)?.difficulty.easy;
+      expect(Array.isArray(easy), id).toBe(true);
+      expect((easy as string[]).length, id).toBe(4);
+      for (const variant of easy as string[]) {
+        expect(variant.endsWith(NO_PARENS), `${id}: ${variant}`).toBe(true);
+      }
+    }
+  });
+
+  it('order-of-operations medium and hard are untouched (parentheses are the point)', () => {
+    for (const id of ['g3_order_of_operations', 'g4_order_of_operations_advanced']) {
+      const topic = getCurriculumTopicById(id);
+      for (const variant of topic?.difficulty.medium as string[]) {
+        expect(variant.includes(NO_PARENS), id).toBe(false);
+      }
+      expect((topic?.difficulty.hard as string).includes(NO_PARENS), id).toBe(false);
+    }
+  });
+
+  it('g4 fractions easy variants and medium require digit fractions', () => {
+    const topic = getCurriculumTopicById('g4_fractions_extended');
+    const easy = topic?.difficulty.easy as string[];
+    expect(easy.length).toBe(2);
+    for (const variant of easy) {
+      expect(variant.endsWith(DIGIT_FRACTIONS), variant).toBe(true);
+    }
+    expect((topic?.difficulty.medium as string).endsWith(DIGIT_FRACTIONS)).toBe(true);
+    expect((topic?.difficulty.hard as string).includes(DIGIT_FRACTIONS)).toBe(false);
+  });
+});
