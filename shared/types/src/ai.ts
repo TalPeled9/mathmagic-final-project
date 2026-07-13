@@ -16,6 +16,8 @@ export interface LLMMathQuestionContext extends LLMStoryPromptContext {
   selectedChoice: string;
   previousProblemTexts?: string[];
   requireExpression?: boolean;
+  /** Server-picked "H:MM" for clock-reading questions; injected into the prompt. */
+  clockTime?: string;
 }
 
 export interface LLMHintContext extends LLMStoryPromptContext {
@@ -46,6 +48,8 @@ export interface LLMMathQuestionResponse extends LLMBaseStoryResponse {
   adventureNarrative: string;
   problemText: string;
   mathExpression?: string;
+  /** Echoed server-picked time — set by llmService, never by the model. */
+  clockTime?: string;
   answerOptions: string[];
   correctAnswer: string;
 }
