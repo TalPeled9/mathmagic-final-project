@@ -293,4 +293,13 @@ describe('buildMathQuestionContext — clockTime', () => {
     const ctx = buildMathQuestionContext({ ...baseState, mathTopic: 'g1_addition' });
     expect(ctx.clockTime).toBeUndefined();
   });
+
+  it('emits a whole-hour clockTime for g1_time_clock easy', () => {
+    const ctx = buildMathQuestionContext({
+      ...baseState,
+      mathTopic: 'g1_time_clock',
+      currentDifficulty: 'easy',
+    });
+    expect(ctx.clockTime).toMatch(/^(1[0-2]|[1-9]):00$/);
+  });
 });

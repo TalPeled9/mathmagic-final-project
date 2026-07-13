@@ -121,9 +121,16 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#607D8B',
     description: 'Reading and interpreting clocks at whole and half hours',
     difficulty: {
-      easy: 'Read a clock showing a whole hour.',
+      easy: 'Read the analog clock shown beside the question and pick the time it shows (whole hours).',
       medium: 'Calculate the duration between two given times in whole hours.',
-      hard: 'Read a clock showing a half hour; calculate the duration between two given times including half hours.',
+      hard: [
+        'Read the analog clock shown beside the question and pick the time it shows (half hours).',
+        'Calculate the duration between two given times including half hours.',
+      ],
+    },
+    clockFor: {
+      easy: { variants: 'all', minutes: [0] },
+      hard: { variants: [0], minutes: [30] },
     },
   },
 
@@ -238,10 +245,13 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#607D8B',
     description: 'Reading and interpreting clocks at half and quarter hours; calculating durations',
     difficulty: {
-      easy: 'Read a clock showing a half or quarter hour.',
+      easy: 'Read the analog clock shown beside the question and pick the time it shows (half or quarter hours).',
       medium:
         'Given a start time and a duration in whole or half hours, find the end time. Must be a clock/time question with simple, direct wording — NEVER a generic addition word problem.',
       hard: 'Calculate the duration between two given times in half or quarter hours.',
+    },
+    clockFor: {
+      easy: { variants: 'all', minutes: [15, 30, 45] },
     },
   },
   {

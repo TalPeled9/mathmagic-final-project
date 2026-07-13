@@ -43,3 +43,23 @@ describe('curriculumTopics — expressionFor flags', () => {
     }
   });
 });
+
+describe('curriculumTopics — clockFor flags', () => {
+  it('marks exactly the clock-reading levels', () => {
+    expect(getCurriculumTopicById('g1_time_clock')?.clockFor).toEqual({
+      easy: { variants: 'all', minutes: [0] },
+      hard: { variants: [0], minutes: [30] },
+    });
+    expect(getCurriculumTopicById('g2_time_clock')?.clockFor).toEqual({
+      easy: { variants: 'all', minutes: [15, 30, 45] },
+    });
+  });
+
+  it('leaves every other topic without clockFor', () => {
+    for (const topic of CURRICULUM_TOPICS) {
+      if (topic.id !== 'g1_time_clock' && topic.id !== 'g2_time_clock') {
+        expect(topic.clockFor, topic.id).toBeUndefined();
+      }
+    }
+  });
+});
