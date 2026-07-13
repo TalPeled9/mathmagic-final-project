@@ -4,6 +4,7 @@ import {
   llmService,
   buildMathQuestionSchema,
   normalizeMathExpression,
+  normalizeOperatorSymbols,
 } from '../../services/ai/llmService';
 import type { AdventureState, LLMMathQuestionContext } from '@mathmagic/types';
 
@@ -220,5 +221,82 @@ describe('llmService clock questions', () => {
     expect(response.clockTime).toBe('4:00');
     expect(response.problemText.toLowerCase()).toContain('what time');
     expect(response.answerOptions).toContain('4:00');
+  });
+});
+
+describe('normalizeOperatorSymbols', () => {
+  it('converts * directly between digits', () => {
+    expect(normalizeOperatorSymbols('12*3 = ?')).toBe('12×3 = ?');
+  });
+
+  it('converts * with single surrounding spaces', () => {
+    expect(normalizeOperatorSymbols('Which expression solves it: (12 + 8) * 3?')).toBe(
+      'Which expression solves it: (12 + 8) × 3?'
+    );
+  });
+
+  it('converts * between a closing and an opening parenthesis', () => {
+    expect(normalizeOperatorSymbols('(2 + 3)*(4 - 1)')).toBe('(2 + 3)×(4 - 1)');
+  });
+
+  it('converts every operator occurrence', () => {
+    expect(normalizeOperatorSymbols('2 * 3 * 4')).toBe('2 × 3 × 4');
+  });
+
+  it('leaves prose asterisks untouched', () => {
+    expect(normalizeOperatorSymbols('*sparkle* the wand glows')).toBe('*sparkle* the wand glows');
+    expect(normalizeOperatorSymbols('wave your wand * three times')).toBe(
+      'wave your wand * three times'
+    );
+  });
+
+  it('is a no-op on clean text and idempotent', () => {
+    expect(normalizeOperatorSymbols('7 × 8 = ?')).toBe('7 × 8 = ?');
+    const once = normalizeOperatorSymbols('6 * 7');
+    expect(normalizeOperatorSymbols(once)).toBe(once);
+  });
+});
+
+describe('llmService operator-symbol normalization wiring', () => {
+  it('normalizes * in problemText, answerOptions, and correctAnswer of math questions', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      adventureNarrative: 'A two-step puzzle guards the gate.',
+      wizzyDialogue: 'Pick the right expression!',
+      problemText: 'Which expression opens the gate: (5 + 3) * 2 coins?',
+      answerOptions: ['(5 + 3) * 2', '5 + 3 * 2', '(5 - 3) * 2', '5 * 3 + 2'],
+      correctAnswer: '(5 + 3) * 2',
+      imageDescription: 'A gate with symbols.',
+    });
+
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g3_order_of_operations',
+      currentDifficulty: 'hard',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+
+    expect(result.problemText).toContain('(5 + 3) × 2');
+    expect(result.answerOptions).toEqual(['(5 + 3) × 2', '5 + 3 × 2', '(5 - 3) × 2', '5 × 3 + 2']);
+    expect(result.correctAnswer).toBe('(5 + 3) × 2');
+  });
+
+  it('normalizes * in every hint text field', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      hintText: 'Remember, do 3 * 4 first.',
+      scaffoldingQuestion: 'What is 3 * 4?',
+      encouragement: 'You can do 3 * 4 in your head!',
+      answerOptions: ['3 * 4', '3 + 4', '12', '7'],
+      correctAnswer: '3 * 4',
+    });
+
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 1 };
+    const result = await llmService.generateHintFromState(state);
+
+    expect(result.hintText).toBe('Remember, do 3 × 4 first.');
+    expect(result.scaffoldingQuestion).toBe('What is 3 × 4?');
+    expect(result.encouragement).toBe('You can do 3 × 4 in your head!');
+    expect(result.answerOptions).toEqual(['3 × 4', '3 + 4', '12', '7']);
+    expect(result.correctAnswer).toBe('3 × 4');
   });
 });

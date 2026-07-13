@@ -60,7 +60,14 @@ const storyStepSchema: GeminiResponseSchema = {
 
 const mathQuestionSchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
-  required: ['adventureNarrative', 'wizzyDialogue', 'problemText', 'answerOptions', 'correctAnswer', 'imageDescription'],
+  required: [
+    'adventureNarrative',
+    'wizzyDialogue',
+    'problemText',
+    'answerOptions',
+    'correctAnswer',
+    'imageDescription',
+  ],
   properties: {
     adventureNarrative: { type: JSON_SCHEMA.STRING },
     wizzyDialogue: { type: JSON_SCHEMA.STRING },
@@ -110,6 +117,16 @@ export function buildMathQuestionSchema(
  */
 export function normalizeMathExpression(expression: string): string {
   return expression.replace(/\*/g, '×');
+}
+
+/**
+ * Gemini occasionally writes "*" for multiplication in prose, options,
+ * and hints too. Replace it with "×" only in operator position — between
+ * digits/closing paren and digits/opening paren, allowing one space on
+ * each side — so decorative asterisks in story text are never touched.
+ */
+export function normalizeOperatorSymbols(text: string): string {
+  return text.replace(/(?<=[\d)])( ?)\*( ?)(?=[\d(])/g, '$1×$2');
 }
 
 const hintSchema: GeminiResponseSchema = {
@@ -350,6 +367,13 @@ class LLMService {
         if (mathResponse.mathExpression) {
           mathResponse.mathExpression = normalizeMathExpression(mathResponse.mathExpression);
         }
+        mathResponse.problemText = normalizeOperatorSymbols(mathResponse.problemText);
+        if (mathResponse.answerOptions) {
+          mathResponse.answerOptions = mathResponse.answerOptions.map(normalizeOperatorSymbols);
+        }
+        if (mathResponse.correctAnswer) {
+          mathResponse.correctAnswer = normalizeOperatorSymbols(mathResponse.correctAnswer);
+        }
 
         const clockTime = (ctx as LLMMathQuestionContext).clockTime;
         if (clockTime) {
@@ -363,6 +387,15 @@ class LLMService {
           mathResponse.correctAnswer = clockTime;
           mathResponse.clockTime = clockTime;
         }
+      } else if (mode === 'hint') {
+        const hintResponse = sanitized as LLMHintResponse;
+        hintResponse.hintText = normalizeOperatorSymbols(hintResponse.hintText);
+        hintResponse.scaffoldingQuestion = normalizeOperatorSymbols(
+          hintResponse.scaffoldingQuestion
+        );
+        hintResponse.encouragement = normalizeOperatorSymbols(hintResponse.encouragement);
+        hintResponse.answerOptions = hintResponse.answerOptions.map(normalizeOperatorSymbols);
+        hintResponse.correctAnswer = normalizeOperatorSymbols(hintResponse.correctAnswer);
       }
       return sanitized;
     } catch (err) {
