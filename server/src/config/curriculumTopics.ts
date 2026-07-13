@@ -11,7 +11,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description: 'Recognizing, reading, writing, and ordering numbers; counting forward/backward',
     difficulty: {
       easy: [
-        'Count a group of objects shown in the story (up to 10). NEVER an addition or subtraction problem.',
+        'A number up to 10 appears in the story written as a WORD (like on a sign or door); the child picks the matching digit from the answer options. NEVER an addition or subtraction problem.',
         'Say which number comes right before or right after a given number up to 10. NEVER an addition or subtraction problem.',
       ],
       medium: [
