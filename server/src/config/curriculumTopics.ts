@@ -681,10 +681,20 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#9C27B0',
     description: 'Adding and subtracting fractions (including mixed numbers) and decimals',
     difficulty: {
-      easy: 'Add or subtract two fractions with the same denominator.',
-      medium:
-        'Add or subtract two fractions with different denominators, or two decimals with regrouping.',
-      hard: 'Add or subtract mixed numbers or a fraction and a decimal in a word-problem context.',
+      easy: [
+        'Add two fractions where one denominator is a multiple of the other (e.g., thirds and sixths).',
+        'Subtract two fractions where one denominator is a multiple of the other (e.g., thirds and sixths).',
+      ],
+      medium: [
+        'Add two fractions with unrelated denominators, requiring a common denominator.',
+        'Subtract two fractions with unrelated denominators, requiring a common denominator.',
+        'Add two decimals with regrouping.',
+        'Subtract two decimals with borrowing.',
+      ],
+      hard: [
+        'Add mixed numbers, or a fraction and a decimal, in a word-problem context. Write mixed numbers with a space (e.g., "2 3/4") and spell them out in the story.',
+        'Subtract mixed numbers, or a fraction and a decimal, in a word-problem context. Write mixed numbers with a space (e.g., "2 3/4") and spell them out in the story.',
+      ],
     },
     expressionFor: ['easy', 'medium'],
   },
@@ -696,9 +706,20 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#E91E63',
     description: 'Multiplying and dividing fractions and mixed numbers',
     difficulty: {
-      easy: 'Multiply or divide a fraction by a whole number.',
-      medium: 'Multiply or divide two fractions or a fraction by a mixed number.',
-      hard: 'Multiply or divide mixed numbers or a fraction and a decimal in a word-problem context.',
+      easy: [
+        'Multiply a fraction by a whole number between 3 and 12.',
+        'Divide a fraction by a whole number between 3 and 12.',
+      ],
+      medium: [
+        'Multiply two fractions.',
+        'Divide two fractions.',
+        'Multiply a fraction by a mixed number.',
+        'Divide a fraction by a mixed number.',
+      ],
+      hard: [
+        'Multiply mixed numbers, or a fraction and a decimal, in a word-problem context.',
+        'Divide mixed numbers, or a fraction and a decimal, in a word-problem context.',
+      ],
     },
     expressionFor: ['easy', 'medium'],
   },
@@ -710,8 +731,14 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#FF9800',
     description: 'Multiplying and dividing decimals; decimal-point placement',
     difficulty: {
-      easy: 'Multiply or divide a decimal by a whole number.',
-      medium: 'Multiply or divide two decimals.',
+      easy: [
+        'Multiply a decimal by a whole number between 3 and 12 (e.g., 3.6 × 7).',
+        'Divide a decimal by a whole number between 3 and 12, exact result (e.g., 14.4 ÷ 6).',
+      ],
+      medium: [
+        'Multiply two decimals — BOTH numbers must be decimals (e.g., 0.6 × 0.4), never a decimal by a whole number.',
+        'Divide two decimals — BOTH numbers must be decimals with an exact result (e.g., 2.4 ÷ 0.3), never a decimal by a whole number.',
+      ],
       hard: 'Multiply or divide by a decimal in a measurement context.',
     },
     expressionFor: ['easy', 'medium'],
@@ -725,9 +752,14 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     description:
       'Percent as part of 100; find part, find whole, find percent; link to fractions and decimals',
     difficulty: {
-      easy: 'Find the part (10% of 80).',
-      medium: 'Find the percentage (15 is what % of 60?).',
-      hard: 'Find the whole given a part and its percentage (reverse percentage).',
+      easy: [
+        'Find 10% or 5% of a whole number. Vary the whole number in every question.',
+        'Find 20% of a whole number. Vary the whole number in every question.',
+        'Find 25% of a whole number. Vary the whole number in every question.',
+        'Find 50% of a whole number. Vary the whole number in every question.',
+      ],
+      medium: 'Find what percent one number is of another.',
+      hard: 'Find the whole given a part and its percentage (reverse percentage). Vary the scenario and the numbers in every question.',
     },
     expressionFor: ['easy'],
   },
@@ -752,9 +784,13 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#E91E63',
     description: 'Circle properties: radius, diameter, circumference, and area',
     difficulty: {
-      easy: 'Identify the radius or diameter of a circle given the other.',
-      medium: 'Calculate the circumference of a circle given the radius (π ≈ 3.14).',
-      hard: 'Calculate the area of a circle given the radius.',
+      easy: [
+        'Given the radius of a circle, find its diameter. All lengths in meters or centimeters.',
+        'Given the diameter of a circle, find its radius. All lengths in meters or centimeters.',
+      ],
+      medium:
+        'Calculate the circumference of a circle given the radius or diameter (π ≈ 3.14). All lengths in meters or centimeters.',
+      hard: 'Calculate the area of a circle given the radius (π ≈ 3.14). All lengths in meters or centimeters.',
     },
   },
   {
