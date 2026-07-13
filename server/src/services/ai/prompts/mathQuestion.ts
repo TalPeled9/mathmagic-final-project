@@ -24,6 +24,17 @@ MATH EXPRESSION RULES:
 `
     : '';
 
+  const clockBlock = ctx.clockTime
+    ? `
+CLOCK RULES (these OVERRIDE any other rule about answer options):
+- The app displays a large analog clock beside the question. It shows exactly ${ctx.clockTime}.
+- The question asks the child to READ this clock: problemText must ask what time the clock shows, woven into the story (e.g. "The gate opens only for a time-reader — what time does the great clock show?").
+- Do NOT state the time ${ctx.clockTime} anywhere in adventureNarrative, problemText, or wizzyDialogue — not in digits and not in words. Reading the clock IS the child's task.
+- Do NOT produce answerOptions or correctAnswer — the app supplies them.
+- imageDescription must NOT include any clock, watch, or timepiece; describe the scene without one.
+`
+    : '';
+
   return `Generate the next story segment that includes exactly one grade-appropriate math question, woven NATURALLY into the narrative.
 
 CHILD CONTEXT:
@@ -59,7 +70,7 @@ TOPIC FIDELITY RULES:
 - Write mixed numbers with a space between the whole part and the fraction (e.g. "2 3/4") and
   spell them out in words inside adventureNarrative (e.g. "two and three quarters").
 - adventureNarrative and problemText must NOT state or reveal the correct answer.
-${uniquenessBlock}${expressionBlock}MATH RULES:
+${uniquenessBlock}${expressionBlock}${clockBlock}MATH RULES:
 - Include exactly one clear, solvable math problem embedded within adventureNarrative.
 - problemText is a short, direct question referencing the story situation (may echo story elements).
 - Provide exactly 4 answer options in answerOptions.
