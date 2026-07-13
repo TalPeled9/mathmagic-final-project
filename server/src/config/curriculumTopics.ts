@@ -758,7 +758,6 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Find what percent one number is of another.',
       hard: 'Find the whole given a part and its percentage (reverse percentage). Vary the scenario and the numbers in every question.',
     },
-    expressionFor: ['easy'],
   },
   {
     id: 'g6_ratio_proportion',

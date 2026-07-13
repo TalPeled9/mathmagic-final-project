@@ -26,7 +26,6 @@ const EXPECTED_FLAGS: Record<string, Array<'easy' | 'medium' | 'hard'>> = {
   g6_fractions_decimals_add_sub: EASY_MEDIUM,
   g6_fractions_mul_div: EASY_MEDIUM,
   g6_decimals_mul_div: EASY_MEDIUM,
-  g6_percentages: ['easy'],
 };
 
 describe('curriculumTopics — expressionFor flags', () => {
