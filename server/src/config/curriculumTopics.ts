@@ -545,7 +545,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: 'Two clear steps with 2-digit numbers (e.g., multiply two 2-digit quantities, then add or subtract a total).',
       medium: 'Three or more steps involving a fraction.',
-      hard: 'Rate-based reasoning (pages per day, distance at a speed) requiring at least three steps or a comparison between two rates.',
+      hard: 'Rate-based reasoning (e.g: pages per day, distance at a speed) requiring at least three steps or a comparison between two rates.',
     },
   },
 
@@ -621,7 +621,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: '3-digit × 2-digit multiplication.',
       medium: '4-digit ÷ 2-digit division.',
-      hard: 'Multi-step word problem combining two operations on large numbers (e.g., multiply, then subtract from a total).',
+      hard: 'Multi-step word problem combining 3 or 4 operations on large numbers.',
     },
     expressionFor: ['easy', 'medium'],
   },
@@ -633,7 +633,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     color: '#F44336',
     description: 'Combining several operations and number types (whole, fraction, decimal)',
     difficulty: {
-      easy: 'Two operations with whole numbers in the hundreds (results up to 1,000).',
+      easy: 'Two operations with whole numbers in the hundreds (results up to 1,000). Numbers don\'t always end in 0 or 5. The story must not state the answer anywhere.',
       medium: 'One operation with fractions or decimals mixed with whole numbers.',
       hard: 'Sequential fraction reasoning (fraction of a fraction of a total).',
     },
@@ -690,7 +690,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: [
         'Add two fractions where one denominator is a multiple of the other (e.g., thirds and sixths).',
-        'Subtract two fractions where one denominator is a multiple of the other (e.g., thirds and sixths).',
+        'Subtract two fractions where one denominator is a multiple of the other (e.g., fourths and eighths).',
       ],
       medium: [
         'Add two fractions with unrelated denominators, requiring a common denominator.',
