@@ -5,7 +5,16 @@ import {
   buildMathQuestionSchema,
   normalizeMathExpression,
 } from '../../services/ai/llmService';
-import type { AdventureState } from '@mathmagic/types';
+import type { AdventureState, LLMMathQuestionContext } from '@mathmagic/types';
+
+const clockCtx: LLMMathQuestionContext = {
+  childName: 'Alex',
+  gradeLevel: 1,
+  mathTopic: 'g1_time_clock',
+  storyWorld: 'space',
+  selectedChoice: 'adventure begins',
+  currentDifficulty: 'easy' as const,
+};
 
 const baseState: AdventureState = {
   childName: 'Alex',
@@ -158,5 +167,58 @@ describe('llmService math_question fallback', () => {
     };
     const result = await llmService.generateMathQuestionFromState(state);
     expect(result.mathExpression).toBeUndefined();
+  });
+});
+
+describe('buildMathQuestionSchema — requireClock', () => {
+  it('drops answerOptions and correctAnswer when requireClock is true', () => {
+    const schema = buildMathQuestionSchema(false, true);
+    expect(schema.required).not.toContain('answerOptions');
+    expect(schema.required).not.toContain('correctAnswer');
+    expect(Object.keys(schema.properties as Record<string, unknown>)).not.toContain(
+      'answerOptions'
+    );
+    expect(Object.keys(schema.properties as Record<string, unknown>)).not.toContain(
+      'correctAnswer'
+    );
+  });
+
+  it('keeps them when requireClock is false or omitted', () => {
+    expect(buildMathQuestionSchema(false).required).toContain('answerOptions');
+    expect(buildMathQuestionSchema(false, false).required).toContain('correctAnswer');
+  });
+});
+
+describe('llmService clock questions', () => {
+  it('attaches server-authored options, correctAnswer, clockTime, and masks leaks', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      adventureNarrative: 'The tower clock chimes — it is 7:30 already, whispers the wind.',
+      wizzyDialogue: 'Look at the clock — half past seven never looked so magical!',
+      problemText: 'What time does the great clock show?',
+      imageDescription: 'Child and Wizzy before a tower gate.',
+    });
+
+    const response = await llmService.generateMathQuestion({ ...clockCtx, clockTime: '7:30' });
+
+    expect(response.correctAnswer).toBe('7:30');
+    expect(response.clockTime).toBe('7:30');
+    expect(response.answerOptions).toHaveLength(4);
+    expect(response.answerOptions).toContain('7:30');
+    expect(response.adventureNarrative).not.toContain('7:30');
+    expect(response.adventureNarrative).toContain('_______');
+    expect(response.wizzyDialogue.toLowerCase()).not.toContain('half past seven');
+  });
+
+  it('uses the server-built clock fallback when all providers fail', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+
+    const response = await llmService.generateMathQuestion({ ...clockCtx, clockTime: '4:00' });
+
+    expect(response.correctAnswer).toBe('4:00');
+    expect(response.clockTime).toBe('4:00');
+    expect(response.problemText.toLowerCase()).toContain('what time');
+    expect(response.answerOptions).toContain('4:00');
   });
 });

@@ -21,6 +21,11 @@ import {
   buildStoryStepContext,
 } from './storyContextBuilder';
 import type { GeminiResponseSchema } from './geminiClient';
+import {
+  buildClockFallbackResponse,
+  generateClockOptions,
+  maskClockTimeLeaks,
+} from './clockQuestion';
 import { FallbackLLMClient } from './fallbackLLMClient';
 import { GeminiProvider } from './providers/geminiProvider';
 import { OllamaProvider } from './providers/ollamaProvider';
@@ -71,12 +76,25 @@ const mathQuestionSchema: GeminiResponseSchema = {
   },
 };
 
-export function buildMathQuestionSchema(requireExpression: boolean): GeminiResponseSchema {
-  if (!requireExpression) return mathQuestionSchema;
-  const required = (mathQuestionSchema.required as string[] | undefined) ?? [];
-  const properties = (mathQuestionSchema.properties as Record<string, unknown> | undefined) ?? {};
+export function buildMathQuestionSchema(
+  requireExpression: boolean,
+  requireClock = false
+): GeminiResponseSchema {
+  let schema = mathQuestionSchema;
+  if (requireClock) {
+    const required = ((schema.required as string[] | undefined) ?? []).filter(
+      (field) => field !== 'answerOptions' && field !== 'correctAnswer'
+    );
+    const properties = { ...((schema.properties as Record<string, unknown> | undefined) ?? {}) };
+    delete properties.answerOptions;
+    delete properties.correctAnswer;
+    schema = { ...schema, required, properties };
+  }
+  if (!requireExpression) return schema;
+  const required = (schema.required as string[] | undefined) ?? [];
+  const properties = (schema.properties as Record<string, unknown> | undefined) ?? {};
   return {
-    ...mathQuestionSchema,
+    ...schema,
     required: [...required, 'mathExpression'],
     properties: {
       ...properties,
@@ -172,6 +190,13 @@ function fallbackByMode<K extends StoryMode>(
     }
 
     case 'math_question': {
+      const clockTime = (ctx as LLMMathQuestionContext).clockTime;
+      if (clockTime) {
+        return buildClockFallbackResponse(
+          ctx.childName,
+          clockTime
+        ) as unknown as LLMModeResponseMap[K];
+      }
       const requireExpression = Boolean((ctx as LLMMathQuestionContext).requireExpression);
       const response = {
         adventureNarrative: `As ${ctx.childName} continues the journey, Wizzy points to a glowing puzzle stone on the path. "There are 2 bright stars on one side and 3 on the other — we need to count them all to unlock the way forward!" Wizzy exclaims.`,
@@ -295,7 +320,10 @@ class LLMService {
 
     const schema =
       mode === 'math_question'
-        ? buildMathQuestionSchema(Boolean((ctx as LLMMathQuestionContext).requireExpression))
+        ? buildMathQuestionSchema(
+            Boolean((ctx as LLMMathQuestionContext).requireExpression),
+            Boolean((ctx as LLMMathQuestionContext).clockTime)
+          )
         : definition.schema;
 
     let response: LLMModeResponseMap[K];
@@ -321,6 +349,19 @@ class LLMService {
         const mathResponse = sanitized as LLMMathQuestionResponse;
         if (mathResponse.mathExpression) {
           mathResponse.mathExpression = normalizeMathExpression(mathResponse.mathExpression);
+        }
+
+        const clockTime = (ctx as LLMMathQuestionContext).clockTime;
+        if (clockTime) {
+          mathResponse.adventureNarrative = maskClockTimeLeaks(
+            mathResponse.adventureNarrative,
+            clockTime
+          );
+          mathResponse.problemText = maskClockTimeLeaks(mathResponse.problemText, clockTime);
+          mathResponse.wizzyDialogue = maskClockTimeLeaks(mathResponse.wizzyDialogue, clockTime);
+          mathResponse.answerOptions = generateClockOptions(clockTime);
+          mathResponse.correctAnswer = clockTime;
+          mathResponse.clockTime = clockTime;
         }
       }
       return sanitized;
