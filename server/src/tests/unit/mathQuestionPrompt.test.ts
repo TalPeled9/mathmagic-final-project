@@ -39,3 +39,23 @@ describe('buildMathQuestionPrompt — UNIQUENESS RULES', () => {
     expect(prompt).toContain('1. What is 1 + 2?');
   });
 });
+
+describe('buildMathQuestionPrompt — MATH EXPRESSION RULES', () => {
+  it('includes the block when requireExpression is true', () => {
+    const prompt = buildMathQuestionPrompt({ ...baseCtx, requireExpression: true });
+    expect(prompt).toContain('MATH EXPRESSION RULES');
+    expect(prompt).toContain('mathExpression');
+    expect(prompt).toContain('"?"');
+  });
+
+  it('omits the block when requireExpression is false', () => {
+    const prompt = buildMathQuestionPrompt({ ...baseCtx, requireExpression: false });
+    expect(prompt).not.toContain('MATH EXPRESSION RULES');
+    expect(prompt).not.toContain('mathExpression');
+  });
+
+  it('omits the block when requireExpression is undefined', () => {
+    const prompt = buildMathQuestionPrompt(baseCtx);
+    expect(prompt).not.toContain('MATH EXPRESSION RULES');
+  });
+});

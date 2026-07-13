@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { GeminiJsonClient } from '../../services/ai/geminiClient';
-import { llmService } from '../../services/ai/llmService';
+import {
+  llmService,
+  buildMathQuestionSchema,
+  normalizeMathExpression,
+} from '../../services/ai/llmService';
 import type { AdventureState } from '@mathmagic/types';
 
 const baseState: AdventureState = {
@@ -25,6 +29,45 @@ const baseState: AdventureState = {
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+describe('normalizeMathExpression', () => {
+  it('converts * to × (Gemini sometimes ignores the prompt symbol rules)', () => {
+    expect(normalizeMathExpression('3 * 4 = ?')).toBe('3 × 4 = ?');
+  });
+
+  it('converts every occurrence, not just the first', () => {
+    expect(normalizeMathExpression('2 * 3 * 4 = ?')).toBe('2 × 3 × 4 = ?');
+  });
+
+  it('leaves already-correct expressions untouched', () => {
+    expect(normalizeMathExpression('3 × 4 = ?')).toBe('3 × 4 = ?');
+    expect(normalizeMathExpression('15 − ? = 7')).toBe('15 − ? = 7');
+  });
+});
+
+describe('llmService math_question expression normalization', () => {
+  it('normalizes * to × in mathExpression on the live-response path', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      adventureNarrative: 'You see 3 rows of 4 glowing crystals.',
+      wizzyDialogue: 'Count them all!',
+      problemText: 'How many crystals are there in total?',
+      mathExpression: '3 * 4 = ?',
+      answerOptions: ['7', '12', '11', '15'],
+      correctAnswer: '12',
+      imageDescription: 'Crystals in rows.',
+    });
+
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g2_multiplication_intro',
+      currentDifficulty: 'easy',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+
+    expect(result.mathExpression).toBe('3 × 4 = ?');
+  });
 });
 
 describe('llmService provider wiring', () => {
@@ -55,7 +98,8 @@ describe('llmService provider wiring', () => {
     expect(typeof result.wizzyDialogue).toBe('string');
     expect(result.wizzyDialogue.length).toBeGreaterThan(0);
     expect(Array.isArray(result.storyChoices)).toBe(true);
-    expect(result.storyChoices).toHaveLength(3);
+    // The static fallback (and the Gemini schema: minItems/maxItems 2) provides exactly 2 choices
+    expect(result.storyChoices).toHaveLength(2);
   });
 });
 
@@ -70,5 +114,49 @@ describe('llmService hint fallback', () => {
 
     expect(typeof result.scaffoldingQuestion).toBe('string');
     expect(result.scaffoldingQuestion.length).toBeGreaterThan(0);
+  });
+});
+
+describe('buildMathQuestionSchema', () => {
+  it('requires mathExpression when requireExpression is true', () => {
+    const schema = buildMathQuestionSchema(true);
+    expect(schema.properties).toHaveProperty('mathExpression');
+    expect(schema.required).toContain('mathExpression');
+  });
+
+  it('omits mathExpression entirely when requireExpression is false', () => {
+    const schema = buildMathQuestionSchema(false);
+    expect(schema.properties).not.toHaveProperty('mathExpression');
+    expect(schema.required).not.toContain('mathExpression');
+  });
+});
+
+describe('llmService math_question fallback', () => {
+  it('includes mathExpression in the fallback for a flagged topic+difficulty', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g1_addition',
+      currentDifficulty: 'easy',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+    expect(result.mathExpression).toBe('2 + 3 = ?');
+  });
+
+  it('omits mathExpression in the fallback for an unflagged topic', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+    const state: AdventureState = {
+      ...baseState,
+      mode: 'math_question',
+      mathTopic: 'g1_2d_shapes',
+      currentDifficulty: 'easy',
+    };
+    const result = await llmService.generateMathQuestionFromState(state);
+    expect(result.mathExpression).toBeUndefined();
   });
 });

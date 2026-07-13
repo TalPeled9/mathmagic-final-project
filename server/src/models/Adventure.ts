@@ -18,6 +18,7 @@ interface IPregeneratedStep {
 
 interface ICurrentChallengeSubdoc {
   problemText: string;
+  mathExpression?: string;
   correctAnswer: string;
   options: [string, string, string, string];
   hintLevel: 0 | 1 | 2 | 3;
@@ -67,6 +68,7 @@ const pregeneratedStepSchema = new Schema<IPregeneratedStep>(
 const currentChallengeSchema = new Schema<ICurrentChallengeSubdoc>(
   {
     problemText: { type: String, required: true },
+    mathExpression: { type: String },
     correctAnswer: { type: String, required: true },
     options: { type: [String], required: true },
     hintLevel: { type: Number, min: 0, max: 3, default: 0 },

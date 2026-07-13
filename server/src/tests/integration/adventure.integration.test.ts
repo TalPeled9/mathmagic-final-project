@@ -46,6 +46,7 @@ const MOCK_MATH_RESPONSE = {
   adventureNarrative: 'You find a glowing stone with 2 crystals on one side and 2 on the other. To pass, you must count them all!',
   wizzyDialogue: 'Solve this to continue!',
   problemText: '2 + 2 = ?',
+  mathExpression: '2 + 2 = ?',
   correctAnswer: '4',
   answerOptions: ['3', '4', '5', '6'],
   imageDescription: 'A math scroll glowing with light',
@@ -545,6 +546,48 @@ describe('adventure routes integration', () => {
       const adventure = await Adventure.findById(adventureId);
       expect(adventure?.previousProblemTexts).toContain(MOCK_MATH_RESPONSE.problemText);
       expect(adventure?.previousProblemTexts).toHaveLength(2);
+    });
+  });
+
+  // ─── math expression flow ───────────────────────────────────────────────────
+
+  describe('math expression flow', () => {
+    async function startAndGetChallenge() {
+      const startRes = await request(app)
+        .post(`/api/adventures/children/${childId}`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
+        .expect(201);
+      const { adventureId } = startRes.body;
+      // Step 0 is a story step; continuing to step 1 produces a math question
+      const contRes = await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
+      return { adventureId, contRes };
+    }
+
+    it('persists mathExpression on the challenge and returns it in both payloads', async () => {
+      const { adventureId, contRes } = await startAndGetChallenge();
+
+      expect(contRes.body.segment.challenge.mathExpression).toBe('2 + 2 = ?');
+
+      const getRes = await request(app)
+        .get(`/api/adventures/${adventureId}`)
+        .set('Cookie', buildCookies(parentId))
+        .expect(200);
+      expect(getRes.body.currentChallenge.mathExpression).toBe('2 + 2 = ?');
+    });
+
+    it('returns a challenge without mathExpression when the LLM response has none', async () => {
+      const { mathExpression: _omitted, ...responseWithout } = MOCK_MATH_RESPONSE;
+      mockedLlm.generateMathQuestionFromState.mockResolvedValue(responseWithout);
+
+      const { contRes } = await startAndGetChallenge();
+      expect(contRes.body.segment.challenge.mathExpression).toBeUndefined();
     });
   });
 

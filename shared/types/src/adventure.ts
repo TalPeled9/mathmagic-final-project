@@ -28,6 +28,7 @@ export interface AdventureState {
   previousProblemTexts?: string[]; // problem texts asked in this adventure
 
   lastProblemText?: string;
+  lastMathExpression?: string;
   correctAnswer?: string;
   lastChildAnswer?: string;
   attemptCount: number;
@@ -41,6 +42,7 @@ export interface AdventureState {
 
 export interface ICurrentChallenge {
   problemText: string;
+  mathExpression?: string; // symbolic form (e.g. "3 + 5 = ?") — only for flagged topics
   options: [string, string, string, string];
   hintLevel: 0 | 1 | 2 | 3;
   attemptsCount: number;
@@ -123,6 +125,8 @@ export interface MathTopicConfig {
     medium: string;
     hard: string;
   };
+  /** Difficulties at which a symbolic math expression (e.g. "3 + 5 = ?") must accompany the question. */
+  expressionFor?: Array<'easy' | 'medium' | 'hard'>;
 }
 
 export interface StoryWorldConfig {

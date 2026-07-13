@@ -138,6 +138,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
   const challenge = adventure.currentChallenge
     ? {
         problemText: adventure.currentChallenge.problemText,
+        mathExpression: adventure.currentChallenge.mathExpression,
         options: adventure.currentChallenge.options,
         hintLevel: adventure.currentChallenge.hintLevel,
         attemptsCount: adventure.currentChallenge.attemptsCount,
@@ -257,6 +258,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
       adventure.currentChallenge = segment.challenge
         ? {
             problemText: llmResp.problemText,
+            mathExpression: llmResp.mathExpression,
             correctAnswer: llmResp.correctAnswer,
             options: segment.challenge.options,
             hintLevel: 0,
@@ -398,6 +400,7 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
     adventure.currentChallenge = segment.challenge
       ? {
           problemText: llmResponse.problemText,
+          mathExpression: llmResponse.mathExpression,
           correctAnswer: llmResponse.correctAnswer,
           options: segment.challenge.options,
           hintLevel: 0,

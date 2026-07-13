@@ -27,6 +27,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Addition within 20, with regrouping (e.g., 7 + 8 = ?).',
       hard: 'Missing addend within 20 (e.g., 6 + ? = 14); multi-step addition word problem.',
     },
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g1_subtraction',
@@ -40,6 +41,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Subtraction within 20, with borrowing (e.g., 15 − 8 = ?).',
       hard: 'Missing minuend or subtrahend within 20 (e.g., ? − 5 = 9); multi-step subtraction word problem.',
     },
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g1_odd_even',
@@ -133,6 +135,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Two-digit addition with regrouping.',
       hard: 'Two-step problem within 1,000 (add then subtract or vice versa).',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g2_multiplication_intro',
@@ -146,6 +149,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Other single-digit times-table facts (×3, ×4, ×6).',
       hard: 'Missing factor problem within single-digit tables.',
     },
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g2_division_intro',
@@ -159,6 +163,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Find the number of equal groups within ×3/×4 tables.',
       hard: 'Word problem requiring interpretation of a division situation.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g2_word_problems',
@@ -241,6 +246,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Add or subtract two 4-digit numbers with regrouping.',
       hard: 'Two-step problem within 10,000 (add then subtract or vice versa).',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g3_multiplication_table',
@@ -254,6 +260,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: '2-digit or 3-digit × 1-digit vertical multiplication.',
       hard: 'Find the missing digit in a 2-digit × 1-digit product.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g3_division_remainder',
@@ -267,6 +274,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Division with a remainder; state quotient and remainder.',
       hard: 'Word problem where the remainder must be interpreted (e.g., rounding up cars).',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g3_order_of_operations',
@@ -280,6 +288,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Expression with parentheses.',
       hard: 'Translate a word description into the correct expression.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g3_simple_fractions',
@@ -293,6 +302,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Compare two unit fractions (e.g., 1/2 vs 1/3).',
       hard: 'Find a unit fraction of a quantity (e.g., 1/4 of 20).',
     },
+    expressionFor: ['hard'],
   },
   {
     id: 'g3_two_step_word_problems',
@@ -348,6 +358,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Add or subtract two large numbers (5–6 digits) with regrouping.',
       hard: 'Multi-step problem combining addition and subtraction of large numbers.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g4_long_multiplication_division',
@@ -362,6 +373,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: '3-digit × 2-digit multiplication.',
       hard: 'Long division by a 2-digit divisor (exact).',
     },
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g4_fractions_extended',
@@ -375,6 +387,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Compare two fractions with different denominators.',
       hard: 'Adding and subtracting mixed numbers when the denominators are equal or close',
     },
+    expressionFor: ['hard'],
   },
   {
     id: 'g4_order_of_operations_advanced',
@@ -389,6 +402,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Multiple operations with parentheses.',
       hard: 'Translate a multi-step word problem into the correct expression and solve it.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g4_prime_composite_numbers',
@@ -446,6 +460,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
         'Add or subtract two fractions with different denominators using a common denominator.',
       hard: 'Add or subtract mixed numbers with different denominators using a common denominator.',
     },
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g5_decimal_numbers',
@@ -459,6 +474,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Add or subtract two hundredths-place decimals with regrouping.',
       hard: 'Add or subtract two thousandths-place decimals with regrouping; compare two decimals to determine which is larger.',
     },
+    expressionFor: ['easy', 'medium', 'hard'],
   },
   {
     id: 'g5_fraction_decimal_conversion',
@@ -485,6 +501,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: '4-digit ÷ 2-digit division.',
       hard: 'Large-number addition, subtraction, multiplication, or division word problem.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g5_multi_step_word_problems',
@@ -554,6 +571,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
         'Add or subtract two fractions with different denominators, or two decimals with regrouping.',
       hard: 'Add or subtract mixed numbers or a fraction and a decimal in a word-problem context.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g6_fractions_mul_div',
@@ -567,6 +585,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Multiply or divide two fractions or a fraction by a mixed number.',
       hard: 'Multiply or divide mixed numbers or a fraction and a decimal in a word-problem context.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g6_decimals_mul_div',
@@ -580,6 +599,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Multiply or divide two decimals.',
       hard: 'Multiply or divide by a decimal in a measurement context.',
     },
+    expressionFor: ['easy', 'medium'],
   },
   {
     id: 'g6_percentages',
@@ -594,6 +614,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
       medium: 'Find the percentage (15 is what % of 60?).',
       hard: 'Find the whole given a part and its percentage (reverse percentage).',
     },
+    expressionFor: ['easy'],
   },
   {
     id: 'g6_ratio_proportion',

@@ -14,7 +14,7 @@ CHILD CONTEXT:
 - What this means for this topic: ${ctx.difficultyDescription ?? ''}
 
 PROBLEM CONTEXT:
-- Problem text: ${ctx.problemText}
+- Problem text: ${ctx.problemText}${ctx.mathExpression ? `\n- Math expression: ${ctx.mathExpression}` : ''}
 - Child's incorrect answer: ${ctx.childAnswer || '(not provided)'}
 - Hint level requested: ${ctx.hintLevel} (out of 3)
 - Previous hints already given: ${ctx.previousHints.length > 0 ? ctx.previousHints.map((h, i) => `\n  Hint ${i + 1}: ${h}`).join('') : 'None'}

@@ -15,10 +15,12 @@ export interface LLMStoryPromptContext {
 export interface LLMMathQuestionContext extends LLMStoryPromptContext {
   selectedChoice: string;
   previousProblemTexts?: string[];
+  requireExpression?: boolean;
 }
 
 export interface LLMHintContext extends LLMStoryPromptContext {
   problemText: string;
+  mathExpression?: string;
   childAnswer: string;
   hintLevel: number; // 1,2,3 progression
   previousHints: string[];
@@ -43,6 +45,7 @@ export interface LLMStoryStepResponse extends LLMBaseStoryResponse {
 export interface LLMMathQuestionResponse extends LLMBaseStoryResponse {
   adventureNarrative: string;
   problemText: string;
+  mathExpression?: string;
   answerOptions: string[];
   correctAnswer: string;
 }
