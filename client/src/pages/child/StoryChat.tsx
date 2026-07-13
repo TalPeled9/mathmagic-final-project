@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Lightbulb, Sparkles, Star, Zap, Trophy, Wand2, Volume2, VolumeX, Play } from 'lucide-react';
+import {
+  ArrowLeft,
+  Lightbulb,
+  Sparkles,
+  Star,
+  Zap,
+  Trophy,
+  Wand2,
+  Volume2,
+  VolumeX,
+  Play,
+} from 'lucide-react';
 import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,33 +64,86 @@ const CONFETTI_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
 // ── WORLD PARTICLE CONFIG ─────────────────────────────────────────────────────
 
 const WORLD_PARTICLES: Record<string, { symbols: string[]; count: number; color: string[] }> = {
-  space:           { symbols: ['★', '✦', '·', '✧', '⭐'], count: 22, color: ['#c4b5fd', '#818cf8', '#e0e7ff'] },
-  fantasy:         { symbols: ['✨', '🌸', '🍀', '💫', '♦'], count: 18, color: ['#f9a8d4', '#c084fc', '#fde68a'] },
-  ocean:           { symbols: ['○', '◦', '◯', '·', '○'], count: 20, color: ['#7dd3fc', '#38bdf8', '#bae6fd'] },
-  jungle:          { symbols: ['🍃', '✿', '❀', '◈', '●'], count: 16, color: ['#86efac', '#4ade80', '#bbf7d0'] },
-  dinosaur:        { symbols: ['✦', '◆', '·', '✧', '◇'], count: 16, color: ['#fde047', '#a3e635', '#fcd34d'] },
-  pirates:         { symbols: ['✦', '·', '✧', '◇', '○'], count: 14, color: ['#fcd34d', '#fbbf24', '#fef3c7'] },
-  robots:          { symbols: ['◈', '◉', '⊕', '◦', '●'], count: 16, color: ['#94a3b8', '#cbd5e1', '#e2e8f0'] },
-  candy:           { symbols: ['✿', '❀', '◆', '✦', '◇'], count: 20, color: ['#f9a8d4', '#f0abfc', '#fde68a'] },
-  'magic-school':  { symbols: ['★', '✦', '✧', '⭐', '💫'], count: 20, color: ['#c4b5fd', '#f9a8d4', '#fde68a'] },
-  'ancient-temple':{ symbols: ['◈', '◆', '◇', '✦', '✧'], count: 14, color: ['#fcd34d', '#fbbf24', '#f97316'] },
-  default:         { symbols: ['★', '✦', '·', '◇', '✧'], count: 16, color: ['#c4b5fd', '#f9a8d4', '#fde68a'] },
+  space: {
+    symbols: ['★', '✦', '·', '✧', '⭐'],
+    count: 22,
+    color: ['#c4b5fd', '#818cf8', '#e0e7ff'],
+  },
+  fantasy: {
+    symbols: ['✨', '🌸', '🍀', '💫', '♦'],
+    count: 18,
+    color: ['#f9a8d4', '#c084fc', '#fde68a'],
+  },
+  ocean: {
+    symbols: ['○', '◦', '◯', '·', '○'],
+    count: 20,
+    color: ['#7dd3fc', '#38bdf8', '#bae6fd'],
+  },
+  jungle: {
+    symbols: ['🍃', '✿', '❀', '◈', '●'],
+    count: 16,
+    color: ['#86efac', '#4ade80', '#bbf7d0'],
+  },
+  dinosaur: {
+    symbols: ['✦', '◆', '·', '✧', '◇'],
+    count: 16,
+    color: ['#fde047', '#a3e635', '#fcd34d'],
+  },
+  pirates: {
+    symbols: ['✦', '·', '✧', '◇', '○'],
+    count: 14,
+    color: ['#fcd34d', '#fbbf24', '#fef3c7'],
+  },
+  robots: {
+    symbols: ['◈', '◉', '⊕', '◦', '●'],
+    count: 16,
+    color: ['#94a3b8', '#cbd5e1', '#e2e8f0'],
+  },
+  candy: {
+    symbols: ['✿', '❀', '◆', '✦', '◇'],
+    count: 20,
+    color: ['#f9a8d4', '#f0abfc', '#fde68a'],
+  },
+  'magic-school': {
+    symbols: ['★', '✦', '✧', '⭐', '💫'],
+    count: 20,
+    color: ['#c4b5fd', '#f9a8d4', '#fde68a'],
+  },
+  'ancient-temple': {
+    symbols: ['◈', '◆', '◇', '✦', '✧'],
+    count: 14,
+    color: ['#fcd34d', '#fbbf24', '#f97316'],
+  },
+  default: {
+    symbols: ['★', '✦', '·', '◇', '✧'],
+    count: 16,
+    color: ['#c4b5fd', '#f9a8d4', '#fde68a'],
+  },
 };
 
 // ── CHALLENGE OPTION STYLES ───────────────────────────────────────────────────
 
-const OPTION_SHAPES = [
-  { label: 'A' },
-  { label: 'B' },
-  { label: 'C' },
-  { label: 'D' },
-];
+const OPTION_SHAPES = [{ label: 'A' }, { label: 'B' }, { label: 'C' }, { label: 'D' }];
 
 // ── PATH CHOICE STYLES ────────────────────────────────────────────────────────
 
 const PATH_THEMES = [
-  { gradient: 'linear-gradient(135deg, #faf5ff, #ede9fe)', border: 'rgba(139,92,246,0.3)', hover: '#8b5cf6', icon: '⚡', label: 'Path A', labelColor: '#7c3aed' },
-  { gradient: 'linear-gradient(135deg, #fffbeb, #fef3c7)', border: 'rgba(245,158,11,0.3)',  hover: '#f59e0b', icon: '✨', label: 'Path B', labelColor: '#b45309' },
+  {
+    gradient: 'linear-gradient(135deg, #faf5ff, #ede9fe)',
+    border: 'rgba(139,92,246,0.3)',
+    hover: '#8b5cf6',
+    icon: '⚡',
+    label: 'Path A',
+    labelColor: '#7c3aed',
+  },
+  {
+    gradient: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+    border: 'rgba(245,158,11,0.3)',
+    hover: '#f59e0b',
+    icon: '✨',
+    label: 'Path B',
+    labelColor: '#b45309',
+  },
 ];
 
 // ── CORRECT ANSWER STAR BURST ─────────────────────────────────────────────────
@@ -94,9 +158,9 @@ const STAR_BURST_PARTICLES = Array.from({ length: 8 }, (_, i) => ({
 // ── WIZZY STATUS MAP ──────────────────────────────────────────────────────────
 
 const WIZZY_STATUS_MAP = {
-  thinking: { text: 'Thinking…',  color: '#f59e0b', dot: '#fbbf24' },
-  talking:  { text: 'Speaking…',  color: '#8b5cf6', dot: '#a78bfa' },
-  idle:     { text: 'Ready!',     color: '#10b981', dot: '#34d399' },
+  thinking: { text: 'Thinking…', color: '#f59e0b', dot: '#fbbf24' },
+  talking: { text: 'Speaking…', color: '#8b5cf6', dot: '#a78bfa' },
+  idle: { text: 'Ready!', color: '#10b981', dot: '#34d399' },
 } as const;
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -152,10 +216,8 @@ export default function StoryChat() {
       const toSpeak = [segment.narrative];
       if (segment.wizzyDialogue && segment.wizzyDialogue !== segment.narrative)
         toSpeak.push(segment.wizzyDialogue);
-      if (segment.challenge?.problemText)
-        toSpeak.push(segment.challenge.problemText);
-      if (segment.choices?.length)
-        toSpeak.push(...segment.choices);
+      if (segment.challenge?.problemText) toSpeak.push(segment.challenge.problemText);
+      if (segment.choices?.length) toSpeak.push(...segment.choices);
       speakQueue(toSpeak);
       setCurrentChoices(segment.choices ?? []);
       setCurrentChallenge(segment.challenge);
@@ -427,8 +489,8 @@ export default function StoryChat() {
   const wizzyStatus: keyof typeof WIZZY_STATUS_MAP = isProcessing
     ? 'thinking'
     : isSpeaking
-    ? 'talking'
-    : 'idle';
+      ? 'talking'
+      : 'idle';
 
   if (adventureStatus === 'loading') {
     return (
@@ -480,10 +542,11 @@ export default function StoryChat() {
               title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
             >
-              {isMuted
-                ? <VolumeX size={15} className="text-purple-wizzy/50" />
-                : <Volume2 size={15} className="text-purple-wizzy" />
-              }
+              {isMuted ? (
+                <VolumeX size={15} className="text-purple-wizzy/50" />
+              ) : (
+                <Volume2 size={15} className="text-purple-wizzy" />
+              )}
             </button>
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
@@ -493,7 +556,10 @@ export default function StoryChat() {
                   style={{
                     background: WIZZY_STATUS_MAP[wizzyStatus].dot,
                     boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
-                    animation: wizzyStatus === 'thinking' || wizzyStatus === 'talking' ? 'sparkle 0.8s ease-in-out infinite' : 'none',
+                    animation:
+                      wizzyStatus === 'thinking' || wizzyStatus === 'talking'
+                        ? 'sparkle 0.8s ease-in-out infinite'
+                        : 'none',
                   }}
                 />
                 <span
@@ -509,7 +575,8 @@ export default function StoryChat() {
               style={{
                 borderColor: WIZZY_STATUS_MAP[wizzyStatus].dot,
                 boxShadow: `0 0 10px ${WIZZY_STATUS_MAP[wizzyStatus].dot}40`,
-                animation: wizzyStatus === 'thinking' ? 'mm-wizzy-bob 1.2s ease-in-out infinite' : 'none',
+                animation:
+                  wizzyStatus === 'thinking' ? 'mm-wizzy-bob 1.2s ease-in-out infinite' : 'none',
               }}
             >
               <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
@@ -520,7 +587,6 @@ export default function StoryChat() {
 
       {/* ── Content area: chat + optional challenge panel ── */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-
         {/* Chat column */}
         <main className="flex-1 min-w-0 min-h-0 flex justify-center overflow-hidden">
           <div
@@ -545,11 +611,13 @@ export default function StoryChat() {
                       key={msg.id}
                       text={msg.text}
                       avatarUrl={
-                        activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData || defaultAvatar
+                        activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData ||
+                        defaultAvatar
                       }
                     />
                   );
-                if (msg.role === 'hint' && msg.hint) return <HintMessage key={msg.id} hint={msg.hint} />;
+                if (msg.role === 'hint' && msg.hint)
+                  return <HintMessage key={msg.id} hint={msg.hint} />;
                 return (
                   <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
                 );
@@ -563,7 +631,10 @@ export default function StoryChat() {
                   <button
                     onClick={handleAutoContinue}
                     className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                    style={{ background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)', boxShadow: '0 6px 20px rgba(139,92,246,0.4)' }}
+                    style={{
+                      background: 'linear-gradient(90deg, #8b5cf6, #6d28d9)',
+                      boxShadow: '0 6px 20px rgba(139,92,246,0.4)',
+                    }}
                   >
                     <Wand2 size={18} />
                     Continue Story
@@ -573,18 +644,25 @@ export default function StoryChat() {
               {!completionData && !currentChallenge && currentChoices.length > 0 && (
                 <ChoiceBubbles choices={currentChoices} onChoice={handleChoice} />
               )}
-              {!completionData && isLastStep && !currentChallenge && !pendingContinue && currentChoices.length === 0 && (
-                <div className="flex justify-center py-2">
-                  <button
-                    onClick={handleFinishAdventure}
-                    className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-                    style={{ background: 'linear-gradient(90deg, #f59e0b, #d97706)', boxShadow: '0 6px 20px rgba(245,158,11,0.4)' }}
-                  >
-                    <Trophy size={18} />
-                    Finish Adventure!
-                  </button>
-                </div>
-              )}
+              {!completionData &&
+                isLastStep &&
+                !currentChallenge &&
+                !pendingContinue &&
+                currentChoices.length === 0 && (
+                  <div className="flex justify-center py-2">
+                    <button
+                      onClick={handleFinishAdventure}
+                      className="flex items-center gap-2 text-white rounded-2xl px-8 py-3.5 font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                      style={{
+                        background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+                        boxShadow: '0 6px 20px rgba(245,158,11,0.4)',
+                      }}
+                    >
+                      <Trophy size={18} />
+                      Finish Adventure!
+                    </button>
+                  </div>
+                )}
 
               <div ref={bottomRef} />
             </div>
@@ -650,11 +728,13 @@ export default function StoryChat() {
             <div
               key={s.id}
               className="absolute text-2xl"
-              style={{
-                animation: `star-burst 1s ${s.delay}ms ease-out forwards`,
-                '--tx': `${s.tx}px`,
-                '--ty': `${s.ty}px`,
-              } as React.CSSProperties}
+              style={
+                {
+                  animation: `star-burst 1s ${s.delay}ms ease-out forwards`,
+                  '--tx': `${s.tx}px`,
+                  '--ty': `${s.ty}px`,
+                } as React.CSSProperties
+              }
             >
               ⭐
             </div>
@@ -685,14 +765,20 @@ export default function StoryChat() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: string; onReplay?: () => void }) {
+function WizzyMessage({
+  text,
+  imageUrl,
+  onReplay,
+}: {
+  text: string;
+  imageUrl?: string;
+  onReplay?: () => void;
+}) {
   return (
     <div className="story-message-enter">
       {/* Cinematic full-bleed image panel */}
       {imageUrl && (
-        <div
-          className="relative overflow-hidden rounded-2xl mb-3 max-w-2xl mx-auto aspect-video"
-        >
+        <div className="relative overflow-hidden rounded-2xl mb-3 max-w-2xl mx-auto aspect-video">
           <img
             src={imageUrl}
             alt="Story scene"
@@ -703,7 +789,8 @@ function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: s
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.78) 100%)',
+              background:
+                'linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.78) 100%)',
             }}
           />
         </div>
@@ -711,9 +798,7 @@ function WizzyMessage({ text, imageUrl, onReplay }: { text: string; imageUrl?: s
 
       {/* Dialogue bubble */}
       <div className="flex items-start gap-3 max-w-[90%]">
-        <div
-          className="wizzy-avatar flex-shrink-0 w-14 h-14 rounded-full overflow-hidden shadow-md border-2 border-purple-wizzy/30"
-        >
+        <div className="wizzy-avatar flex-shrink-0 w-14 h-14 rounded-full overflow-hidden shadow-md border-2 border-purple-wizzy/30">
           <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
         </div>
         <div
@@ -769,11 +854,20 @@ function SystemMessage({ text, isCorrect }: { text: string; isCorrect: boolean }
         className="text-sm px-5 py-2 rounded-full font-semibold shadow-sm"
         style={
           isCorrect
-            ? { background: 'linear-gradient(90deg, #d1fae5, #a7f3d0)', color: '#047857', border: '1px solid rgba(16,185,129,0.3)' }
-            : { background: 'linear-gradient(90deg, #fef3c7, #fde68a)', color: '#92400e', border: '1px solid rgba(245,158,11,0.3)' }
+            ? {
+                background: 'linear-gradient(90deg, #d1fae5, #a7f3d0)',
+                color: '#047857',
+                border: '1px solid rgba(16,185,129,0.3)',
+              }
+            : {
+                background: 'linear-gradient(90deg, #fef3c7, #fde68a)',
+                color: '#92400e',
+                border: '1px solid rgba(245,158,11,0.3)',
+              }
         }
       >
-        {isCorrect ? '✅ ' : '💡 '}{text}
+        {isCorrect ? '✅ ' : '💡 '}
+        {text}
       </span>
     </div>
   );
@@ -799,7 +893,9 @@ function HintMessage({ hint }: { hint: HintResponse }) {
         <Lightbulb size={15} className="text-gold-magic" />
       </div>
       <div className="bg-amber-50 rounded-2xl rounded-tl-sm p-4 border-l-4 border-gold-magic/50 min-w-0 flex-1">
-        <p className="text-amber-800 leading-relaxed whitespace-pre-line break-words">{hint.hintText}</p>
+        <p className="text-amber-800 leading-relaxed whitespace-pre-line break-words">
+          {hint.hintText}
+        </p>
 
         <p className="text-amber-900 font-bold text-sm mt-3 mb-2">{hint.subQuestion}</p>
 
@@ -820,8 +916,8 @@ function HintMessage({ hint }: { hint: HintResponse }) {
                   border: wasWrong
                     ? '2px solid #fca5a5'
                     : isPicked
-                    ? '2px solid #6ee7b7'
-                    : '2px solid rgba(217,119,6,0.2)',
+                      ? '2px solid #6ee7b7'
+                      : '2px solid rgba(217,119,6,0.2)',
                 }}
               >
                 {OPTION_SHAPES[i]?.label ?? ''}. {option}
@@ -856,7 +952,10 @@ function TypingIndicator() {
         <Wand2 size={16} className="text-white" />
         <div
           className="absolute inset-0 rounded-full"
-          style={{ border: '2px solid rgba(139,92,246,0.5)', animation: 'pulse-ring 1.5s ease-out infinite' }}
+          style={{
+            border: '2px solid rgba(139,92,246,0.5)',
+            animation: 'pulse-ring 1.5s ease-out infinite',
+          }}
         />
       </div>
       <div
@@ -917,8 +1016,12 @@ function ChoiceBubbles({
               minHeight: 64,
               padding: '14px 16px',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.hover; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.border; }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = t.hover;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = t.border;
+            }}
           >
             <div className="flex items-center gap-3">
               <div
@@ -942,7 +1045,9 @@ function ChoiceBubbles({
                 className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity"
                 style={{ background: t.hover + '20' }}
               >
-                <span className="text-sm font-black" style={{ color: t.labelColor }}>›</span>
+                <span className="text-sm font-black" style={{ color: t.labelColor }}>
+                  ›
+                </span>
               </div>
             </div>
           </button>
@@ -1038,70 +1143,69 @@ function ChallengePanel({
           )}
 
           <div className="grid grid-cols-2 gap-3 content-start">
-          {challenge.options.map((option, i) => {
-            const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
-            const wasWrong = lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
-            const isRevealed = lastFeedback?.correctAnswer === option;
+            {challenge.options.map((option, i) => {
+              const shape = OPTION_SHAPES[i] ?? OPTION_SHAPES[0];
+              const wasWrong =
+                lastFeedback && !lastFeedback.correct && option === lastSubmittedAnswer;
+              const isRevealed = lastFeedback?.correctAnswer === option;
 
-            return (
-              <button
-                key={i}
-                onClick={() => onAnswer(option)}
-                disabled={Boolean(lastFeedback?.correct)}
-                className={`relative group rounded-2xl overflow-hidden transition-all active:scale-[0.96] ${
-                  wasWrong
-                    ? 'animate-shake'
-                    : 'hover:scale-[1.03] hover:shadow-md hover:border-purple-wizzy/40'
-                }`}
-                style={{
-                  minHeight: 56,
-                  background: wasWrong
-                    ? '#fef2f2'
-                    : isRevealed
-                    ? '#f0fdf4'
-                    : 'white',
-                  border: wasWrong
-                    ? '2px solid #fca5a5'
-                    : isRevealed
-                    ? '2px solid #6ee7b7'
-                    : '2px solid rgba(139,92,246,0.15)',
-                  boxShadow: wasWrong ? 'none' : '0 2px 6px rgba(139,92,246,0.08)',
-                }}
-              >
-                {/* Sparkle shimmer on hover */}
-                <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
-                <div className="flex items-center gap-3 px-3 py-3">
-                  {/* Letter badge */}
-                  <div
-                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
-                    style={{
-                      background: wasWrong
-                        ? '#ef4444'
-                        : isRevealed
-                        ? '#10b981'
-                        : '#8b5cf6',
-                    }}
-                  >
-                    {shape.label}
+              return (
+                <button
+                  key={i}
+                  onClick={() => onAnswer(option)}
+                  disabled={Boolean(lastFeedback?.correct)}
+                  className={`relative group rounded-2xl overflow-hidden transition-all active:scale-[0.96] ${
+                    wasWrong
+                      ? 'animate-shake'
+                      : 'hover:scale-[1.03] hover:shadow-md hover:border-purple-wizzy/40'
+                  }`}
+                  style={{
+                    minHeight: 56,
+                    background: wasWrong ? '#fef2f2' : isRevealed ? '#f0fdf4' : 'white',
+                    border: wasWrong
+                      ? '2px solid #fca5a5'
+                      : isRevealed
+                        ? '2px solid #6ee7b7'
+                        : '2px solid rgba(139,92,246,0.15)',
+                    boxShadow: wasWrong ? 'none' : '0 2px 6px rgba(139,92,246,0.08)',
+                  }}
+                >
+                  {/* Sparkle shimmer on hover */}
+                  <div className="option-sparkle-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100" />
+                  <div className="flex items-center gap-3 px-3 py-3">
+                    {/* Letter badge */}
+                    <div
+                      className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                      style={{
+                        background: wasWrong ? '#ef4444' : isRevealed ? '#10b981' : '#8b5cf6',
+                      }}
+                    >
+                      {shape.label}
+                    </div>
+                    <span className="font-bold text-gray-800 text-sm text-left flex-1">
+                      {option}
+                    </span>
                   </div>
-                  <span className="font-bold text-gray-800 text-sm text-left flex-1">
-                    {option}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Retry / revealed answer prompt */}
         {lastFeedback && !lastFeedback.correct && !lastFeedback.correctAnswer && (
-          <p className="text-center text-sm font-bold text-amber-600 mt-3" style={{ animation: 'slide-up-fade 0.35s ease-out both' }}>
+          <p
+            className="text-center text-sm font-bold text-amber-600 mt-3"
+            style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
+          >
             💪 Try again — you've got this!
           </p>
         )}
         {lastFeedback?.correctAnswer && (
-          <p className="text-center text-sm font-semibold text-emerald-600 mt-3" style={{ animation: 'slide-up-fade 0.35s ease-out both' }}>
+          <p
+            className="text-center text-sm font-semibold text-emerald-600 mt-3"
+            style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
+          >
             The answer was <strong>{lastFeedback.correctAnswer}</strong> — keep going! 🌟
           </p>
         )}
