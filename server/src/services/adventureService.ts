@@ -184,6 +184,7 @@ export function mapMathQuestionResponse(
   const challenge: ICurrentChallenge = {
     problemText: llmResponse.problemText,
     mathExpression: llmResponse.mathExpression,
+    clockTime: llmResponse.clockTime,
     options: rawOptions as [string, string, string, string],
     hintLevel: 0,
     attemptsCount: 0,
