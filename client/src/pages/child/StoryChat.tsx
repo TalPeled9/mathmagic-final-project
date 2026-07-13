@@ -14,6 +14,7 @@ import {
   Play,
 } from 'lucide-react';
 import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
+import { AnalogClock } from '@/components/AnalogClock';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
@@ -1121,7 +1122,7 @@ function ChallengePanel({
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
           <p
             className={`text-xl font-extrabold text-center text-gray-800 tracking-tight ${
-              challenge.mathExpression ? 'mb-3' : 'mb-5'
+              challenge.mathExpression || challenge.clockTime ? 'mb-3' : 'mb-5'
             }`}
           >
             {challenge.problemText}
@@ -1139,6 +1140,12 @@ function ChallengePanel({
               >
                 {challenge.mathExpression}
               </div>
+            </div>
+          )}
+
+          {challenge.clockTime && (
+            <div className="flex justify-center mb-4">
+              <AnalogClock time={challenge.clockTime} />
             </div>
           )}
 
