@@ -441,10 +441,7 @@ export const CURRICULUM_TOPICS: MathTopicConfig[] = [
     difficulty: {
       easy: ['3-digit × 1-digit multiplication.', '3-digit ÷ 1-digit exact division.'],
       medium: ['3-digit × 2-digit multiplication.', '4-digit ÷ 1-digit division.'],
-      hard: [
-        '4-digit × 2-digit multiplication.',
-        'Long division by a 2-digit divisor (exact).',
-      ],
+      hard: ['4-digit × 2-digit multiplication.', 'Long division by a 2-digit divisor (exact).'],
     },
     expressionFor: ['easy', 'medium', 'hard'],
   },
