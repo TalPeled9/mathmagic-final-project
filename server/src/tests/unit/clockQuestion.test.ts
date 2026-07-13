@@ -70,6 +70,10 @@ describe('maskClockTimeLeaks', () => {
     expect(maskClockTimeLeaks('quarter to ten', '9:45')).toBe('_______');
   });
 
+  it('masks curly-apostrophe o’clock variants', () => {
+    expect(maskClockTimeLeaks('It’s three o’clock.', '3:00')).toBe('It’s _______.');
+  });
+
   it('wraps the next-hour word for 12:45', () => {
     expect(maskClockTimeLeaks('quarter to one', '12:45')).toBe('_______');
   });
