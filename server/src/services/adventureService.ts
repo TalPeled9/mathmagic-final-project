@@ -241,10 +241,11 @@ export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number)
 
 export async function generateSegmentImage(
   imageDescription: string,
-  avatarUrl: string
+  avatarUrl: string,
+  storyWorldId: string
 ): Promise<string | null> {
   try {
-    return await generateStoryImage(imageDescription, avatarUrl);
+    return await generateStoryImage(imageDescription, avatarUrl, storyWorldId);
   } catch (err) {
     logger.warn({ err }, 'Image generation failed, continuing without image');
     return null;
@@ -429,7 +430,8 @@ async function _doPrefetchForChoices(
         // the in-process cache so cache-hit serves are instant.
         const imageUrl = await generateSegmentImage(
           llmResponse.imageDescription,
-          child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+          child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+          adventure.storyWorld
         );
         if (imageUrl) {
           pregeneratedImageCache.set(
@@ -538,7 +540,8 @@ async function _doPrefetchNextStep(
     // cache so cache-hit serves are instant.
     const imageUrl = await generateSegmentImage(
       llmResponse.imageDescription,
-      child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+      child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+      adventure.storyWorld
     );
     if (imageUrl) {
       pregeneratedImageCache.set(imageCacheKey(adventure._id.toString(), nextIndex), imageUrl);

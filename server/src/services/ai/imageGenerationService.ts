@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from '../../config';
 import { logger } from '../../lib/logger';
+import { getStoryWorldById } from '../../config/storyWorlds';
 
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
@@ -23,6 +24,11 @@ SCENE RULES:
 - The image must match the scene description exactly.
 - Focus on one clear moment from the scene.
 - Include only relevant characters and objects mentioned in the description.
+
+BACKGROUND & SETTING RULES:
+- The background must completely fill the entire rectangular 16:9 frame, edge to edge — no vignette, no circular/oval or sticker-style crop, no letterboxing or black bars, no blank/white/empty margins.
+- The full frame must depict a painted environment that matches the story world setting given in the scene description (for example: a galactic space station, a medieval fantasy kingdom, a tropical jungle) — never just the character floating on an empty or undefined backdrop.
+- Even if the scene description does not explicitly redescribe the background, you must still render a complete themed environment consistent with the stated story world setting.
 
 MATH OBJECT CLARITY:
 - If the scene includes a mathematical object (analog clock, geometric shape, 3D solid, fraction diagram, groups of countable objects), render it LARGE, simple, and unambiguous — flat front view, clean outlines, high contrast against the background.
@@ -85,6 +91,12 @@ function getDefaultAvatarDataUrl(): string {
   return `data:image/png;base64,${data}`;
 }
 
+function describeStoryWorldTheme(storyWorldId: string): string {
+  const world = getStoryWorldById(storyWorldId);
+  if (!world) return `Story world setting: ${storyWorldId}.`;
+  return `Story world setting: ${world.name} — a ${world.theme} setting. ${world.description}.`;
+}
+
 // ---- public API ----
 
 /**
@@ -93,11 +105,14 @@ function getDefaultAvatarDataUrl(): string {
  * @param imageDescription  The scene description returned by the LLM (imageDescription field).
  * @param avatarDataUrl     The child's avatar as a base64 data URL. Empty string or SVG
  *                          both fall back to the bundled default_avatar.png reference image.
+ * @param storyWorldId      The adventure's story world id (e.g. "space"), used to keep the
+ *                          generated background consistent with the story's theme.
  * @returns  A base64 data URL of the generated image, or null if generation fails.
  */
 export async function generateStoryImage(
   imageDescription: string,
-  avatarDataUrl: string
+  avatarDataUrl: string,
+  storyWorldId: string
 ): Promise<string | null> {
   if (!config.gemini.apiKey) return null;
 
@@ -119,7 +134,8 @@ export async function generateStoryImage(
       parts.push({ inlineData: { mimeType: parsed.mimeType, data: parsed.base64 } });
     }
 
-    parts.push({ text: imageDescription });
+    const themeLine = describeStoryWorldTheme(storyWorldId);
+    parts.push({ text: `${themeLine}\n\n${imageDescription}` });
 
     const stream = await ai.models.generateContentStream({
       model: IMAGE_MODEL,
