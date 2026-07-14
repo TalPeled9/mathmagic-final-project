@@ -27,6 +27,7 @@ const createChildSchema = z.object({
 const updateChildSchema = z.object({
   name: z.string().min(MIN_CHILD_NAME_LENGTH).max(MAX_CHILD_NAME_LENGTH).optional(),
   gradeLevel: gradeLevelSchema.optional(),
+  narratorVoice: z.string().optional(),
 });
 
 const childIdSchema = z.object({ childId: z.string().min(1) });

@@ -18,9 +18,11 @@ describe('mapHintResponse', () => {
       hintText: "Great try! Let's break it apart.",
       hintLevel: 1,
       subQuestion: 'What is 5 + 7?',
-      subQuestionOptions: ['10', '11', '12', '13'],
+      // options are shuffled, so compare contents without order
+      subQuestionOptions: expect.arrayContaining(['10', '11', '12', '13']),
       subQuestionAnswer: '12',
       encouragement: 'You got it!',
     });
+    expect(result.subQuestionOptions).toHaveLength(4);
   });
 });
