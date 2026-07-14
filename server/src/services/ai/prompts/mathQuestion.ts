@@ -1,14 +1,18 @@
 import type { LLMMathQuestionContext } from '@mathmagic/types';
 
 export function buildMathQuestionPrompt(ctx: LLMMathQuestionContext): string {
+  const askedQuestions = [
+    ...(ctx.previousProblemTexts ?? []),
+    ...(ctx.previousScaffoldQuestions ?? []),
+  ];
   const uniquenessBlock =
-    ctx.previousProblemTexts && ctx.previousProblemTexts.length > 0
+    askedQuestions.length > 0
       ? `
 UNIQUENESS RULES:
-- These problems were already asked in this adventure — do NOT reuse the same combination of numbers:
-${ctx.previousProblemTexts.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
+- These questions were already asked in this adventure (as math problems or hint questions) — do NOT reuse the same combination of numbers:
+${askedQuestions.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
 - Vary the number combinations even if the operation is the same.
-- Do not reuse more than one number from any previous problem in a new problem.
+- Do not reuse more than one number from any previous question in a new problem.
 `
       : '';
 

@@ -95,7 +95,8 @@ export async function startAdventure(req: Request, res: Response): Promise<void>
 
   const generatedImageUrl = await generateSegmentImage(
     segment.imageDescription,
-    child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+    child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+    adventure.storyWorld
   );
   if (generatedImageUrl) {
     segment.imageUrl = generatedImageUrl;
@@ -280,7 +281,8 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
         consumePregeneratedImage(adventureId, adventure.currentStepIndex, choiceIndex) ??
         (await generateSegmentImage(
           cachedByChoice.imageDescription,
-          child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+          child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+          adventure.storyWorld
         ));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedChoiceSteps = [];
@@ -323,7 +325,8 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
         consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
         (await generateSegmentImage(
           cached.imageDescription,
-          child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+          child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+          adventure.storyWorld
         ));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedStep = null;
@@ -364,7 +367,8 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
         consumePregeneratedImage(adventureId, adventure.currentStepIndex) ??
         (await generateSegmentImage(
           cached.imageDescription,
-          child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+          child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+          adventure.storyWorld
         ));
       if (pregenImage) segment.imageUrl = pregenImage;
       adventure.pregeneratedStep = null;
@@ -427,7 +431,8 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
 
   const generatedImageUrl = await generateSegmentImage(
     segment.imageDescription,
-    child.avatars[child.activeAvatarIndex]?.imageData ?? ''
+    child.avatars[child.activeAvatarIndex]?.imageData ?? '',
+    adventure.storyWorld
   );
   if (generatedImageUrl) {
     segment.imageUrl = generatedImageUrl;
@@ -575,6 +580,11 @@ export async function requestHint(req: Request, res: Response): Promise<void> {
 
   // Persist hint text so next hint call can see what was already given
   adventure.currentHints.push(hintResponse.hintText);
+  // Track the scaffold question so future questions (math or hint) don't repeat it
+  adventure.previousScaffoldQuestions = [
+    ...(adventure.previousScaffoldQuestions ?? []),
+    hintResponse.subQuestion,
+  ];
   await adventure.save();
 
   res.json(hintResponse);

@@ -1,6 +1,20 @@
 import type { LLMHintContext } from '@mathmagic/types';
 
 export function buildHintPrompt(ctx: LLMHintContext): string {
+  const askedQuestions = [
+    ...(ctx.previousProblemTexts ?? []),
+    ...(ctx.previousScaffoldQuestions ?? []),
+  ];
+  const uniquenessBlock =
+    askedQuestions.length > 0
+      ? `
+UNIQUENESS RULES:
+- These questions were already asked in this adventure — scaffoldingQuestion must NOT repeat any of them (same numbers and same phrasing):
+${askedQuestions.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
+- If the natural sub-step would exactly repeat one of these, rephrase it or pick different numbers while still leading to the same target answer.
+`
+      : '';
+
   return `You are Wizzy, a warm and patient math companion for children. A child just answered a math problem incorrectly and needs your help.
 
 Your ABSOLUTE rule: NEVER reveal the final answer in hintText. Your only goal is to break the problem into one small step and guide the child toward discovering the answer themselves through an interactive mini-question.
@@ -25,7 +39,7 @@ CONVERSATION HISTORY (most recent turns — use for tone and story continuity):
 ${ctx.conversationTranscript}
 `
     : ''
-}
+}${uniquenessBlock}
 RESPONSE SHAPE:
 Every hint has two parts: hintText (a short warm setup — NOT a question) and scaffoldingQuestion (the actual question the child answers by picking one of 4 options). scaffoldingQuestion is REQUIRED at every hint level — never fold the question into hintText.
 
@@ -42,7 +56,7 @@ HINT LEVEL INSTRUCTIONS:
 STRICT RULES:
 - Ask exactly ONE question in scaffoldingQuestion — never dump a full explanation.
 - Do NOT repeat a hint that was already given (check previousHints).
-- Do NOT reveal the final answer anywhere in hintText.
+${askedQuestions.length > 0 ? '- scaffoldingQuestion must be different from every question listed in UNIQUENESS RULES.\n' : ''}- Do NOT reveal the final answer anywhere in hintText.
 - Answering scaffoldingQuestion correctly must lead the child to the target sub-step answer (or, at level 3, the final answer) — never state that answer in hintText or scaffoldingQuestion itself.
 - Keep language short, warm, and grade-appropriate.
 

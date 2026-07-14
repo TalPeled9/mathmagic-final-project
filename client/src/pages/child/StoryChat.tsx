@@ -12,6 +12,8 @@ import {
   Volume2,
   VolumeX,
   Play,
+  Maximize2,
+  X,
 } from 'lucide-react';
 import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
 import { AnalogClock } from '@/components/AnalogClock';
@@ -202,6 +204,8 @@ export default function StoryChat() {
   const [panelVisible, setPanelVisible] = useState(false);
   // Texts to speak after the initial history load completes (handled in a separate effect)
   const [initialSpeakTexts, setInitialSpeakTexts] = useState<string[]>([]);
+  // URL of the story image currently shown full-screen, or null when closed
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -605,6 +609,7 @@ export default function StoryChat() {
                       text={msg.text}
                       imageUrl={msg.imageUrl}
                       onReplay={() => stopAndSpeak(msg.text)}
+                      onExpand={() => msg.imageUrl && setLightboxUrl(msg.imageUrl)}
                     />
                   );
                 if (msg.role === 'child')
@@ -761,6 +766,11 @@ export default function StoryChat() {
           onNewAdventure={() => navigate('/child/adventure')}
         />
       )}
+
+      {/* ── Full-screen image lightbox ── */}
+      {lightboxUrl && (
+        <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+      )}
     </div>
   );
 }
@@ -771,16 +781,23 @@ function WizzyMessage({
   text,
   imageUrl,
   onReplay,
+  onExpand,
 }: {
   text: string;
   imageUrl?: string;
   onReplay?: () => void;
+  onExpand?: () => void;
 }) {
   return (
     <div className="story-message-enter">
       {/* Cinematic full-bleed image panel */}
       {imageUrl && (
-        <div className="relative overflow-hidden rounded-2xl mb-3 max-w-2xl mx-auto aspect-video">
+        <button
+          type="button"
+          onClick={onExpand}
+          aria-label="View story image full screen"
+          className="group relative block w-full text-left p-0 border-0 bg-transparent overflow-hidden rounded-2xl mb-3 max-w-2xl mx-auto aspect-video"
+        >
           <img
             src={imageUrl}
             alt="Story scene"
@@ -795,7 +812,14 @@ function WizzyMessage({
                 'linear-gradient(to bottom, transparent 25%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.78) 100%)',
             }}
           />
-        </div>
+          {/* Tap-to-expand hint — always visible so it's discoverable on touch */}
+          <div
+            aria-hidden="true"
+            className="absolute top-3 right-3 flex items-center justify-center w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm text-white opacity-80 group-hover:opacity-100 transition-opacity"
+          >
+            <Maximize2 size={14} />
+          </div>
+        </button>
       )}
 
       {/* Dialogue bubble */}
@@ -1494,6 +1518,56 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Image Lightbox ────────────────────────────────────────────────────────────
+
+function ImageLightbox({ imageUrl, onClose }: { imageUrl: string; onClose: () => void }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    contentRef.current?.focus();
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4"
+      onClick={onClose}
+    >
+      <div
+        ref={contentRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Story image"
+        tabIndex={-1}
+        className="relative outline-none"
+        style={{ animation: 'pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={imageUrl}
+          alt="Story scene, full view"
+          className="max-w-[95vw] max-h-[85vh] object-contain rounded-xl md:rounded-2xl"
+        />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-3 right-3 flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+        >
+          <X size={20} />
+        </button>
       </div>
     </div>
   );

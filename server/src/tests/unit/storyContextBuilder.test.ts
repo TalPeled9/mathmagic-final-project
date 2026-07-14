@@ -127,6 +127,41 @@ describe('buildMathQuestionContext — previousProblemTexts', () => {
   });
 });
 
+describe('buildMathQuestionContext — previousScaffoldQuestions', () => {
+  it('passes previousScaffoldQuestions from state into the context', () => {
+    const state = {
+      ...baseState,
+      previousScaffoldQuestions: ['What is 5 + 7?'],
+    };
+    const ctx = buildMathQuestionContext(state);
+    expect(ctx.previousScaffoldQuestions).toEqual(['What is 5 + 7?']);
+  });
+
+  it('passes empty array when previousScaffoldQuestions is absent', () => {
+    const ctx = buildMathQuestionContext(baseState);
+    expect(ctx.previousScaffoldQuestions).toEqual([]);
+  });
+});
+
+describe('buildHintContext — uniqueness fields', () => {
+  it('passes previousProblemTexts and previousScaffoldQuestions from state into the context', () => {
+    const state = {
+      ...baseState,
+      previousProblemTexts: ['What is 5 + 3?'],
+      previousScaffoldQuestions: ['What is 5 + 7?'],
+    };
+    const ctx = buildHintContext(state);
+    expect(ctx.previousProblemTexts).toEqual(['What is 5 + 3?']);
+    expect(ctx.previousScaffoldQuestions).toEqual(['What is 5 + 7?']);
+  });
+
+  it('passes empty arrays when both are absent', () => {
+    const ctx = buildHintContext(baseState);
+    expect(ctx.previousProblemTexts).toEqual([]);
+    expect(ctx.previousScaffoldQuestions).toEqual([]);
+  });
+});
+
 describe('buildMathQuestionContext — requireExpression', () => {
   it('is true when the topic flags the current difficulty', () => {
     const ctx = buildMathQuestionContext({

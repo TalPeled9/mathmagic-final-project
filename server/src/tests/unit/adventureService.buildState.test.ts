@@ -16,6 +16,7 @@ function makeAdventure(overrides: Partial<IAdventureDocument> = {}): IAdventureD
     mathTopic: 'g1_addition',
     storyWorld: 'fantasy',
     previousProblemTexts: [],
+    previousScaffoldQuestions: [],
     lastChoices: [],
     ...overrides,
   } as unknown as IAdventureDocument;
@@ -36,5 +37,21 @@ describe('buildAdventureState — previousProblemTexts', () => {
     const adventure = makeAdventure({ previousProblemTexts: undefined as unknown as string[] });
     const state = buildAdventureState(adventure, makeChild(), 'math_question');
     expect(state.previousProblemTexts).toEqual([]);
+  });
+});
+
+describe('buildAdventureState — previousScaffoldQuestions', () => {
+  it('includes previousScaffoldQuestions from the adventure document', () => {
+    const adventure = makeAdventure({ previousScaffoldQuestions: ['What is 5 + 7?'] });
+    const state = buildAdventureState(adventure, makeChild(), 'hint');
+    expect(state.previousScaffoldQuestions).toEqual(['What is 5 + 7?']);
+  });
+
+  it('defaults to empty array when previousScaffoldQuestions is absent', () => {
+    const adventure = makeAdventure({
+      previousScaffoldQuestions: undefined as unknown as string[],
+    });
+    const state = buildAdventureState(adventure, makeChild(), 'hint');
+    expect(state.previousScaffoldQuestions).toEqual([]);
   });
 });
