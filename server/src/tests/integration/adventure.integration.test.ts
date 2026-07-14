@@ -419,7 +419,10 @@ describe('adventure routes integration', () => {
       expect(response.body.hintText).toBe(MOCK_HINT_RESPONSE.hintText);
       expect(response.body.hintLevel).toBe(1);
       expect(response.body.subQuestion).toBe(MOCK_HINT_RESPONSE.scaffoldingQuestion);
-      expect(response.body.subQuestionOptions).toEqual(MOCK_HINT_RESPONSE.answerOptions);
+      // options are shuffled server-side, so compare contents without order
+      expect([...response.body.subQuestionOptions].sort()).toEqual(
+        [...MOCK_HINT_RESPONSE.answerOptions].sort()
+      );
       expect(response.body.subQuestionAnswer).toBe(MOCK_HINT_RESPONSE.correctAnswer);
       expect(response.body.encouragement).toBe(MOCK_HINT_RESPONSE.encouragement);
 
