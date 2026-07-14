@@ -140,6 +140,7 @@ export function buildAdventureState(
     variantSeed: hashStringToSeed(adventure._id.toString()),
     recentPerformanceScores: adventure.recentPerformanceScores ?? [],
     previousProblemTexts: adventure.previousProblemTexts ?? [],
+    previousScaffoldQuestions: adventure.previousScaffoldQuestions ?? [],
     storySummary: '',
   };
 

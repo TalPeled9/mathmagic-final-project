@@ -580,6 +580,11 @@ export async function requestHint(req: Request, res: Response): Promise<void> {
 
   // Persist hint text so next hint call can see what was already given
   adventure.currentHints.push(hintResponse.hintText);
+  // Track the scaffold question so future questions (math or hint) don't repeat it
+  adventure.previousScaffoldQuestions = [
+    ...(adventure.previousScaffoldQuestions ?? []),
+    hintResponse.subQuestion,
+  ];
   await adventure.save();
 
   res.json(hintResponse);

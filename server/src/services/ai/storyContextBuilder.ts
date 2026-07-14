@@ -162,6 +162,7 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     difficultyDescription,
     requireExpression,
     previousProblemTexts: state.previousProblemTexts ?? [],
+    previousScaffoldQuestions: state.previousScaffoldQuestions ?? [],
     clockTime: pickClockTime(
       topic,
       state.currentDifficulty,
@@ -194,6 +195,8 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
     childAnswer: state.lastChildAnswer || '',
     hintLevel: state.hintLevel,
     previousHints: state.previousHints ?? [],
+    previousProblemTexts: state.previousProblemTexts ?? [],
+    previousScaffoldQuestions: state.previousScaffoldQuestions ?? [],
     currentDifficulty: state.currentDifficulty,
     difficultyDescription,
   };

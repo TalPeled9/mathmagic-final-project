@@ -429,6 +429,9 @@ describe('adventure routes integration', () => {
       const adventure = await Adventure.findById(adventureId);
       expect(adventure?.currentChallenge?.hintLevel).toBe(1);
       expect(adventure?.hintsUsed).toBe(1);
+      expect(adventure?.previousScaffoldQuestions).toContain(
+        MOCK_HINT_RESPONSE.scaffoldingQuestion
+      );
     });
   });
 
