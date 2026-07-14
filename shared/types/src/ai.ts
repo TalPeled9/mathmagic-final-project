@@ -56,10 +56,11 @@ export interface LLMMathQuestionResponse extends LLMBaseStoryResponse {
 
 export interface LLMHintResponse {
   hintText: string;
-  scaffoldingQuestion: string;
-  encouragement: string;
-  answerOptions: string[];
-  correctAnswer: string;
+  /** Absent at hint level 1 (strategy-only hint); present at levels 2–3. */
+  scaffoldingQuestion?: string;
+  encouragement?: string;
+  answerOptions?: string[];
+  correctAnswer?: string;
 }
 
 export interface LLMEndStoryResponse extends LLMBaseStoryResponse {
