@@ -232,7 +232,9 @@ export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number)
     hintText: llmResponse.hintText,
     hintLevel,
     subQuestion: llmResponse.scaffoldingQuestion,
-    subQuestionOptions: shuffleOptions(llmResponse.answerOptions),
+    subQuestionOptions: llmResponse.answerOptions
+      ? shuffleOptions(llmResponse.answerOptions)
+      : undefined,
     subQuestionAnswer: llmResponse.correctAnswer,
     encouragement: llmResponse.encouragement,
   };

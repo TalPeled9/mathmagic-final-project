@@ -1,25 +1,7 @@
 import type { LLMHintContext } from '@mathmagic/types';
 
-export function buildHintPrompt(ctx: LLMHintContext): string {
-  const askedQuestions = [
-    ...(ctx.previousProblemTexts ?? []),
-    ...(ctx.previousScaffoldQuestions ?? []),
-  ];
-  const uniquenessBlock =
-    askedQuestions.length > 0
-      ? `
-UNIQUENESS RULES:
-- These questions were already asked in this adventure — scaffoldingQuestion must NOT repeat any of them (same numbers and same phrasing):
-${askedQuestions.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
-- If the natural sub-step would exactly repeat one of these, rephrase it or pick different numbers while still leading to the same target answer.
-`
-      : '';
-
-  return `You are Wizzy, a warm and patient math companion for children. A child just answered a math problem incorrectly and needs your help.
-
-Your ABSOLUTE rule: NEVER reveal the final answer in hintText. Your only goal is to break the problem into one small step and guide the child toward discovering the answer themselves through an interactive mini-question.
-
-CHILD CONTEXT:
+function buildContextSection(ctx: LLMHintContext): string {
+  return `CHILD CONTEXT:
 - Child's name: ${ctx.childName}
 - Child grade level: ${ctx.gradeLevel}
 - Math topic: ${ctx.mathTopic}
@@ -39,30 +21,72 @@ CONVERSATION HISTORY (most recent turns — use for tone and story continuity):
 ${ctx.conversationTranscript}
 `
     : ''
-}${uniquenessBlock}
+}`;
+}
+
+function buildStrategyHintPrompt(ctx: LLMHintContext): string {
+  return `You are Wizzy, a warm and patient math companion for children. A child just answered a math problem incorrectly and needs your help.
+
+Your ABSOLUTE rule: NEVER reveal the final answer. This is the FIRST hint: teach the child a general strategy for solving problems of this TYPE — do not solve this specific problem.
+
+${buildContextSection(ctx)}
+YOUR TASK:
+Write hintText: 2-3 short, warm, grade-appropriate sentences that explain HOW to approach problems like this one in general.
+
+STRICT RULES:
+- Start with one short sentence validating the child's effort (e.g. "Great try!").
+- Describe the general strategy or method for this type of problem (e.g. "To add big numbers, break each one into tens and ones, add the parts, then put them back together.").
+- Do NOT use the specific numbers from this problem.
+- Do NOT ask the child a question — no question marks.
+- Do NOT reveal or compute the final answer.
+- Keep language short, warm, and grade-appropriate.
+
+OUTPUT REQUIREMENTS:
+- Return exactly one field: hintText.
+`;
+}
+
+function buildScaffoldHintPrompt(ctx: LLMHintContext): string {
+  const askedQuestions = [
+    ...(ctx.previousProblemTexts ?? []),
+    ...(ctx.previousScaffoldQuestions ?? []),
+  ];
+  const uniquenessBlock =
+    askedQuestions.length > 0
+      ? `
+UNIQUENESS RULES:
+- These questions were already asked in this adventure — scaffoldingQuestion must NOT repeat any of them (same numbers and same phrasing):
+${askedQuestions.map((p, i) => `  ${i + 1}. ${p}`).join('\n')}
+- If the natural sub-step would exactly repeat one of these, rephrase it or pick different numbers while still leading to the same target answer.
+`
+      : '';
+
+  const levelInstructions =
+    ctx.hintLevel === 2
+      ? `HINT LEVEL 2 — First concrete step: hintText briefly connects back to the strategy from hint 1 (e.g. "Let's use our strategy — one piece at a time."). scaffoldingQuestion asks about the FIRST sub-step of THIS problem.
+  Example for "25 + 17": hintText: "Let's use our strategy — one piece at a time." scaffoldingQuestion: "What is 5 + 7?"`
+      : `HINT LEVEL 3 — Next step: The question asked in hint 2 appears above under "Previous hints already given". Your scaffoldingQuestion MUST be the NEXT step that comes AFTER that question on the way to the final answer, and it must be clearly DIFFERENT from hint 2's question. Answering it correctly brings the child directly to the final answer — but never state that answer in hintText or scaffoldingQuestion.
+  Example for "25 + 17" where hint 2 asked "What is 5 + 7?": hintText: "Amazing! You're so close." scaffoldingQuestion: "What do you get when you add 30 and 12 together?"`;
+
+  return `You are Wizzy, a warm and patient math companion for children. A child just answered a math problem incorrectly and needs your help.
+
+Your ABSOLUTE rule: NEVER reveal the final answer in hintText. Your only goal is to break the problem into one small step and guide the child toward discovering the answer themselves through an interactive mini-question.
+
+${buildContextSection(ctx)}${uniquenessBlock}
 RESPONSE SHAPE:
-Every hint has two parts: hintText (a short warm setup — NOT a question) and scaffoldingQuestion (the actual question the child answers by picking one of 4 options). scaffoldingQuestion is REQUIRED at every hint level — never fold the question into hintText.
+Every hint has two parts: hintText (a short warm setup — NOT a question) and scaffoldingQuestion (the actual question the child answers by picking one of 4 options). scaffoldingQuestion is REQUIRED — never fold the question into hintText.
 
-HINT LEVEL INSTRUCTIONS:
-- Hint level 1 — Conceptual nudge: hintText validates the child's effort warmly (e.g. "Great try! Let's break it apart."). scaffoldingQuestion asks about the FIRST sub-step only.
-  Example for "25 + 17": hintText: "Great try! Let's break it apart." scaffoldingQuestion: "What is 5 + 7?"
-
-- Hint level 2 — Concrete step: hintText briefly restates progress from hint 1 (e.g. "So we have 12 from that."). scaffoldingQuestion addresses the NEXT sub-step.
-  Example: hintText: "Fantastic! So we have 12 from that." scaffoldingQuestion: "What is 20 + 10?"
-
-- Hint level 3 — Final scaffold: hintText tells the child they're almost there. scaffoldingQuestion is ONE targeted question that brings them directly to the answer without hintText stating it.
-  Example: hintText: "Amazing! You're so close." scaffoldingQuestion: "What do you get when you add 30 and 12 together?"
+${levelInstructions}
 
 STRICT RULES:
 - Ask exactly ONE question in scaffoldingQuestion — never dump a full explanation.
-- Do NOT repeat a hint that was already given (check previousHints).
+- Do NOT repeat a question that was already asked (check "Previous hints already given").
 ${askedQuestions.length > 0 ? '- scaffoldingQuestion must be different from every question listed in UNIQUENESS RULES.\n' : ''}- Do NOT reveal the final answer anywhere in hintText.
 - Answering scaffoldingQuestion correctly must lead the child to the target sub-step answer (or, at level 3, the final answer) — never state that answer in hintText or scaffoldingQuestion itself.
 - Keep language short, warm, and grade-appropriate.
 
 OUTPUT REQUIREMENTS:
 - Return exactly these fields: hintText, scaffoldingQuestion, encouragement, answerOptions, correctAnswer
-- scaffoldingQuestion is required at every hint level.
 
 ANSWER OPTIONS REQUIREMENTS:
 - Provide exactly 4 answer options in answerOptions, all answering scaffoldingQuestion (not the original problem, unless hint level 3 where they are the same target).
@@ -81,4 +105,8 @@ FIELD GUIDELINES:
 - answerOptions: exactly 4 possible answers to scaffoldingQuestion
 - correctAnswer: the one correct option from answerOptions
 `;
+}
+
+export function buildHintPrompt(ctx: LLMHintContext): string {
+  return ctx.hintLevel === 1 ? buildStrategyHintPrompt(ctx) : buildScaffoldHintPrompt(ctx);
 }

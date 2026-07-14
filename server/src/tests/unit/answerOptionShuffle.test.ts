@@ -36,9 +36,9 @@ describe('answer option shuffling', () => {
 
     const positions = new Set<number>();
     for (let i = 0; i < RUNS; i++) {
-      const result = mapHintResponse(llmResponse, 1);
-      expect([...result.subQuestionOptions].sort()).toEqual(['10', '11', '12', '13']);
-      positions.add(result.subQuestionOptions.indexOf('12'));
+      const result = mapHintResponse(llmResponse, 2);
+      expect([...result.subQuestionOptions!].sort()).toEqual(['10', '11', '12', '13']);
+      positions.add(result.subQuestionOptions!.indexOf('12'));
     }
     expect(positions.size).toBeGreaterThan(1);
   });

@@ -43,7 +43,8 @@ const MOCK_START_RESPONSE = {
 };
 
 const MOCK_MATH_RESPONSE = {
-  adventureNarrative: 'You find a glowing stone with 2 crystals on one side and 2 on the other. To pass, you must count them all!',
+  adventureNarrative:
+    'You find a glowing stone with 2 crystals on one side and 2 on the other. To pass, you must count them all!',
   wizzyDialogue: 'Solve this to continue!',
   problemText: '2 + 2 = ?',
   mathExpression: '2 + 2 = ?',
@@ -432,6 +433,68 @@ describe('adventure routes integration', () => {
       expect(adventure?.previousScaffoldQuestions).toContain(
         MOCK_HINT_RESPONSE.scaffoldingQuestion
       );
+    });
+
+    it('handles a strategy-only level-1 hint and stores full hint content across levels', async () => {
+      // Start + advance to math question (same flow as the test above)
+      const startRes = await request(app)
+        .post(`/api/adventures/children/${childId}`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ mathTopic: 'g2_addition_subtraction', storyWorld: 'space' })
+        .expect(201);
+
+      const { adventureId } = startRes.body;
+
+      await request(app)
+        .post(`/api/adventures/${adventureId}/continue`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .send({ choiceIndex: 0 })
+        .expect(200);
+
+      // Hint 1: strategy-only LLM response
+      mockedLlm.generateHintFromState.mockResolvedValueOnce({
+        hintText: 'Great try! Break big numbers into tens and ones, then add the parts.',
+      });
+
+      const hint1 = await request(app)
+        .post(`/api/adventures/${adventureId}/hint`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .expect(200);
+
+      expect(hint1.body.hintText).toBe(
+        'Great try! Break big numbers into tens and ones, then add the parts.'
+      );
+      expect(hint1.body.hintLevel).toBe(1);
+      expect(hint1.body.subQuestion).toBeUndefined();
+      expect(hint1.body.subQuestionOptions).toBeUndefined();
+
+      // Hint 2: full scaffold response (default MOCK_HINT_RESPONSE)
+      const hint2 = await request(app)
+        .post(`/api/adventures/${adventureId}/hint`)
+        .set('Cookie', buildCookies(parentId))
+        .set(csrfHeader())
+        .expect(200);
+
+      expect(hint2.body.hintLevel).toBe(2);
+      expect(hint2.body.subQuestion).toBe(MOCK_HINT_RESPONSE.scaffoldingQuestion);
+
+      // currentHints stores the FULL hint content: text only for level 1,
+      // text + sub-question for level 2 — so the next prompt can see what was asked.
+      const adventure = await Adventure.findById(adventureId);
+      expect(adventure?.currentHints).toEqual([
+        'Great try! Break big numbers into tens and ones, then add the parts.',
+        `${MOCK_HINT_RESPONSE.hintText} ${MOCK_HINT_RESPONSE.scaffoldingQuestion}`,
+      ]);
+      expect(adventure?.currentChallenge?.hintLevel).toBe(2);
+      expect(adventure?.hintsUsed).toBe(2);
+      // Scaffold tracking skips the question-less strategy hint: only hint 2's
+      // sub-question is recorded for adventure-wide uniqueness.
+      expect(adventure?.previousScaffoldQuestions).toEqual([
+        MOCK_HINT_RESPONSE.scaffoldingQuestion,
+      ]);
     });
   });
 

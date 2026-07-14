@@ -578,13 +578,20 @@ export async function requestHint(req: Request, res: Response): Promise<void> {
   const llmResponse = await llmService.generateHintFromState(state);
   const hintResponse = mapHintResponse(llmResponse, adventure.currentChallenge.hintLevel);
 
-  // Persist hint text so next hint call can see what was already given
-  adventure.currentHints.push(hintResponse.hintText);
-  // Track the scaffold question so future questions (math or hint) don't repeat it
-  adventure.previousScaffoldQuestions = [
-    ...(adventure.previousScaffoldQuestions ?? []),
-    hintResponse.subQuestion,
-  ];
+  // Persist the FULL hint content (setup + sub-question) so the next hint
+  // call can see what was actually asked — not just the warm setup line.
+  const fullHintContent = hintResponse.subQuestion
+    ? `${hintResponse.hintText} ${hintResponse.subQuestion}`
+    : hintResponse.hintText;
+  adventure.currentHints.push(fullHintContent);
+  // Track the scaffold question so future questions (math or hint) don't repeat
+  // it — level-1 strategy hints have no sub-question to track.
+  if (hintResponse.subQuestion) {
+    adventure.previousScaffoldQuestions = [
+      ...(adventure.previousScaffoldQuestions ?? []),
+      hintResponse.subQuestion,
+    ];
+  }
   await adventure.save();
 
   res.json(hintResponse);

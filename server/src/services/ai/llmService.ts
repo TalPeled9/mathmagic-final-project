@@ -146,6 +146,14 @@ const hintSchema: GeminiResponseSchema = {
   },
 };
 
+const hintLevel1Schema: GeminiResponseSchema = {
+  type: JSON_SCHEMA.OBJECT,
+  required: ['hintText'],
+  properties: {
+    hintText: { type: JSON_SCHEMA.STRING },
+  },
+};
+
 const endStorySchema: GeminiResponseSchema = {
   type: JSON_SCHEMA.OBJECT,
   required: ['wizzyDialogue', 'recap', 'celebration', 'imageDescription'],
@@ -229,15 +237,19 @@ function fallbackByMode<K extends StoryMode>(
     }
 
     case 'hint': {
-      const response = {
-        stepType: 'hint',
-        isLastStep: false,
-        hintText: `Try breaking the problem into smaller steps and solve one part at a time.`,
-        scaffoldingQuestion: 'What do you get when you add 2 and then 3?',
-        encouragement: `You're doing great, ${ctx.childName}. Keep going!`,
-        answerOptions: ['4', '5', '6', '7'],
-        correctAnswer: '5',
-      };
+      const hintCtx = ctx as unknown as LLMHintContext;
+      const response =
+        hintCtx.hintLevel === 1
+          ? {
+              hintText: `Great try, ${ctx.childName}! Try breaking the problem into smaller steps and solve one part at a time.`,
+            }
+          : {
+              hintText: `Let's take it one small step at a time.`,
+              scaffoldingQuestion: 'What do you get when you add 2 and then 3?',
+              encouragement: `You're doing great, ${ctx.childName}. Keep going!`,
+              answerOptions: ['4', '5', '6', '7'],
+              correctAnswer: '5',
+            };
       return response as unknown as LLMModeResponseMap[K];
     }
 
@@ -341,7 +353,9 @@ class LLMService {
             Boolean((ctx as LLMMathQuestionContext).requireExpression),
             Boolean((ctx as LLMMathQuestionContext).clockTime)
           )
-        : definition.schema;
+        : mode === 'hint' && (ctx as LLMHintContext).hintLevel === 1
+          ? hintLevel1Schema
+          : definition.schema;
 
     let response: LLMModeResponseMap[K];
     try {
@@ -390,12 +404,20 @@ class LLMService {
       } else if (mode === 'hint') {
         const hintResponse = sanitized as LLMHintResponse;
         hintResponse.hintText = normalizeOperatorSymbols(hintResponse.hintText);
-        hintResponse.scaffoldingQuestion = normalizeOperatorSymbols(
-          hintResponse.scaffoldingQuestion
-        );
-        hintResponse.encouragement = normalizeOperatorSymbols(hintResponse.encouragement);
-        hintResponse.answerOptions = hintResponse.answerOptions.map(normalizeOperatorSymbols);
-        hintResponse.correctAnswer = normalizeOperatorSymbols(hintResponse.correctAnswer);
+        if (hintResponse.scaffoldingQuestion !== undefined) {
+          hintResponse.scaffoldingQuestion = normalizeOperatorSymbols(
+            hintResponse.scaffoldingQuestion
+          );
+        }
+        if (hintResponse.encouragement !== undefined) {
+          hintResponse.encouragement = normalizeOperatorSymbols(hintResponse.encouragement);
+        }
+        if (hintResponse.answerOptions !== undefined) {
+          hintResponse.answerOptions = hintResponse.answerOptions.map(normalizeOperatorSymbols);
+        }
+        if (hintResponse.correctAnswer !== undefined) {
+          hintResponse.correctAnswer = normalizeOperatorSymbols(hintResponse.correctAnswer);
+        }
       }
       return sanitized;
     } catch (err) {
