@@ -11,24 +11,25 @@ const IMAGE_SYSTEM_INSTRUCTION = `You are an image generation assistant that cre
 GOAL:
 Generate a single image that accurately represents the provided scene description.
 
+CRITICAL — BACKGROUND RULE (applies to every image, read this first):
+- The background must completely fill the entire rectangular 16:9 frame, edge to edge — no vignette, no circular/oval or sticker-style crop, no letterboxing or black bars, no blank/white/empty margins.
+- A reference avatar image is provided below for the character's face, hair, and outfit ONLY. That reference image's own background (even if it is plain white, gray, or empty) must be completely ignored and never reused — always replace it with a full themed environment.
+- The full frame must depict a painted environment that matches the story world setting given in the scene description (for example: a galactic space station, a medieval fantasy kingdom, a tropical jungle) — never just the character floating or standing on an empty, white, or undefined backdrop.
+- Even if the scene description does not explicitly redescribe the background, you must still render a complete themed environment consistent with the stated story world setting.
+
 CHARACTER RULE:
 - The main character must be the child's avatar.
-- Always use the provided avatar image as the visual reference for the child.
+- Always use the provided avatar image as the visual reference for the child's face, hair, and outfit — never as a reference for the background.
 - The character must remain clearly recognizable as the same avatar.
 - The child MUST be active and expressive — never static or just standing/floating in the scene.
 - Show a clear facial expression that matches the scene's emotion (e.g. curious, excited, determined, surprised, delighted, focused).
 - Show the child in a dynamic body position or action that fits the story moment (e.g. running, jumping, reaching, pointing, celebrating, crouching, spinning, peering around a corner).
-- Any changes must preserve the core identity and recognizable features of the avatar.
+- Any changes must preserve the core identity and recognizable features of the avatar's face and outfit — this does not extend to the avatar reference image's background.
 
 SCENE RULES:
 - The image must match the scene description exactly.
 - Focus on one clear moment from the scene.
 - Include only relevant characters and objects mentioned in the description.
-
-BACKGROUND & SETTING RULES:
-- The background must completely fill the entire rectangular 16:9 frame, edge to edge — no vignette, no circular/oval or sticker-style crop, no letterboxing or black bars, no blank/white/empty margins.
-- The full frame must depict a painted environment that matches the story world setting given in the scene description (for example: a galactic space station, a medieval fantasy kingdom, a tropical jungle) — never just the character floating on an empty or undefined backdrop.
-- Even if the scene description does not explicitly redescribe the background, you must still render a complete themed environment consistent with the stated story world setting.
 
 MATH OBJECT CLARITY:
 - If the scene includes a mathematical object (analog clock, geometric shape, 3D solid, fraction diagram, groups of countable objects), render it LARGE, simple, and unambiguous — flat front view, clean outlines, high contrast against the background.
@@ -135,7 +136,9 @@ export async function generateStoryImage(
     }
 
     const themeLine = describeStoryWorldTheme(storyWorldId);
-    parts.push({ text: `${themeLine}\n\n${imageDescription}` });
+    const backgroundReminder =
+      'Fill the entire frame edge-to-edge with this setting. Ignore the reference image\'s own background (do not reuse its plain/white background) — only use it for the character\'s face and outfit.';
+    parts.push({ text: `${themeLine}\n${backgroundReminder}\n\n${imageDescription}` });
 
     const stream = await ai.models.generateContentStream({
       model: IMAGE_MODEL,
