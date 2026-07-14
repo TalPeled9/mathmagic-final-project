@@ -114,7 +114,7 @@ describe('llmService provider wiring', () => {
 });
 
 describe('llmService hint fallback', () => {
-  it('includes scaffoldingQuestion even at hint level 1', async () => {
+  it('returns a strategy-only fallback at hint level 1', async () => {
     vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
       new Error('rate limited')
     );
@@ -122,8 +122,55 @@ describe('llmService hint fallback', () => {
     const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 1 };
     const result = await llmService.generateHintFromState(state);
 
+    expect(typeof result.hintText).toBe('string');
+    expect(result.hintText.length).toBeGreaterThan(0);
+    expect(result.scaffoldingQuestion).toBeUndefined();
+    expect(result.answerOptions).toBeUndefined();
+    expect(result.correctAnswer).toBeUndefined();
+  });
+
+  it('includes scaffoldingQuestion in the fallback at hint level 2', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockRejectedValue(
+      new Error('rate limited')
+    );
+
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 2 };
+    const result = await llmService.generateHintFromState(state);
+
     expect(typeof result.scaffoldingQuestion).toBe('string');
-    expect(result.scaffoldingQuestion.length).toBeGreaterThan(0);
+    expect(result.scaffoldingQuestion!.length).toBeGreaterThan(0);
+    expect(result.answerOptions).toHaveLength(4);
+  });
+});
+
+describe('llmService hint schema selection', () => {
+  it('uses a hintText-only schema at level 1', async () => {
+    const spy = vi
+      .spyOn(GeminiJsonClient.prototype, 'generateJson')
+      .mockResolvedValue({ hintText: 'Break the problem into small steps.' });
+
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 1 };
+    await llmService.generateHintFromState(state);
+
+    const { schema } = spy.mock.calls[0][0] as unknown as { schema: { required: string[] } };
+    expect(schema.required).toEqual(['hintText']);
+  });
+
+  it('uses the full hint schema at levels 2 and 3', async () => {
+    const spy = vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      hintText: 'So we have 12.',
+      scaffoldingQuestion: 'What is 20 + 10?',
+      encouragement: 'Nice!',
+      answerOptions: ['20', '30', '40', '50'],
+      correctAnswer: '30',
+    });
+
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 2 };
+    await llmService.generateHintFromState(state);
+
+    const { schema } = spy.mock.calls[0][0] as unknown as { schema: { required: string[] } };
+    expect(schema.required).toContain('scaffoldingQuestion');
+    expect(schema.required).toContain('answerOptions');
   });
 });
 
@@ -290,7 +337,7 @@ describe('llmService operator-symbol normalization wiring', () => {
       correctAnswer: '3 * 4',
     });
 
-    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 1 };
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 2 };
     const result = await llmService.generateHintFromState(state);
 
     expect(result.hintText).toBe('Remember, do 3 × 4 first.');
@@ -298,5 +345,17 @@ describe('llmService operator-symbol normalization wiring', () => {
     expect(result.encouragement).toBe('You can do 3 × 4 in your head!');
     expect(result.answerOptions).toEqual(['3 × 4', '3 + 4', '12', '7']);
     expect(result.correctAnswer).toBe('3 × 4');
+  });
+
+  it('normalizes * in a level-1 strategy hint without quiz fields', async () => {
+    vi.spyOn(GeminiJsonClient.prototype, 'generateJson').mockResolvedValue({
+      hintText: 'First multiply, like 3 * 4, then add the rest.',
+    });
+
+    const state: AdventureState = { ...baseState, mode: 'hint', hintLevel: 1 };
+    const result = await llmService.generateHintFromState(state);
+
+    expect(result.hintText).toBe('First multiply, like 3 × 4, then add the rest.');
+    expect(result.scaffoldingQuestion).toBeUndefined();
   });
 });
