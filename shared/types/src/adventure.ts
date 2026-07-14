@@ -35,6 +35,8 @@ export interface AdventureState {
   hintLevel: 0 | 1 | 2 | 3;
   hintUsed: boolean;
   currentDifficulty: 'easy' | 'medium' | 'hard';
+  /** Deterministic per-adventure seed (hash of adventure id) for difficulty-variant rotation. */
+  variantSeed?: number;
   recentPerformanceScores: number[];
 
   storySummary: string;
@@ -43,6 +45,8 @@ export interface AdventureState {
 export interface ICurrentChallenge {
   problemText: string;
   mathExpression?: string; // symbolic form (e.g. "3 + 5 = ?") — only for flagged topics
+  /** "H:MM" shown on the server-rendered analog clock — only for clock-reading questions. */
+  clockTime?: string;
   options: [string, string, string, string];
   hintLevel: 0 | 1 | 2 | 3;
   attemptsCount: number;
@@ -121,12 +125,25 @@ export interface MathTopicConfig {
   description: string;
   color: string;
   difficulty: {
-    easy: string;
-    medium: string;
-    hard: string;
+    /** One description, or an array of variants — the server picks one variant per question. */
+    easy: string | string[];
+    medium: string | string[];
+    hard: string | string[];
   };
   /** Difficulties at which a symbolic math expression (e.g. "3 + 5 = ?") must accompany the question. */
   expressionFor?: Array<'easy' | 'medium' | 'hard'>;
+  /** Difficulties where a server-rendered analog clock accompanies the question. */
+  clockFor?: Partial<
+    Record<
+      'easy' | 'medium' | 'hard',
+      {
+        /** Which difficulty variants show the clock ('all', or indices into the difficulty array). */
+        variants: 'all' | number[];
+        /** Allowed minute values for picked times (subset of 0, 15, 30, 45). */
+        minutes: number[];
+      }
+    >
+  >;
 }
 
 export interface StoryWorldConfig {

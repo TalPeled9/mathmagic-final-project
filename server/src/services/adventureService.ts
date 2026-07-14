@@ -14,7 +14,7 @@ import { Adventure, type IAdventureDocument } from '../models/Adventure';
 import { AdventureImage } from '../models/AdventureImage';
 import { Child, type IChildDocument } from '../models/Child';
 import { generateStoryImage } from './ai/imageGenerationService';
-import { buildStorySummary } from './ai/storyContextBuilder';
+import { buildStorySummary, hashStringToSeed } from './ai/storyContextBuilder';
 import { llmService } from './ai/llmService';
 import { getLevelForXP } from '../config/levelThresholds';
 import {
@@ -137,6 +137,7 @@ export function buildAdventureState(
     hintLevel: (adventure.currentChallenge?.hintLevel ?? 0) as 0 | 1 | 2 | 3,
     hintUsed: (adventure.currentChallenge?.hintLevel ?? 0) > 0,
     currentDifficulty: (adventure.currentDifficulty ?? 'easy') as 'easy' | 'medium' | 'hard',
+    variantSeed: hashStringToSeed(adventure._id.toString()),
     recentPerformanceScores: adventure.recentPerformanceScores ?? [],
     previousProblemTexts: adventure.previousProblemTexts ?? [],
     storySummary: '',
@@ -183,6 +184,7 @@ export function mapMathQuestionResponse(
   const challenge: ICurrentChallenge = {
     problemText: llmResponse.problemText,
     mathExpression: llmResponse.mathExpression,
+    clockTime: llmResponse.clockTime,
     options: rawOptions as [string, string, string, string],
     hintLevel: 0,
     attemptsCount: 0,

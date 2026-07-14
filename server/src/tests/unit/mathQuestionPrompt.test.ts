@@ -59,3 +59,36 @@ describe('buildMathQuestionPrompt — MATH EXPRESSION RULES', () => {
     expect(prompt).not.toContain('MATH EXPRESSION RULES');
   });
 });
+
+describe('buildMathQuestionPrompt — TOPIC FIDELITY RULES', () => {
+  it('always includes the topic fidelity block', () => {
+    const prompt = buildMathQuestionPrompt(baseCtx);
+    expect(prompt).toContain('TOPIC FIDELITY RULES');
+    expect(prompt).toContain('NEVER fall back to a generic addition word problem');
+    expect(prompt).toContain('Never copy the example numbers');
+    expect(prompt).toContain('metric units only');
+    expect(prompt).toContain('mixed numbers');
+    expect(prompt).toContain('must NOT state or reveal the correct answer');
+  });
+
+  it('instructs precise image descriptions for readable math objects', () => {
+    const prompt = buildMathQuestionPrompt(baseCtx);
+    expect(prompt).toContain('read information from the image');
+    expect(prompt).toContain('hour hand');
+  });
+});
+
+describe('buildMathQuestionPrompt — CLOCK RULES', () => {
+  it('includes the block with the injected time when clockTime is set', () => {
+    const prompt = buildMathQuestionPrompt({ ...baseCtx, clockTime: '7:30' });
+    expect(prompt).toContain('CLOCK RULES');
+    expect(prompt).toContain('It shows exactly 7:30');
+    expect(prompt).toContain('Do NOT state the time 7:30');
+    expect(prompt).toContain('Do NOT produce answerOptions or correctAnswer');
+    expect(prompt).toContain('must NOT include any clock, watch, or timepiece');
+  });
+
+  it('omits the block when clockTime is not set', () => {
+    expect(buildMathQuestionPrompt(baseCtx)).not.toContain('CLOCK RULES');
+  });
+});

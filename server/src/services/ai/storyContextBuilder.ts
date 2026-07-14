@@ -5,6 +5,7 @@ import type {
   LLMHintContext,
   LLMMathQuestionContext,
   LLMStoryPromptContext,
+  MathTopicConfig,
 } from '@mathmagic/types';
 import { getCurriculumTopicById } from '../../config/curriculumTopics';
 
@@ -79,13 +80,76 @@ export function buildStoryStepContext(state: AdventureState): LLMStoryPromptCont
   };
 }
 
+/** Index into a variant array for (seed, stepIndex) — shared by variant and clock gating. */
+export function pickVariantIndex(length: number, seed: number, stepIndex: number): number {
+  return (seed + stepIndex) % length;
+}
+
+/**
+ * Deterministically picks one difficulty-description variant.
+ * Plain strings pass through; arrays rotate by (seed + stepIndex) % length.
+ * MUST stay deterministic from (description, seed, stepIndex): the same variant is
+ * resolved at pre-generation time, serve time, and hint time (currentStepIndex is
+ * stable across all three for a given question).
+ */
+export function pickVariant(
+  description: string | string[],
+  seed: number,
+  stepIndex: number
+): string {
+  if (!Array.isArray(description)) return description;
+  if (description.length === 0) return '';
+  return description[pickVariantIndex(description.length, seed, stepIndex)];
+}
+
+/**
+ * Deterministically picks the "H:MM" a clock-reading question displays, or undefined when
+ * no clock applies (no clockFor entry, or the rotation picked a non-clock variant).
+ * Same (seed, stepIndex) inputs as pickVariant — the prefetch/serve/hint invariant holds.
+ */
+export function pickClockTime(
+  topic: MathTopicConfig | undefined,
+  difficulty: 'easy' | 'medium' | 'hard',
+  seed: number,
+  stepIndex: number
+): string | undefined {
+  if (!topic) return undefined;
+  const clockCfg = topic.clockFor?.[difficulty];
+  if (!clockCfg || clockCfg.minutes.length === 0) return undefined;
+
+  if (clockCfg.variants !== 'all') {
+    const description = topic.difficulty[difficulty];
+    const variantIndex = Array.isArray(description)
+      ? pickVariantIndex(description.length, seed, stepIndex)
+      : 0;
+    if (!clockCfg.variants.includes(variantIndex)) return undefined;
+  }
+
+  const hour = ((seed + stepIndex * 5) % 12) + 1;
+  const minute = clockCfg.minutes[(seed + stepIndex) % clockCfg.minutes.length];
+  return `${hour}:${String(minute).padStart(2, '0')}`;
+}
+
+/** Cheap deterministic string hash → non-negative int, for per-adventure variant rotation. */
+export function hashStringToSeed(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
 /**
  * Build the complete LLMMathQuestionContext from AdventureState.
  * Extends base context with math-specific fields.
  */
 export function buildMathQuestionContext(state: AdventureState): LLMMathQuestionContext {
   const topic = getCurriculumTopicById(state.mathTopic);
-  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
+  const difficultyDescription = pickVariant(
+    topic?.difficulty[state.currentDifficulty] ?? '',
+    state.variantSeed ?? 0,
+    state.currentStepIndex
+  );
   const requireExpression = topic?.expressionFor?.includes(state.currentDifficulty) ?? false;
   return {
     childName: state.childName,
@@ -98,6 +162,12 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
     difficultyDescription,
     requireExpression,
     previousProblemTexts: state.previousProblemTexts ?? [],
+    clockTime: pickClockTime(
+      topic,
+      state.currentDifficulty,
+      state.variantSeed ?? 0,
+      state.currentStepIndex
+    ),
   };
 }
 
@@ -107,7 +177,11 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
  */
 export function buildHintContext(state: AdventureState): LLMHintContext {
   const topic = getCurriculumTopicById(state.mathTopic);
-  const difficultyDescription = topic?.difficulty[state.currentDifficulty] ?? '';
+  const difficultyDescription = pickVariant(
+    topic?.difficulty[state.currentDifficulty] ?? '',
+    state.variantSeed ?? 0,
+    state.currentStepIndex
+  );
   return {
     childName: state.childName,
     gradeLevel: state.gradeLevel,

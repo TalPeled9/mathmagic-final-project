@@ -4,8 +4,12 @@ import {
   buildMathQuestionContext,
   buildStorySummary,
   buildHintContext,
+  pickVariant,
+  pickVariantIndex,
+  pickClockTime,
+  hashStringToSeed,
 } from '../../services/ai/storyContextBuilder';
-import type { AdventureState } from '@mathmagic/types';
+import type { AdventureState, MathTopicConfig } from '@mathmagic/types';
 
 const baseState: AdventureState = {
   childName: 'Alex',
@@ -136,7 +140,7 @@ describe('buildMathQuestionContext — requireExpression', () => {
   it('is false when the topic does not flag the current difficulty', () => {
     const ctx = buildMathQuestionContext({
       ...baseState,
-      mathTopic: 'g2_addition_subtraction',
+      mathTopic: 'g3_addition_subtraction',
       currentDifficulty: 'hard',
     });
     expect(ctx.requireExpression).toBe(false);
@@ -166,5 +170,136 @@ describe('buildHintContext — mathExpression', () => {
   it('is undefined when state has no lastMathExpression', () => {
     const ctx = buildHintContext(baseState);
     expect(ctx.mathExpression).toBeUndefined();
+  });
+});
+
+describe('pickVariant', () => {
+  it('returns a plain string unchanged', () => {
+    expect(pickVariant('single description', 7, 3)).toBe('single description');
+  });
+
+  it('returns empty string for an empty array', () => {
+    expect(pickVariant([], 7, 3)).toBe('');
+  });
+
+  it('picks (seed + stepIndex) % length from an array', () => {
+    const variants = ['add', 'subtract'];
+    expect(pickVariant(variants, 0, 0)).toBe('add');
+    expect(pickVariant(variants, 0, 1)).toBe('subtract');
+    expect(pickVariant(variants, 0, 2)).toBe('add');
+    expect(pickVariant(variants, 1, 0)).toBe('subtract');
+  });
+
+  it('is deterministic: same inputs always give the same variant', () => {
+    const variants = ['a', 'b', 'c'];
+    expect(pickVariant(variants, 42, 5)).toBe(pickVariant(variants, 42, 5));
+  });
+});
+
+describe('hashStringToSeed', () => {
+  it('returns a non-negative integer and is deterministic', () => {
+    const seed = hashStringToSeed('507f1f77bcf86cd799439011');
+    expect(Number.isInteger(seed)).toBe(true);
+    expect(seed).toBeGreaterThanOrEqual(0);
+    expect(hashStringToSeed('507f1f77bcf86cd799439011')).toBe(seed);
+  });
+
+  it('gives different seeds for different ids (typical case)', () => {
+    expect(hashStringToSeed('adventure-one')).not.toBe(hashStringToSeed('adventure-two'));
+  });
+});
+
+describe('buildMathQuestionContext / buildHintContext — variant consistency', () => {
+  it('resolves the same difficultyDescription for question and hint at the same step', () => {
+    // Use any topic id; with a string difficulty this is trivially equal, and once
+    // variant arrays land (Tasks 5-10) this guards the question/hint consistency contract.
+    const state = { ...baseState, variantSeed: 3, currentStepIndex: 4 };
+    const q = buildMathQuestionContext(state);
+    const h = buildHintContext(state);
+    expect(h.difficultyDescription).toBe(q.difficultyDescription);
+  });
+});
+
+function makeClockTopic(overrides: Partial<MathTopicConfig> = {}): MathTopicConfig {
+  return {
+    id: 'test_clock_topic',
+    name: 'Test Clock',
+    icon: '⏰',
+    grade: 1,
+    color: '#000',
+    description: 'test',
+    difficulty: {
+      easy: 'Read the clock (whole hours).',
+      medium: 'Duration question.',
+      hard: ['Read the clock (half hours).', 'Duration with half hours.'],
+    },
+    clockFor: {
+      easy: { variants: 'all', minutes: [0] },
+      hard: { variants: [0], minutes: [30] },
+    },
+    ...overrides,
+  };
+}
+
+describe('pickVariantIndex', () => {
+  it('matches pickVariant selection', () => {
+    const variants = ['a', 'b', 'c'];
+    for (let step = 0; step < 6; step++) {
+      expect(variants[pickVariantIndex(variants.length, 7, step)]).toBe(
+        pickVariant(variants, 7, step)
+      );
+    }
+  });
+});
+
+describe('pickClockTime', () => {
+  it('returns a valid H:MM whole-hour time for a variants:"all" difficulty', () => {
+    const time = pickClockTime(makeClockTopic(), 'easy', 3, 4);
+    expect(time).toMatch(/^(1[0-2]|[1-9]):00$/);
+  });
+
+  it('is deterministic', () => {
+    const topic = makeClockTopic();
+    expect(pickClockTime(topic, 'easy', 3, 4)).toBe(pickClockTime(topic, 'easy', 3, 4));
+  });
+
+  it('varies the hour across steps', () => {
+    const topic = makeClockTopic();
+    const times = new Set([0, 1, 2, 3].map((s) => pickClockTime(topic, 'easy', 0, s)));
+    expect(times.size).toBeGreaterThan(1);
+  });
+
+  it('respects the allowed minutes list', () => {
+    const time = pickClockTime(makeClockTopic(), 'hard', 0, 0); // seed 0 + step 0 → variant 0
+    expect(time).toMatch(/^(1[0-2]|[1-9]):30$/);
+  });
+
+  it('returns undefined when the picked variant is not clock-gated', () => {
+    // hard variants: [0]; (seed 0 + step 1) % 2 = 1 → duration variant → no clock
+    expect(pickClockTime(makeClockTopic(), 'hard', 0, 1)).toBeUndefined();
+  });
+
+  it('returns undefined for difficulties without clockFor', () => {
+    expect(pickClockTime(makeClockTopic(), 'medium', 0, 0)).toBeUndefined();
+  });
+
+  it('returns undefined for undefined topic', () => {
+    expect(pickClockTime(undefined, 'easy', 0, 0)).toBeUndefined();
+  });
+});
+
+describe('buildMathQuestionContext — clockTime', () => {
+  it('is undefined for topics without clockFor', () => {
+    const ctx = buildMathQuestionContext({ ...baseState, mathTopic: 'g1_addition' });
+    expect(ctx.clockTime).toBeUndefined();
+  });
+
+  it('emits a whole-hour clockTime for g1_time_clock easy', () => {
+    const ctx = buildMathQuestionContext({
+      ...baseState,
+      mathTopic: 'g1_time_clock',
+      currentDifficulty: 'easy',
+    });
+    expect(ctx.clockTime).toMatch(/^(1[0-2]|[1-9]):00$/);
   });
 });

@@ -24,6 +24,14 @@ SCENE RULES:
 - Focus on one clear moment from the scene.
 - Include only relevant characters and objects mentioned in the description.
 
+MATH OBJECT CLARITY:
+- If the scene includes a mathematical object (analog clock, geometric shape, 3D solid, fraction diagram, groups of countable objects), render it LARGE, simple, and unambiguous — flat front view, clean outlines, high contrast against the background.
+- An analog clock must show all 12 hour marks, with a clearly shorter hour hand and longer minute hand pointing exactly where the description says.
+- Shapes and solids must be geometrically accurate (correct number of sides, faces, corners) and not stylized beyond recognition.
+- Fraction diagrams must show exactly the number of equal parts and shaded parts described.
+- Countable objects must appear in exactly the stated quantity, clearly separated and easy to count.
+- Never write numbers, words, or labels in the image that reveal the answer.
+
 STYLE:
 - Bright, colorful, and friendly cartoon style.
 - Soft lighting and playful, magical atmosphere.
