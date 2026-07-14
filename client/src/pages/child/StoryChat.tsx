@@ -883,6 +883,8 @@ function HintMessage({ hint }: { hint: HintResponse }) {
   const [wrongOption, setWrongOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState(false);
 
+  const hasQuiz = Boolean(hint.subQuestion && hint.subQuestionOptions && hint.subQuestionAnswer);
+
   const handlePick = (option: string) => {
     if (isCorrect) return;
     if (option === hint.subQuestionAnswer) {
@@ -903,44 +905,48 @@ function HintMessage({ hint }: { hint: HintResponse }) {
           <MathText text={hint.hintText} />
         </p>
 
-        <p className="text-amber-900 font-bold text-sm mt-3 mb-2">
-          <MathText text={hint.subQuestion} />
-        </p>
+        {hasQuiz && (
+          <>
+            <p className="text-amber-900 font-bold text-sm mt-3 mb-2">
+              <MathText text={hint.subQuestion!} />
+            </p>
 
-        <div className="grid grid-cols-2 gap-2">
-          {hint.subQuestionOptions.map((option, i) => {
-            const wasWrong = wrongOption === option;
-            const isPicked = isCorrect && option === hint.subQuestionAnswer;
-            return (
-              <button
-                key={i}
-                onClick={() => handlePick(option)}
-                disabled={isCorrect}
-                className={`px-3 py-2 rounded-xl text-sm font-bold text-left transition-all active:scale-[0.96] ${
-                  wasWrong ? 'animate-shake' : 'hover:scale-[1.02]'
-                }`}
-                style={{
-                  background: wasWrong ? '#fef2f2' : isPicked ? '#f0fdf4' : 'white',
-                  border: wasWrong
-                    ? '2px solid #fca5a5'
-                    : isPicked
-                      ? '2px solid #6ee7b7'
-                      : '2px solid rgba(217,119,6,0.2)',
-                }}
+            <div className="grid grid-cols-2 gap-2">
+              {hint.subQuestionOptions!.map((option, i) => {
+                const wasWrong = wrongOption === option;
+                const isPicked = isCorrect && option === hint.subQuestionAnswer;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handlePick(option)}
+                    disabled={isCorrect}
+                    className={`px-3 py-2 rounded-xl text-sm font-bold text-left transition-all active:scale-[0.96] ${
+                      wasWrong ? 'animate-shake' : 'hover:scale-[1.02]'
+                    }`}
+                    style={{
+                      background: wasWrong ? '#fef2f2' : isPicked ? '#f0fdf4' : 'white',
+                      border: wasWrong
+                        ? '2px solid #fca5a5'
+                        : isPicked
+                          ? '2px solid #6ee7b7'
+                          : '2px solid rgba(217,119,6,0.2)',
+                    }}
+                  >
+                    {OPTION_SHAPES[i]?.label ?? ''}. <MathText text={option} />
+                  </button>
+                );
+              })}
+            </div>
+
+            {isCorrect && hint.encouragement && (
+              <p
+                className="text-emerald-600 font-semibold text-sm mt-3"
+                style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
               >
-                {OPTION_SHAPES[i]?.label ?? ''}. <MathText text={option} />
-              </button>
-            );
-          })}
-        </div>
-
-        {isCorrect && (
-          <p
-            className="text-emerald-600 font-semibold text-sm mt-3"
-            style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
-          >
-            <MathText text={hint.encouragement} />
-          </p>
+                <MathText text={hint.encouragement} />
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>
