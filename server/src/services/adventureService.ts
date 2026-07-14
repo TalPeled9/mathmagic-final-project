@@ -157,6 +157,17 @@ export function determineNextMode(adventure: IAdventureDocument): StoryMode {
 
 // ─── Response Mapping ────────────────────────────────────────────────────────
 
+// LLMs tend to place the correct answer first, so options are shuffled before
+// reaching the child. Safe because answers are checked by value, not position.
+function shuffleOptions<T>(options: readonly T[]): T[] {
+  const shuffled = [...options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export function mapStartAdventureResponse(
   llmResponse: LLMStoryStepResponse,
   imageUrl?: string
@@ -176,7 +187,7 @@ export function mapMathQuestionResponse(
   llmResponse: LLMMathQuestionResponse,
   imageUrl?: string
 ): StorySegment {
-  const rawOptions = llmResponse.answerOptions.slice(0, 4);
+  const rawOptions = shuffleOptions(llmResponse.answerOptions.slice(0, 4));
   if (rawOptions.length < 4) {
     throw new ApiError(500, `LLM returned ${rawOptions.length} answer options; expected 4`);
   }
@@ -218,7 +229,7 @@ export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number)
     hintText: llmResponse.hintText,
     hintLevel,
     subQuestion: llmResponse.scaffoldingQuestion,
-    subQuestionOptions: llmResponse.answerOptions,
+    subQuestionOptions: shuffleOptions(llmResponse.answerOptions),
     subQuestionAnswer: llmResponse.correctAnswer,
     encouragement: llmResponse.encouragement,
   };
