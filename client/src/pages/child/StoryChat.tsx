@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
 import { AnalogClock } from '@/components/AnalogClock';
+import MathText from '../../components/MathText';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
@@ -810,7 +811,9 @@ function WizzyMessage({
             boxShadow: '0 2px 12px rgba(139,92,246,0.08)',
           }}
         >
-          <p className="text-gray-800 leading-relaxed whitespace-pre-line break-words">{text}</p>
+          <p className="text-gray-800 leading-relaxed whitespace-pre-line break-words">
+            <MathText text={text} />
+          </p>
           {onReplay && (
             <div className="flex justify-end mt-2">
               <button
@@ -842,7 +845,9 @@ function ChildMessage({ text, avatarUrl }: { text: string; avatarUrl?: string })
         )}
       </div>
       <div className="bg-purple-wizzy/10 rounded-2xl rounded-tr-sm p-4 min-w-0">
-        <p className="text-purple-wizzy font-medium break-words">{text}</p>
+        <p className="text-purple-wizzy font-medium break-words">
+          <MathText text={text} />
+        </p>
       </div>
     </div>
   );
@@ -868,7 +873,7 @@ function SystemMessage({ text, isCorrect }: { text: string; isCorrect: boolean }
         }
       >
         {isCorrect ? '✅ ' : '💡 '}
-        {text}
+        <MathText text={text} />
       </span>
     </div>
   );
@@ -895,10 +900,12 @@ function HintMessage({ hint }: { hint: HintResponse }) {
       </div>
       <div className="bg-amber-50 rounded-2xl rounded-tl-sm p-4 border-l-4 border-gold-magic/50 min-w-0 flex-1">
         <p className="text-amber-800 leading-relaxed whitespace-pre-line break-words">
-          {hint.hintText}
+          <MathText text={hint.hintText} />
         </p>
 
-        <p className="text-amber-900 font-bold text-sm mt-3 mb-2">{hint.subQuestion}</p>
+        <p className="text-amber-900 font-bold text-sm mt-3 mb-2">
+          <MathText text={hint.subQuestion} />
+        </p>
 
         <div className="grid grid-cols-2 gap-2">
           {hint.subQuestionOptions.map((option, i) => {
@@ -921,7 +928,7 @@ function HintMessage({ hint }: { hint: HintResponse }) {
                       : '2px solid rgba(217,119,6,0.2)',
                 }}
               >
-                {OPTION_SHAPES[i]?.label ?? ''}. {option}
+                {OPTION_SHAPES[i]?.label ?? ''}. <MathText text={option} />
               </button>
             );
           })}
@@ -932,7 +939,7 @@ function HintMessage({ hint }: { hint: HintResponse }) {
             className="text-emerald-600 font-semibold text-sm mt-3"
             style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
           >
-            {hint.encouragement}
+            <MathText text={hint.encouragement} />
           </p>
         )}
       </div>
@@ -1125,7 +1132,7 @@ function ChallengePanel({
               challenge.mathExpression || challenge.clockTime ? 'mb-3' : 'mb-5'
             }`}
           >
-            {challenge.problemText}
+            <MathText text={challenge.problemText} />
           </p>
 
           {challenge.mathExpression && (
@@ -1138,7 +1145,7 @@ function ChallengePanel({
                   boxShadow: '0 2px 10px rgba(139,92,246,0.14)',
                 }}
               >
-                {challenge.mathExpression}
+                <MathText text={challenge.mathExpression} />
               </div>
             </div>
           )}
@@ -1190,7 +1197,7 @@ function ChallengePanel({
                       {shape.label}
                     </div>
                     <span className="font-bold text-gray-800 text-sm text-left flex-1">
-                      {option}
+                      <MathText text={option} />
                     </span>
                   </div>
                 </button>
@@ -1213,7 +1220,11 @@ function ChallengePanel({
             className="text-center text-sm font-semibold text-emerald-600 mt-3"
             style={{ animation: 'slide-up-fade 0.35s ease-out both' }}
           >
-            The answer was <strong>{lastFeedback.correctAnswer}</strong> — keep going! 🌟
+            The answer was{' '}
+            <strong>
+              <MathText text={lastFeedback.correctAnswer} />
+            </strong>{' '}
+            — keep going! 🌟
           </p>
         )}
 
