@@ -38,6 +38,24 @@ describe('buildMathQuestionPrompt — UNIQUENESS RULES', () => {
     const prompt = buildMathQuestionPrompt(ctx);
     expect(prompt).toContain('1. What is 1 + 2?');
   });
+
+  it('includes UNIQUENESS RULES when previousScaffoldQuestions is non-empty', () => {
+    const ctx = { ...baseCtx, previousScaffoldQuestions: ['What is 5 + 7?'] };
+    const prompt = buildMathQuestionPrompt(ctx);
+    expect(prompt).toContain('UNIQUENESS RULES');
+    expect(prompt).toContain('What is 5 + 7?');
+  });
+
+  it('merges previousProblemTexts and previousScaffoldQuestions into one list', () => {
+    const ctx = {
+      ...baseCtx,
+      previousProblemTexts: ['What is 5 + 3?'],
+      previousScaffoldQuestions: ['What is 5 + 7?'],
+    };
+    const prompt = buildMathQuestionPrompt(ctx);
+    expect(prompt).toContain('1. What is 5 + 3?');
+    expect(prompt).toContain('2. What is 5 + 7?');
+  });
 });
 
 describe('buildMathQuestionPrompt — MATH EXPRESSION RULES', () => {

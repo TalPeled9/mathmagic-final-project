@@ -77,3 +77,46 @@ describe('buildHintPrompt — levels 2 and 3 (scaffold)', () => {
     expect(prompt3).not.toContain('HINT LEVEL 2 —');
   });
 });
+
+describe('buildHintPrompt — UNIQUENESS RULES', () => {
+  it('includes UNIQUENESS RULES when previousProblemTexts is non-empty', () => {
+    const ctx = { ...baseCtx, hintLevel: 2, previousProblemTexts: ['What is 5 + 3?'] };
+    const prompt = buildHintPrompt(ctx);
+    expect(prompt).toContain('UNIQUENESS RULES');
+    expect(prompt).toContain('What is 5 + 3?');
+  });
+
+  it('includes UNIQUENESS RULES when previousScaffoldQuestions is non-empty', () => {
+    const ctx = { ...baseCtx, hintLevel: 2, previousScaffoldQuestions: ['What is 5 + 7?'] };
+    const prompt = buildHintPrompt(ctx);
+    expect(prompt).toContain('UNIQUENESS RULES');
+    expect(prompt).toContain('What is 5 + 7?');
+  });
+
+  it('merges previousProblemTexts and previousScaffoldQuestions into one list', () => {
+    const ctx = {
+      ...baseCtx,
+      hintLevel: 2,
+      previousProblemTexts: ['What is 5 + 3?'],
+      previousScaffoldQuestions: ['What is 5 + 7?'],
+    };
+    const prompt = buildHintPrompt(ctx);
+    expect(prompt).toContain('1. What is 5 + 3?');
+    expect(prompt).toContain('2. What is 5 + 7?');
+  });
+
+  it('omits UNIQUENESS RULES when both lists are empty or undefined', () => {
+    const prompt = buildHintPrompt({ ...baseCtx, hintLevel: 2 });
+    expect(prompt).not.toContain('UNIQUENESS RULES');
+  });
+
+  it('level 1 (strategy) never includes UNIQUENESS RULES — it asks no question', () => {
+    const ctx = {
+      ...baseCtx,
+      previousProblemTexts: ['What is 5 + 3?'],
+      previousScaffoldQuestions: ['What is 5 + 7?'],
+    };
+    const prompt = buildHintPrompt(ctx);
+    expect(prompt).not.toContain('UNIQUENESS RULES');
+  });
+});

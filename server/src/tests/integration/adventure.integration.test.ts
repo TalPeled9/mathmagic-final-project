@@ -430,6 +430,9 @@ describe('adventure routes integration', () => {
       const adventure = await Adventure.findById(adventureId);
       expect(adventure?.currentChallenge?.hintLevel).toBe(1);
       expect(adventure?.hintsUsed).toBe(1);
+      expect(adventure?.previousScaffoldQuestions).toContain(
+        MOCK_HINT_RESPONSE.scaffoldingQuestion
+      );
     });
 
     it('handles a strategy-only level-1 hint and stores full hint content across levels', async () => {
@@ -487,6 +490,11 @@ describe('adventure routes integration', () => {
       ]);
       expect(adventure?.currentChallenge?.hintLevel).toBe(2);
       expect(adventure?.hintsUsed).toBe(2);
+      // Scaffold tracking skips the question-less strategy hint: only hint 2's
+      // sub-question is recorded for adventure-wide uniqueness.
+      expect(adventure?.previousScaffoldQuestions).toEqual([
+        MOCK_HINT_RESPONSE.scaffoldingQuestion,
+      ]);
     });
   });
 

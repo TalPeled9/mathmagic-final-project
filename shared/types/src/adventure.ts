@@ -26,6 +26,7 @@ export interface AdventureState {
   conversationTurns: ConversationTurn[]; // rolling window of last ~10 turns fed to LLM
   previousHints: string[]; // hint texts given for the current challenge
   previousProblemTexts?: string[]; // problem texts asked in this adventure
+  previousScaffoldQuestions?: string[]; // hint scaffoldingQuestion texts asked in this adventure
 
   lastProblemText?: string;
   lastMathExpression?: string;

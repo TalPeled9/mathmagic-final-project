@@ -15,6 +15,7 @@ export interface LLMStoryPromptContext {
 export interface LLMMathQuestionContext extends LLMStoryPromptContext {
   selectedChoice: string;
   previousProblemTexts?: string[];
+  previousScaffoldQuestions?: string[];
   requireExpression?: boolean;
   /** Server-picked "H:MM" for clock-reading questions; injected into the prompt. */
   clockTime?: string;
@@ -26,6 +27,8 @@ export interface LLMHintContext extends LLMStoryPromptContext {
   childAnswer: string;
   hintLevel: number; // 1,2,3 progression
   previousHints: string[];
+  previousProblemTexts?: string[];
+  previousScaffoldQuestions?: string[];
 }
 
 export interface LLMEndStoryContext extends LLMStoryPromptContext {
