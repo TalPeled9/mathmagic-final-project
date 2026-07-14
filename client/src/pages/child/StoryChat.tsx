@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useTTS, DEFAULT_TTS_VOICE_ID } from '@/hooks/useTTS';
 import { AnalogClock } from '@/components/AnalogClock';
-import MathText from '../../components/MathText';
+import MathText from '@/components/MathText';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
 import defaultAvatar from '@/assets/default_avatar.png';
@@ -1046,7 +1046,7 @@ function ChoiceBubbles({
                   {t.label}
                 </span>
                 <span className="text-gray-800 font-semibold text-sm leading-snug break-words">
-                  {choice}
+                  <MathText text={choice} />
                 </span>
               </div>
               <div
