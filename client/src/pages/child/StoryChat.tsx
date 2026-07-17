@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
+  BookOpen,
   Lightbulb,
   Sparkles,
   Star,
@@ -24,6 +25,8 @@ import defaultAvatar from '@/assets/default_avatar.png';
 import wizzyImg from '@/assets/wizzy.png';
 import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
+import { WORLD_NAMES, TOPIC_NAMES } from '@/lib/adventureLabels';
+import { WORLD_EMOJIS } from '@mathmagic/types';
 import type {
   ICurrentChallenge,
   CompleteAdventureResponse,
@@ -199,6 +202,7 @@ export default function StoryChat() {
   const [adventureContext, setAdventureContext] = useState<{
     mathTopic: string;
     storyWorld: string;
+    starsEarned: number;
   } | null>(null);
   const [showCorrectFlash, setShowCorrectFlash] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
@@ -261,7 +265,11 @@ export default function StoryChat() {
 
     const load = async () => {
       const adventure = await adventureService.get(adventureId);
-      setAdventureContext({ mathTopic: adventure.mathTopic, storyWorld: adventure.storyWorld });
+      setAdventureContext({
+        mathTopic: adventure.mathTopic,
+        storyWorld: adventure.storyWorld,
+        starsEarned: adventure.starsEarned,
+      });
 
       // Pre-fetch base64 image data for every step that has a stored image
       const stepImageUrls: Record<number, string> = {};
@@ -498,6 +506,8 @@ export default function StoryChat() {
       ? 'talking'
       : 'idle';
 
+  const isReplay = adventureStatus === 'completed';
+
   if (adventureStatus === 'loading') {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
@@ -539,55 +549,112 @@ export default function StoryChat() {
             <span className="hidden sm:inline">Dashboard</span>
           </button>
 
-          <img src={mathmagicLogo} alt="MathMagic" className="h-11 w-auto" />
-
-          {/* Wizzy character status + mute toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleMute}
-              title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
-            >
-              {isMuted ? (
-                <VolumeX size={15} className="text-purple-wizzy/50" />
-              ) : (
-                <Volume2 size={15} className="text-purple-wizzy" />
-              )}
-            </button>
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{
-                    background: WIZZY_STATUS_MAP[wizzyStatus].dot,
-                    boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
-                    animation:
-                      wizzyStatus === 'thinking' || wizzyStatus === 'talking'
-                        ? 'sparkle 0.8s ease-in-out infinite'
-                        : 'none',
-                  }}
-                />
-                <span
-                  className="text-[11px] font-semibold"
-                  style={{ color: WIZZY_STATUS_MAP[wizzyStatus].color }}
-                >
-                  {WIZZY_STATUS_MAP[wizzyStatus].text}
+          {isReplay ? (
+            <>
+              {/* Center: adventure title + replay badge */}
+              <div className="flex flex-col items-center min-w-0 px-2">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-purple-wizzy/70">
+                  <BookOpen size={12} />
+                  Story Replay
+                </span>
+                <span className="text-sm font-black text-gray-700 truncate max-w-[60vw]">
+                  {WORLD_EMOJIS[adventureContext?.storyWorld ?? ''] ?? '✨'}{' '}
+                  {WORLD_NAMES[adventureContext?.storyWorld ?? ''] ?? adventureContext?.storyWorld}
+                  {' · '}
+                  {TOPIC_NAMES[adventureContext?.mathTopic ?? ''] ?? adventureContext?.mathTopic}
                 </span>
               </div>
-            </div>
-            <div
-              className="w-10 h-10 rounded-full overflow-hidden border-2 shadow-md flex-shrink-0"
-              style={{
-                borderColor: WIZZY_STATUS_MAP[wizzyStatus].dot,
-                boxShadow: `0 0 10px ${WIZZY_STATUS_MAP[wizzyStatus].dot}40`,
-                animation:
-                  wizzyStatus === 'thinking' ? 'mm-wizzy-bob 1.2s ease-in-out infinite' : 'none',
-              }}
-            >
-              <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
-            </div>
-          </div>
+
+              {/* Right: stars earned + mute */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3].map((star) => (
+                    <Star
+                      key={star}
+                      size={16}
+                      className={
+                        star <= (adventureContext?.starsEarned ?? 0)
+                          ? 'text-yellow-400'
+                          : 'text-gray-300'
+                      }
+                      fill={
+                        star <= (adventureContext?.starsEarned ?? 0) ? '#facc15' : 'transparent'
+                      }
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={toggleMute}
+                  title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
+                >
+                  {isMuted ? (
+                    <VolumeX size={15} className="text-purple-wizzy/50" />
+                  ) : (
+                    <Volume2 size={15} className="text-purple-wizzy" />
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <img src={mathmagicLogo} alt="MathMagic" className="h-11 w-auto" />
+
+              {/* Wizzy character status + mute toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleMute}
+                  title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
+                >
+                  {isMuted ? (
+                    <VolumeX size={15} className="text-purple-wizzy/50" />
+                  ) : (
+                    <Volume2 size={15} className="text-purple-wizzy" />
+                  )}
+                </button>
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
+                  <div className="flex items-center gap-1">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{
+                        background: WIZZY_STATUS_MAP[wizzyStatus].dot,
+                        boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
+                        animation:
+                          wizzyStatus === 'thinking' || wizzyStatus === 'talking'
+                            ? 'sparkle 0.8s ease-in-out infinite'
+                            : 'none',
+                      }}
+                    />
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{ color: WIZZY_STATUS_MAP[wizzyStatus].color }}
+                    >
+                      {WIZZY_STATUS_MAP[wizzyStatus].text}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 shadow-md flex-shrink-0"
+                  style={{
+                    borderColor: WIZZY_STATUS_MAP[wizzyStatus].dot,
+                    boxShadow: `0 0 10px ${WIZZY_STATUS_MAP[wizzyStatus].dot}40`,
+                    animation:
+                      wizzyStatus === 'thinking'
+                        ? 'mm-wizzy-bob 1.2s ease-in-out infinite'
+                        : 'none',
+                  }}
+                >
+                  <img
+                    src={wizzyImg}
+                    alt="Wizzy"
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -768,9 +835,7 @@ export default function StoryChat() {
       )}
 
       {/* ── Full-screen image lightbox ── */}
-      {lightboxUrl && (
-        <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />
-      )}
+      {lightboxUrl && <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
     </div>
   );
 }
