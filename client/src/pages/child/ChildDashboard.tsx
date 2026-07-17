@@ -13,6 +13,7 @@ import {
   type AdventureSummary,
   type CompleteAdventureResponse,
 } from '@mathmagic/types';
+import { WORLD_NAMES, TOPIC_NAMES } from '@/lib/adventureLabels';
 
 // ── Static config ─────────────────────────────────────────────────────────────
 
@@ -31,19 +32,6 @@ const LEVEL_NAMES: readonly string[] = [
   'Grand Wizard',
 ];
 
-const TOPIC_NAMES: Record<string, string> = {
-  addition: 'Addition',
-  subtraction: 'Subtraction',
-  multiplication: 'Multiplication',
-  division: 'Division',
-  fractions: 'Fractions',
-  patterns: 'Patterns',
-  time: 'Time',
-  money: 'Money',
-  measurement: 'Measurement',
-  shapes: 'Shapes',
-};
-
 const TOPIC_ICONS: Record<string, string> = {
   addition: '➕',
   subtraction: '➖',
@@ -55,19 +43,6 @@ const TOPIC_ICONS: Record<string, string> = {
   money: '💰',
   measurement: '📏',
   shapes: '🔺',
-};
-
-const WORLD_NAMES: Record<string, string> = {
-  space: 'Space Station',
-  fantasy: 'Enchanted Kingdom',
-  dinosaur: 'Dino Valley',
-  ocean: 'Deep Ocean',
-  jungle: 'Jungle Explorer',
-  pirates: 'Pirate Seas',
-  robots: 'Robot City',
-  candy: 'Candy Land',
-  'magic-school': 'Magic School',
-  'ancient-temple': 'Ancient Temple',
 };
 
 const BADGE_EMOJIS: Record<string, string> = {
