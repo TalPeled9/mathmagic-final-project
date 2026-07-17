@@ -563,49 +563,11 @@ export default function ChildDashboard() {
                     style={{ scrollbarWidth: 'none' }}
                   >
                     {completedAdventures.map((adventure) => (
-                      <div
+                      <LibraryCard
                         key={adventure._id}
-                        className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default select-none"
-                        style={{
-                          width: 140,
-                          height: 160,
-                          background:
-                            WORLD_GRADIENTS[adventure.storyWorld] ??
-                            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.boxShadow =
-                            '0 8px 24px rgba(0,0,0,0.25)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.boxShadow =
-                            '0 4px 12px rgba(0,0,0,0.15)';
-                        }}
-                      >
-                        <span className="text-4xl">
-                          {WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}
-                        </span>
-                        <p className="font-bold text-sm text-white truncate w-full text-center px-1">
-                          {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
-                        </p>
-                        <p className="text-xs text-white/70 truncate w-full text-center">
-                          {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
-                          {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
-                        </p>
-                        <div className="flex items-center gap-0.5 mt-0.5">
-                          {[1, 2, 3].map((star) => (
-                            <Star
-                              key={star}
-                              size={14}
-                              className={
-                                star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/20'
-                              }
-                              fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                        adventure={adventure}
+                        onOpen={() => navigate(`/child/story/${adventure._id}`)}
+                      />
                     ))}
                   </div>
                 </>
@@ -658,5 +620,90 @@ export default function ChildDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Library card (completed adventure, image-backed, clickable) ────────────────
+
+function LibraryCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpen: () => void }) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    adventureService
+      .getImage(adventure._id, 0)
+      .then(({ imageUrl }) => {
+        if (!cancelled) setImageUrl(imageUrl);
+      })
+      .catch(() => {
+        // No first image for this adventure — the gradient fallback is fine.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [adventure._id]);
+
+  const gradient =
+    WORLD_GRADIENTS[adventure.storyWorld] ?? 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+  const textShadow = { textShadow: '0 1px 3px rgba(0,0,0,0.6)' };
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative shrink-0 flex flex-col items-center justify-end gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-pointer overflow-hidden"
+      style={{
+        width: 140,
+        height: 160,
+        background: gradient,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      }}
+    >
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      {imageUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.12) 100%)',
+          }}
+        />
+      )}
+
+      <span className="relative text-4xl">{WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}</span>
+      <p
+        className="relative font-bold text-sm text-white truncate w-full text-center px-1"
+        style={textShadow}
+      >
+        {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+      </p>
+      <p className="relative text-xs text-white/80 truncate w-full text-center" style={textShadow}>
+        {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
+        {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
+      </p>
+      <div className="relative flex items-center gap-0.5 mt-0.5">
+        {[1, 2, 3].map((star) => (
+          <Star
+            key={star}
+            size={14}
+            className={star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/30'}
+            fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
+          />
+        ))}
+      </div>
+    </button>
   );
 }
