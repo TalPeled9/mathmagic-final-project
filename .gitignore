@@ -25,6 +25,7 @@ build/
 .claude/
 .superpowers/
 **/superpowers/
+.playwright-mcp/
 
 # Local instruction docs
 CLAUDE.md
