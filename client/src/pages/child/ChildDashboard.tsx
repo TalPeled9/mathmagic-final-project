@@ -477,11 +477,8 @@ export default function ChildDashboard() {
             <div
               className="rounded-2xl p-5 lg:h-full lg:flex lg:flex-col"
               style={{
-                background:
-                  !isLoadingAdventures && completedAdventures.length === 0
-                    ? 'linear-gradient(135deg, rgba(139,92,246,0.10), rgba(245,158,11,0.14))'
-                    : 'rgba(255,255,255,0.75)',
-                border: '1px solid rgba(139,92,246,0.1)',
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.14), rgba(245,158,11,0.18))',
+                border: '1px solid rgba(139,92,246,0.15)',
                 backdropFilter: 'blur(8px)',
               }}
             >
