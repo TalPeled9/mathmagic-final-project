@@ -464,55 +464,10 @@ export default function ChildDashboard() {
                 <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <span>🗺️</span> Continue Your Adventure
                 </h2>
-                <button
-                  onClick={() => navigate(`/child/story/${inProgressAdventure._id}`)}
-                  className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all group hover:scale-[1.01]"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, rgba(139,92,246,0.07), rgba(109,40,217,0.04))',
-                    border: '2px solid rgba(139,92,246,0.2)',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      'rgba(139,92,246,0.45)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      'rgba(139,92,246,0.2)';
-                  }}
-                >
-                  <span className="text-4xl flex-shrink-0">
-                    {WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                      {WORLD_NAMES[inProgressAdventure.storyWorld] ??
-                        inProgressAdventure.storyWorld}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-0.5">
-                      {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'}{' '}
-                      {inProgressAdventure.mathTopicName}
-                      {' · '}Step {inProgressAdventure.currentStepIndex + 1} of{' '}
-                      {inProgressAdventure.totalSteps}
-                    </p>
-                    <div
-                      className="w-full h-1.5 rounded-full overflow-hidden mt-2"
-                      style={{ background: 'rgba(139,92,246,0.1)' }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.round(((inProgressAdventure.currentStepIndex + 1) / inProgressAdventure.totalSteps) * 100)}%`,
-                          background: 'linear-gradient(90deg, #8b5cf6, #f59e0b)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={20}
-                    className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0"
-                  />
-                </button>
+                <ContinueCard
+                  adventure={inProgressAdventure}
+                  onOpen={() => navigate(`/child/story/${inProgressAdventure._id}`)}
+                />
               </div>
             )}
           </div>
@@ -620,6 +575,90 @@ export default function ChildDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Continue card (in-progress adventure, image hero with left scrim) ──────────
+
+function ContinueCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpen: () => void }) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    adventureService
+      .getImage(adventure._id, 0)
+      .then(({ imageUrl }) => {
+        if (!cancelled) setImageUrl(imageUrl);
+      })
+      .catch(() => {
+        // No first image yet — the dark gradient fallback is fine.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [adventure._id]);
+
+  const progressPercent = Math.round(
+    ((adventure.currentStepIndex + 1) / adventure.totalSteps) * 100
+  );
+  const textShadow = { textShadow: '0 1px 4px rgba(0,0,0,0.7)' };
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative w-full flex items-center gap-4 rounded-xl p-4 text-left overflow-hidden transition-all hover:scale-[1.01]"
+      style={{
+        minHeight: 96,
+        background: 'linear-gradient(135deg, #6d28d9, #4c1d95)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 4px 14px rgba(76,29,149,0.35)',
+      }}
+    >
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      {imageUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.15) 100%)',
+          }}
+        />
+      )}
+
+      <span className="relative text-4xl flex-shrink-0" style={textShadow}>
+        {WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}
+      </span>
+      <div className="relative flex-1 min-w-0">
+        <p className="font-bold text-white truncate" style={textShadow}>
+          {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+        </p>
+        <p className="text-sm text-white/80 truncate mt-0.5" style={textShadow}>
+          {TOPIC_ICONS[adventure.mathTopic] ?? '📚'} {adventure.mathTopicName}
+          {' · '}Step {adventure.currentStepIndex + 1} of {adventure.totalSteps}
+        </p>
+        <div
+          className="w-full h-1.5 rounded-full overflow-hidden mt-2"
+          style={{ background: 'rgba(255,255,255,0.25)' }}
+        >
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${progressPercent}%`,
+              background: 'linear-gradient(90deg, #a78bfa, #fbbf24)',
+            }}
+          />
+        </div>
+      </div>
+      <ChevronRight size={20} className="relative text-white/70 flex-shrink-0" />
+    </button>
   );
 }
 
