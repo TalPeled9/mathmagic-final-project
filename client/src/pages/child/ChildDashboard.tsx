@@ -547,7 +547,7 @@ export default function ChildDashboard() {
                 >
                   <div
                     className="shrink-0 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 text-center px-3"
-                    style={{ width: 140, height: 160 }}
+                    style={{ width: 168, height: 192 }}
                   >
                     <span className="text-3xl opacity-40">🔮</span>
                     <p className="text-xs text-gray-300 font-medium leading-tight">
@@ -653,8 +653,8 @@ function LibraryCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpe
       onClick={onOpen}
       className="relative shrink-0 flex flex-col items-center justify-end gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-pointer overflow-hidden"
       style={{
-        width: 140,
-        height: 160,
+        width: 168,
+        height: 192,
         background: gradient,
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
       }}
