@@ -502,6 +502,23 @@ export default function StoryChat() {
   };
   const worldBg = WORLD_TINTS[adventureContext?.storyWorld ?? 'default'] ?? WORLD_TINTS.default;
 
+  // Richer, more saturated world gradients for the read-only replay page —
+  // a finished story gets a bolder backdrop than live play. Kept at a pastel
+  // (~200-level) intensity so the light chat bubbles stay legible.
+  const REPLAY_TINTS: Record<string, string> = {
+    space: 'linear-gradient(160deg, #c7d2fe 0%, #ddd6fe 50%, #f5d0fe 100%)',
+    fantasy: 'linear-gradient(160deg, #e9d5ff 0%, #f5d0fe 50%, #fbcfe8 100%)',
+    dinosaur: 'linear-gradient(160deg, #d9f99d 0%, #bbf7d0 50%, #fef08a 100%)',
+    ocean: 'linear-gradient(160deg, #bfdbfe 0%, #a5f3fc 50%, #cffafe 100%)',
+    jungle: 'linear-gradient(160deg, #bbf7d0 0%, #a7f3d0 50%, #d9f99d 100%)',
+    pirates: 'linear-gradient(160deg, #fde68a 0%, #fed7aa 50%, #fecaca 100%)',
+    robots: 'linear-gradient(160deg, #e2e8f0 0%, #c7d2fe 50%, #bfdbfe 100%)',
+    candy: 'linear-gradient(160deg, #fbcfe8 0%, #f5d0fe 50%, #fed7aa 100%)',
+    'magic-school': 'linear-gradient(160deg, #ddd6fe 0%, #c7d2fe 50%, #fde68a 100%)',
+    'ancient-temple': 'linear-gradient(160deg, #fde68a 0%, #fcd34d 50%, #fed7aa 100%)',
+    default: 'linear-gradient(160deg, #ddd6fe 0%, #fbcfe8 50%, #fde68a 100%)',
+  };
+
   const wizzyStatus: keyof typeof WIZZY_STATUS_MAP = isProcessing
     ? 'thinking'
     : isSpeaking
@@ -509,6 +526,9 @@ export default function StoryChat() {
       : 'idle';
 
   const isReplay = adventureStatus === 'completed';
+  const pageBg = isReplay
+    ? (REPLAY_TINTS[adventureContext?.storyWorld ?? 'default'] ?? REPLAY_TINTS.default)
+    : worldBg;
 
   if (adventureStatus === 'loading') {
     return (
@@ -534,7 +554,7 @@ export default function StoryChat() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden" style={{ background: worldBg }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: pageBg }}>
       <WorldParticleLayer world={adventureContext?.storyWorld ?? 'default'} />
 
       {/* ── Header ── */}
