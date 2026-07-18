@@ -25,6 +25,7 @@ import {
   calculateAdventureRewards,
   applyRewardsToChild,
   appendToHistory,
+  appendReplayChallenge,
   updateTopicProgress,
   prefetchNextStep,
   prefetchForChoices,
@@ -170,6 +171,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     starsEarned: adventure.starsEarned,
     // Extra fields used by StoryChat to reconstruct full conversation history
     conversationHistory: adventure.conversationHistory,
+    replayChallenges: adventure.replayChallenges,
     currentChallenge: challenge,
     lastChoices: adventure.lastChoices,
     stepImages,
@@ -274,6 +276,13 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
           ...(adventure.previousProblemTexts ?? []),
           llmResp.problemText,
         ];
+        appendReplayChallenge(adventure, {
+          problemText: llmResp.problemText,
+          mathExpression: llmResp.mathExpression,
+          clockTime: llmResp.clockTime,
+          options: segment.challenge.options,
+          correctAnswer: llmResp.correctAnswer,
+        });
       }
       adventure.totalChallenges += 1;
       // Consume pre-generated image from in-process cache (instant).
@@ -420,6 +429,13 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
         ...(adventure.previousProblemTexts ?? []),
         llmResponse.problemText,
       ];
+      appendReplayChallenge(adventure, {
+        problemText: llmResponse.problemText,
+        mathExpression: llmResponse.mathExpression,
+        clockTime: llmResponse.clockTime,
+        options: segment.challenge.options,
+        correctAnswer: llmResponse.correctAnswer,
+      });
     }
     adventure.totalChallenges += 1;
   } else if (mode === 'end_story') {

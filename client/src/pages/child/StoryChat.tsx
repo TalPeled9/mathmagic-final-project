@@ -33,17 +33,19 @@ import type {
   AnswerChallengeResponse,
   HintResponse,
   StorySegment,
+  ReplayChallenge,
 } from '@mathmagic/types';
 
 // ── Local types ───────────────────────────────────────────────────────────────
 
 interface ChatMessage {
   id: string;
-  role: 'wizzy' | 'child' | 'system' | 'hint';
+  role: 'wizzy' | 'child' | 'system' | 'hint' | 'challenge';
   text: string;
   imageUrl?: string;
   isCorrect?: boolean; // for system messages
   hint?: HintResponse; // for hint messages — carries the mini-quiz data
+  challenge?: ReplayChallenge; // for replay challenge cards
 }
 
 // ── BADGE EMOJI MAP ───────────────────────────────────────────────────────────
@@ -290,22 +292,38 @@ export default function StoryChat() {
         );
       }
 
-      // Reconstruct chat from persisted conversation history
+      // Reconstruct chat from persisted conversation history (image mapping keys
+      // off wizzy-message order, which the timestamp merge preserves).
       let wizzyCount = 0;
-      const msgs: ChatMessage[] = adventure.conversationHistory.map((entry, i) => {
+      const historyMsgs = adventure.conversationHistory.map((entry, i) => {
         const isCorrectMsg =
           entry.role === 'system' &&
           (entry.content.startsWith('Correct') || entry.content.startsWith('Great job'));
         const imageUrl = entry.role === 'wizzy' ? stepImageUrls[wizzyCount++] : undefined;
-        return {
+        const msg: ChatMessage = {
           id: `hist-${i}`,
           role: entry.role as 'wizzy' | 'child' | 'system',
           text: entry.content,
           imageUrl,
           isCorrect: entry.role === 'system' ? isCorrectMsg : undefined,
         };
+        return { ts: new Date(entry.timestamp).getTime(), msg };
       });
-      setMessages(msgs);
+
+      let ordered = historyMsgs;
+      if (adventure.status === 'completed' && adventure.replayChallenges?.length) {
+        const challengeMsgs = adventure.replayChallenges.map((c, i) => ({
+          ts: new Date(c.timestamp).getTime(),
+          msg: {
+            id: `chal-${i}`,
+            role: 'challenge' as const,
+            text: c.problemText,
+            challenge: c,
+          },
+        }));
+        ordered = [...historyMsgs, ...challengeMsgs].sort((a, b) => a.ts - b.ts);
+      }
+      setMessages(ordered.map((x) => x.msg));
 
       if (adventure.status === 'completed') {
         setAdventureStatus('completed');
@@ -714,6 +732,8 @@ export default function StoryChat() {
                   );
                 if (msg.role === 'hint' && msg.hint)
                   return <HintMessage key={msg.id} hint={msg.hint} />;
+                if (msg.role === 'challenge' && msg.challenge)
+                  return <ReplayChallengeCard key={msg.id} challenge={msg.challenge} />;
                 return (
                   <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
                 );
@@ -1059,6 +1079,85 @@ function HintMessage({ hint }: { hint: HintResponse }) {
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ReplayChallengeCard({ challenge }: { challenge: ReplayChallenge }) {
+  return (
+    <div
+      className="story-message-enter rounded-3xl overflow-hidden max-w-2xl mx-auto w-full"
+      style={{
+        background: 'linear-gradient(160deg, #faf5ff 0%, #f3e8ff 40%, #ede9fe 100%)',
+        border: '2px solid rgba(139,92,246,0.22)',
+        boxShadow: '0 2px 8px rgba(139,92,246,0.08)',
+      }}
+    >
+      <div
+        className="h-1.5 w-full"
+        style={{ background: 'linear-gradient(90deg, #8b5cf6, #f59e0b, #8b5cf6)' }}
+      />
+      <div className="p-5">
+        <div
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold text-white mb-4"
+          style={{ background: 'linear-gradient(90deg, #7c3aed, #8b5cf6, #a78bfa)' }}
+        >
+          <Wand2 size={14} className="text-yellow-300" />
+          Math Challenge
+          <Zap size={14} className="text-yellow-300 fill-yellow-300" />
+        </div>
+
+        <p className="text-xl font-extrabold text-center text-gray-800 tracking-tight mb-3">
+          <MathText text={challenge.problemText} />
+        </p>
+
+        {challenge.mathExpression && (
+          <div className="flex justify-center mb-4">
+            <div
+              className="px-5 py-1.5 rounded-2xl text-2xl font-black text-purple-800 tracking-widest"
+              style={{ background: 'white', border: '2px solid rgba(139,92,246,0.25)' }}
+            >
+              <MathText text={challenge.mathExpression} />
+            </div>
+          </div>
+        )}
+
+        {challenge.clockTime && (
+          <div className="flex justify-center mb-4">
+            <AnalogClock time={challenge.clockTime} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          {challenge.options.map((option, i) => {
+            const isCorrect = option === challenge.correctAnswer;
+            return (
+              <div
+                key={i}
+                className="relative rounded-2xl overflow-hidden"
+                style={{
+                  minHeight: 56,
+                  background: isCorrect ? '#f0fdf4' : 'white',
+                  border: isCorrect ? '2px solid #6ee7b7' : '2px solid rgba(139,92,246,0.15)',
+                }}
+              >
+                <div className="flex items-center gap-3 px-3 py-3">
+                  <div
+                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                    style={{ background: isCorrect ? '#10b981' : '#8b5cf6' }}
+                  >
+                    {OPTION_SHAPES[i]?.label ?? ''}
+                  </div>
+                  <span className="font-bold text-gray-800 text-sm text-left flex-1">
+                    <MathText text={option} />
+                  </span>
+                  {isCorrect && <Star size={15} className="text-emerald-500 fill-emerald-500" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
