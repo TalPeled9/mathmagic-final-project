@@ -395,7 +395,7 @@ export default function ChildDashboard() {
               </h2>
 
               {activeChild.badges.length > 0 ? (
-                <div className="grid grid-cols-3 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-3 gap-3 lg:grid-cols-2 lg:max-h-80 lg:overflow-y-auto scrollbar-hide">
                   {activeChild.badges.map((badge, i) => (
                     <div
                       key={badge.badgeType}
