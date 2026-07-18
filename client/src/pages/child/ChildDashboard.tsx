@@ -13,7 +13,7 @@ import {
   type AdventureSummary,
   type CompleteAdventureResponse,
 } from '@mathmagic/types';
-import { WORLD_NAMES, TOPIC_NAMES } from '@/lib/adventureLabels';
+import { WORLD_NAMES } from '@/lib/adventureLabels';
 
 // ── Static config ─────────────────────────────────────────────────────────────
 
@@ -491,7 +491,7 @@ export default function ChildDashboard() {
                     </p>
                     <p className="text-sm text-gray-400 mt-0.5">
                       {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'}{' '}
-                      {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
+                      {inProgressAdventure.mathTopicName}
                       {' · '}Step {inProgressAdventure.currentStepIndex + 1} of{' '}
                       {inProgressAdventure.totalSteps}
                     </p>
@@ -683,7 +683,6 @@ function LibraryCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpe
         />
       )}
 
-      <span className="relative text-4xl">{WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}</span>
       <p
         className="relative font-bold text-sm text-white truncate w-full text-center px-1"
         style={textShadow}
@@ -691,8 +690,7 @@ function LibraryCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpe
         {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
       </p>
       <p className="relative text-xs text-white/80 truncate w-full text-center" style={textShadow}>
-        {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
-        {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
+        {adventure.mathTopicName}
       </p>
       <div className="relative flex items-center gap-0.5 mt-0.5">
         {[1, 2, 3].map((star) => (

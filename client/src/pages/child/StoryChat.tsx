@@ -25,7 +25,7 @@ import defaultAvatar from '@/assets/default_avatar.png';
 import wizzyImg from '@/assets/wizzy.png';
 import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
-import { WORLD_NAMES, TOPIC_NAMES } from '@/lib/adventureLabels';
+import { WORLD_NAMES } from '@/lib/adventureLabels';
 import { WORLD_EMOJIS } from '@mathmagic/types';
 import type {
   ICurrentChallenge,
@@ -201,6 +201,7 @@ export default function StoryChat() {
   const [pendingContinue, setPendingContinue] = useState(false);
   const [adventureContext, setAdventureContext] = useState<{
     mathTopic: string;
+    mathTopicName: string;
     storyWorld: string;
     starsEarned: number;
   } | null>(null);
@@ -267,6 +268,7 @@ export default function StoryChat() {
       const adventure = await adventureService.get(adventureId);
       setAdventureContext({
         mathTopic: adventure.mathTopic,
+        mathTopicName: adventure.mathTopicName,
         storyWorld: adventure.storyWorld,
         starsEarned: adventure.starsEarned,
       });
@@ -561,7 +563,7 @@ export default function StoryChat() {
                   {WORLD_EMOJIS[adventureContext?.storyWorld ?? ''] ?? '✨'}{' '}
                   {WORLD_NAMES[adventureContext?.storyWorld ?? ''] ?? adventureContext?.storyWorld}
                   {' · '}
-                  {TOPIC_NAMES[adventureContext?.mathTopic ?? ''] ?? adventureContext?.mathTopic}
+                  {adventureContext?.mathTopicName}
                 </span>
               </div>
 

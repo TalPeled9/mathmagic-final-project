@@ -179,6 +179,7 @@ export interface GetAvailableResponse {
 export interface AdventureSummary {
   _id: string;
   mathTopic: string;
+  mathTopicName: string;
   storyWorld: string;
   status: 'in-progress' | 'completed';
   currentStepIndex: number;
@@ -203,6 +204,7 @@ export interface GetAdventureResponse {
   adventureId: string;
   status: 'in-progress' | 'completed';
   mathTopic: string;
+  mathTopicName: string;
   storyWorld: string;
   currentStepIndex: number;
   totalSteps: number;

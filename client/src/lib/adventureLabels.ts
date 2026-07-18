@@ -1,5 +1,6 @@
-// Display-name lookups for story worlds and math topics, shared across the
-// child dashboard and the adventure replay header.
+// Display-name lookup for story worlds, shared across the child dashboard and
+// the adventure replay header. Math-topic display names come from server config
+// (curriculum topics) via the adventures API's `mathTopicName` field.
 
 export const WORLD_NAMES: Record<string, string> = {
   space: 'Space Station',
@@ -12,17 +13,4 @@ export const WORLD_NAMES: Record<string, string> = {
   candy: 'Candy Land',
   'magic-school': 'Magic School',
   'ancient-temple': 'Ancient Temple',
-};
-
-export const TOPIC_NAMES: Record<string, string> = {
-  addition: 'Addition',
-  subtraction: 'Subtraction',
-  multiplication: 'Multiplication',
-  division: 'Division',
-  fractions: 'Fractions',
-  patterns: 'Patterns',
-  time: 'Time',
-  money: 'Money',
-  measurement: 'Measurement',
-  shapes: 'Shapes',
 };

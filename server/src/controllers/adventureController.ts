@@ -161,6 +161,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     adventureId: adventure._id.toString(),
     status: adventure.status,
     mathTopic: adventure.mathTopic,
+    mathTopicName: getCurriculumTopicById(adventure.mathTopic)?.name ?? adventure.mathTopic,
     storyWorld: adventure.storyWorld,
     currentStepIndex: adventure.currentStepIndex,
     totalSteps: adventure.totalSteps,
@@ -713,6 +714,7 @@ export async function getChildAdventures(req: Request, res: Response): Promise<v
     adventures: adventures.map((a) => ({
       _id: a._id.toString(),
       mathTopic: a.mathTopic,
+      mathTopicName: getCurriculumTopicById(a.mathTopic)?.name ?? a.mathTopic,
       storyWorld: a.storyWorld,
       status: a.status,
       currentStepIndex: a.currentStepIndex,
