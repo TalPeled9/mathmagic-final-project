@@ -430,8 +430,16 @@ export default function StoryChat() {
       try {
         const response = await adventureService.answer(adventureId, { answer });
         const isCorrect = response.correct;
-        addMessage({ role: 'system', text: response.feedback, isCorrect });
-        stopAndSpeak(response.feedback);
+        // On the final (exhausted) attempt the server reveals the answer via
+        // `correctAnswer`, but the panel that would show it unmounts immediately —
+        // so surface the answer in the chat message itself (matching the persisted
+        // history text) rather than the answer-less generic feedback.
+        const revealed = !isCorrect && response.correctAnswer !== undefined;
+        const feedbackText = revealed
+          ? `The correct answer was ${response.correctAnswer}. Keep going!`
+          : response.feedback;
+        addMessage({ role: 'system', text: feedbackText, isCorrect });
+        stopAndSpeak(feedbackText);
         setLastAnswerFeedback(response);
 
         if (isCorrect) {

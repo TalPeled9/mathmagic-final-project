@@ -276,13 +276,6 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
           ...(adventure.previousProblemTexts ?? []),
           llmResp.problemText,
         ];
-        appendReplayChallenge(adventure, {
-          problemText: llmResp.problemText,
-          mathExpression: llmResp.mathExpression,
-          clockTime: llmResp.clockTime,
-          options: segment.challenge.options,
-          correctAnswer: llmResp.correctAnswer,
-        });
       }
       adventure.totalChallenges += 1;
       // Consume pre-generated image from in-process cache (instant).
@@ -298,6 +291,17 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
       adventure.pregeneratedChoiceSteps = [];
       adventure.lastChoices = segment.choices;
       appendToHistory(adventure, 'wizzy', segment.narrative);
+      // Persist the replay challenge AFTER the narrative so its timestamp sorts the
+      // question card after Wizzy's bubble (and image), before the child's answer.
+      if (adventure.currentChallenge) {
+        appendReplayChallenge(adventure, {
+          problemText: adventure.currentChallenge.problemText,
+          mathExpression: adventure.currentChallenge.mathExpression,
+          clockTime: adventure.currentChallenge.clockTime,
+          options: adventure.currentChallenge.options,
+          correctAnswer: adventure.currentChallenge.correctAnswer,
+        });
+      }
       await adventure.save();
       void prefetchNextStep(adventure, child);
       res.json({ segment });
@@ -429,13 +433,6 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
         ...(adventure.previousProblemTexts ?? []),
         llmResponse.problemText,
       ];
-      appendReplayChallenge(adventure, {
-        problemText: llmResponse.problemText,
-        mathExpression: llmResponse.mathExpression,
-        clockTime: llmResponse.clockTime,
-        options: segment.challenge.options,
-        correctAnswer: llmResponse.correctAnswer,
-      });
     }
     adventure.totalChallenges += 1;
   } else if (mode === 'end_story') {
@@ -464,6 +461,17 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
 
   adventure.lastChoices = segment.choices;
   appendToHistory(adventure, 'wizzy', segment.narrative);
+  // Persist the replay challenge AFTER the narrative so its timestamp sorts the
+  // question card after Wizzy's bubble (and image), before the child's answer.
+  if (adventure.currentChallenge) {
+    appendReplayChallenge(adventure, {
+      problemText: adventure.currentChallenge.problemText,
+      mathExpression: adventure.currentChallenge.mathExpression,
+      clockTime: adventure.currentChallenge.clockTime,
+      options: adventure.currentChallenge.options,
+      correctAnswer: adventure.currentChallenge.correctAnswer,
+    });
+  }
   await adventure.save();
 
   // Fire next pre-generation based on what was just served
