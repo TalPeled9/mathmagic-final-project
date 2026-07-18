@@ -198,6 +198,16 @@ export interface ConversationEntry {
   role: 'wizzy' | 'child' | 'system';
   content: string;
   dialogue?: string;
+  timestamp: string;
+}
+
+export interface ReplayChallenge {
+  problemText: string;
+  mathExpression?: string;
+  clockTime?: string;
+  options: string[];
+  correctAnswer: string;
+  timestamp: string;
 }
 
 export interface GetAdventureResponse {
@@ -212,6 +222,7 @@ export interface GetAdventureResponse {
   xpEarned: number;
   starsEarned: number;
   conversationHistory: ConversationEntry[];
+  replayChallenges: ReplayChallenge[];
   currentChallenge: ICurrentChallenge | null;
   lastChoices: string[];
   stepImages: Record<number, string>;
