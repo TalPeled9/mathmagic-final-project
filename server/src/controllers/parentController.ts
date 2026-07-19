@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import User from '../model/User';
+import User from '../models/User';
 import { Child } from '../models/Child';
 import { TopicProgress } from '../models/TopicProgress';
 import { ApiError } from '../utils/ApiError';

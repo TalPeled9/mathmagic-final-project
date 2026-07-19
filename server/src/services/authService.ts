@@ -1,6 +1,6 @@
 ﻿import bcrypt from 'bcryptjs';
 import { config } from '../config';
-import User, { IUser } from '../model/User';
+import User, { IUser } from '../models/User';
 import { googleOAuthClient } from '../config/auth';
 import mongoose from 'mongoose';
 import { ApiError } from '../utils/ApiError';

@@ -9,7 +9,7 @@ vi.mock('../../services/authService', () => ({
   loginLocalUser: vi.fn(),
 }));
 
-vi.mock('../../model/User', () => ({
+vi.mock('../../models/User', () => ({
   default: {
     findById: vi.fn(),
   },
@@ -17,7 +17,7 @@ vi.mock('../../model/User', () => ({
 
 import app from '../../app';
 import * as authService from '../../services/authService';
-import User from '../../model/User';
+import User from '../../models/User';
 import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../../utils/cookieOptions';
 import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../../utils/jwt';
 
