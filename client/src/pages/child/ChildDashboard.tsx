@@ -12,8 +12,12 @@ import {
   WORLD_EMOJIS,
   type AdventureSummary,
   type CompleteAdventureResponse,
+  type BadgeDefinition,
 } from '@mathmagic/types';
 import { WORLD_NAMES } from '@/lib/adventureLabels';
+import { BadgeListModal } from '@/components/badges/BadgeListModal';
+import { BadgeIcon } from '@/components/badges/BadgeIcon';
+import { fetchBadgeDefinitions } from '@/services/badgeService';
 
 // ── Static config ─────────────────────────────────────────────────────────────
 
@@ -45,24 +49,6 @@ const TOPIC_ICONS: Record<string, string> = {
   shapes: '🔺',
 };
 
-const BADGE_EMOJIS: Record<string, string> = {
-  'first-adventure': '🌟',
-  'perfect-score': '💯',
-  '5-day-streak': '🔥',
-  'speed-master': '⚡',
-  'topic-master': '🎓',
-  explorer: '🗺️',
-};
-
-const BADGE_COLORS: Record<string, string> = {
-  'first-adventure': 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-  'perfect-score': 'linear-gradient(135deg, #34d399, #10b981)',
-  '5-day-streak': 'linear-gradient(135deg, #f97316, #ef4444)',
-  'speed-master': 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-  'topic-master': 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
-  explorer: 'linear-gradient(135deg, #fb923c, #f59e0b)',
-};
-
 const WORLD_GRADIENTS: Record<string, string> = {
   space: 'linear-gradient(135deg, #1e1b4b, #4c1d95)',
   fantasy: 'linear-gradient(135deg, #6d28d9, #be185d)',
@@ -75,16 +61,6 @@ const WORLD_GRADIENTS: Record<string, string> = {
   'magic-school': 'linear-gradient(135deg, #5b21b6, #1d4ed8)',
   'ancient-temple': 'linear-gradient(135deg, #78350f, #d97706)',
 };
-
-const PLACEHOLDER_BADGES = [
-  { type: 'first-adventure', label: 'First Adventure', hint: 'Complete your first adventure' },
-  {
-    type: 'perfect-score',
-    label: 'Perfect Score',
-    hint: 'Get all questions right in an adventure',
-  },
-  { type: '5-day-streak', label: '5-Day Streak', hint: 'Play 5 days in a row' },
-];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -117,6 +93,9 @@ export default function ChildDashboard() {
   const [isLoadingAdventures, setIsLoadingAdventures] = useState(true);
   const [barPercent, setBarPercent] = useState(0);
   const [showReward, setShowReward] = useState(!!recentCompletion);
+  const [badgeListOpen, setBadgeListOpen] = useState(false);
+  const [badgeTotal, setBadgeTotal] = useState<number | null>(null);
+  const [lockedPreview, setLockedPreview] = useState<BadgeDefinition[]>([]);
 
   const totalXP = activeChild?.totalXP ?? 0;
   const currentLevel = activeChild?.currentLevel ?? 1;
@@ -144,6 +123,25 @@ export default function ChildDashboard() {
     const t = setTimeout(() => setShowReward(false), 5000);
     return () => clearTimeout(t);
   }, [showReward]);
+
+  useEffect(() => {
+    let active = true;
+    fetchBadgeDefinitions()
+      .then((defs) => {
+        if (!active) return;
+        setBadgeTotal(defs.length);
+        const earnedTypes = new Set(activeChild?.badges.map((b) => b.badgeType) ?? []);
+        setLockedPreview(defs.filter((d) => !earnedTypes.has(d.badgeType)).slice(0, 3));
+      })
+      .catch(() => {
+        if (!active) return;
+        setBadgeTotal(null);
+        setLockedPreview([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeChild?.badges]);
 
   if (!activeChild) return null;
 
@@ -390,26 +388,35 @@ export default function ChildDashboard() {
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span>🏅</span> Badges
-              </h2>
+              <button
+                type="button"
+                onClick={() => setBadgeListOpen(true)}
+                className="mb-4 flex w-full items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-600 transition-colors hover:text-violet-600"
+              >
+                <span>🏅</span>
+                <span>Badges</span>
+                <span className="ml-auto flex items-center gap-1 text-xs font-semibold normal-case tracking-normal text-violet-500">
+                  {activeChild.badges.length}
+                  {badgeTotal !== null && ` of ${badgeTotal}`}
+                  <span aria-hidden="true">›</span>
+                </span>
+              </button>
 
               {activeChild.badges.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3 lg:grid-cols-2 lg:max-h-80 lg:overflow-y-auto scrollbar-hide">
                   {activeChild.badges.map((badge, i) => (
                     <div
                       key={badge.badgeType}
-                      className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center"
+                      className="flex flex-col items-center justify-center rounded-2xl border px-3 py-4 text-center"
                       style={{
-                        background:
-                          BADGE_COLORS[badge.badgeType] ??
-                          'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                        background: 'rgba(255,255,255,0.9)',
+                        borderColor: 'rgba(139,92,246,0.2)',
                         animation: `badge-pop 0.55s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms both`,
                       }}
                       title={badge.description}
                     >
-                      <span className="text-3xl mb-2">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
-                      <span className="text-xs font-bold text-white text-center leading-tight">
+                      <BadgeIcon src={badge.iconUrl} alt={badge.badgeName} size={40} />
+                      <span className="mt-2 text-xs font-bold leading-tight text-gray-700">
                         {badge.badgeName}
                       </span>
                     </div>
@@ -417,15 +424,15 @@ export default function ChildDashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-3 lg:grid-cols-2">
-                  {PLACEHOLDER_BADGES.map(({ type, label, hint }) => (
+                  {lockedPreview.map((def) => (
                     <div
-                      key={type}
-                      className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center border-2 border-dashed border-gray-200"
-                      title={hint}
+                      key={def.id}
+                      className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-3 py-4 text-center"
+                      title={def.unlockCondition}
                     >
-                      <span className="text-3xl mb-2 opacity-30">{BADGE_EMOJIS[type] ?? '🏅'}</span>
-                      <span className="text-xs text-gray-300 font-medium text-center leading-tight">
-                        {label}
+                      <BadgeIcon src={def.iconUrl} alt={def.badgeName} size={40} locked />
+                      <span className="mt-2 text-xs font-medium leading-tight text-gray-300">
+                        {def.badgeName}
                       </span>
                     </div>
                   ))}
@@ -571,6 +578,12 @@ export default function ChildDashboard() {
           </button>
         </div>
       </div>
+
+      <BadgeListModal
+        open={badgeListOpen}
+        onClose={() => setBadgeListOpen(false)}
+        earnedBadges={activeChild.badges}
+      />
     </div>
   );
 }

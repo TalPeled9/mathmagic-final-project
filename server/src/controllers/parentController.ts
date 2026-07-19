@@ -5,6 +5,7 @@ import { TopicProgress } from '../models/TopicProgress';
 import { ApiError } from '../utils/ApiError';
 import { generateAvatar } from '../services/avatarService';
 import { getWeekStart } from '../services/adventureService';
+import { resolveBadges } from '../services/gamification/badgeService';
 import type { GradeLevel } from '@mathmagic/types';
 
 interface TopicSummary {
@@ -53,7 +54,7 @@ function toPublicChild(child: InstanceType<typeof Child>, topTopics: TopicSummar
     totalStars: child.totalStars,
     weeklyLearningMinutes: child.weeklyLearningMinutes,
     unlockedWorlds: child.unlockedWorlds,
-    badges: child.badges,
+    badges: resolveBadges(child.badges),
     narratorVoice: child.narratorVoice ?? 'UQ15q3Vf9AQQ2owcMKQ0',
     topTopics,
     createdAt: child.createdAt,

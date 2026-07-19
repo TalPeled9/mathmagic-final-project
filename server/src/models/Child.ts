@@ -3,9 +3,6 @@ import type { GradeLevel } from '@mathmagic/types';
 
 interface IBadge {
   badgeType: string;
-  badgeName: string;
-  description: string;
-  iconUrl: string;
   earnedAt: Date;
 }
 
@@ -64,11 +61,8 @@ const childSchema = new Schema<IChildDocument>(
       type: [
         new Schema(
           {
-            badgeType: String,
-            badgeName: String,
-            description: String,
-            iconUrl: String,
-            earnedAt: Date,
+            badgeType: { type: String, required: true },
+            earnedAt: { type: Date, required: true },
           },
           { _id: false }
         ),

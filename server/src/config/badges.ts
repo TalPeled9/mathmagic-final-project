@@ -1,13 +1,6 @@
-export interface BadgeDefinition {
-  id: string;
-  badgeType: string;
-  badgeName: string;
-  description: string;
-  /** Emoji used in the UI in place of an image icon */
-  iconEmoji: string;
-  iconUrl: string;
-  unlockCondition: string;
-}
+import type { BadgeDefinition } from '@mathmagic/types';
+
+export type { BadgeDefinition };
 
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   {
@@ -15,8 +8,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'first-adventure',
     badgeName: 'First Adventure',
     description: 'Completed your very first adventure',
-    iconEmoji: '🌟',
-    iconUrl: '',
+    iconUrl: '/images/badges/first-adventure.svg',
     unlockCondition: 'Complete any adventure',
   },
   {
@@ -24,8 +16,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'perfect-score',
     badgeName: 'Perfect Score',
     description: 'Answered every question correctly without any hints',
-    iconEmoji: '🎯',
-    iconUrl: '',
+    iconUrl: '/images/badges/perfect-score.svg',
     unlockCondition: '100% accuracy with 0 hints on one adventure',
   },
   {
@@ -33,8 +24,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: '5-day-streak',
     badgeName: '5-Day Streak',
     description: 'Practiced math for 5 days in a row',
-    iconEmoji: '🔥',
-    iconUrl: '',
+    iconUrl: '/images/badges/5-day-streak.svg',
     unlockCondition: 'Complete at least one adventure on 5 consecutive days',
   },
   {
@@ -42,8 +32,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'speed-master',
     badgeName: 'Speed Master',
     description: 'Got every answer right on the first try',
-    iconEmoji: '⚡',
-    iconUrl: '',
+    iconUrl: '/images/badges/speed-master.svg',
     unlockCondition: 'All correct answers on first attempt in one adventure',
   },
   {
@@ -51,8 +40,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'topic-master',
     badgeName: 'Topic Master',
     description: 'Achieved mastery in a math topic',
-    iconEmoji: '🏆',
-    iconUrl: '',
+    iconUrl: '/images/badges/topic-master.svg',
     unlockCondition: 'Reach 80%+ mastery level on any single math topic',
   },
   {
@@ -60,8 +48,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'explorer',
     badgeName: 'Explorer',
     description: 'Ventured into three different story worlds',
-    iconEmoji: '🧭',
-    iconUrl: '',
+    iconUrl: '/images/badges/explorer.svg',
     unlockCondition: 'Complete adventures in 3 different story worlds',
   },
   {
@@ -69,8 +56,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'math-veteran',
     badgeName: 'Math Veteran',
     description: 'Completed 25 adventures — a true math hero!',
-    iconEmoji: '🎖️',
-    iconUrl: '',
+    iconUrl: '/images/badges/math-veteran.svg',
     unlockCondition: 'Complete 25 adventures total',
   },
   {
@@ -78,8 +64,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'world-conqueror',
     badgeName: 'World Conqueror',
     description: 'Explored every story world in MathMagic',
-    iconEmoji: '🌍',
-    iconUrl: '',
+    iconUrl: '/images/badges/world-conqueror.svg',
     unlockCondition: 'Complete adventures in all 10 story worlds',
   },
   {
@@ -87,8 +72,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     badgeType: 'hint-free-run',
     badgeName: 'No Hints Needed',
     description: 'Solved 3 adventures in a row without asking for a single hint',
-    iconEmoji: '🧠',
-    iconUrl: '',
+    iconUrl: '/images/badges/hint-free-run.svg',
     unlockCondition: 'Complete 3 consecutive adventures with 0 hints used',
   },
 ];
