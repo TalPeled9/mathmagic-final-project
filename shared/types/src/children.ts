@@ -5,7 +5,18 @@ export interface IBadge {
   badgeName: string;
   description: string;
   iconUrl: string;
+  unlockCondition: string;
   earnedAt: string;
+}
+
+/** Static definition of a badge — the single source of truth for its presentation. */
+export interface BadgeDefinition {
+  id: string;
+  badgeType: string;
+  badgeName: string;
+  description: string;
+  iconUrl: string;
+  unlockCondition: string;
 }
 
 export interface AvatarSlot {

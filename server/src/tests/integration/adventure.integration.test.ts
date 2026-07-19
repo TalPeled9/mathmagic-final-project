@@ -5,7 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import app from '../../app';
 import { llmService } from '../../services/ai/llmService';
-import User from '../../model/User';
+import User from '../../models/User';
 import { Child } from '../../models/Child';
 import { Adventure } from '../../models/Adventure';
 import { LearningSession } from '../../models/LearningSession';

@@ -3,15 +3,7 @@ import { Zap, Star, Trophy, Clock, Compass, CheckCircle } from 'lucide-react';
 import type { IChild } from '@mathmagic/types';
 import type { ChildStatistics } from '../../../services/childService';
 import { TOPIC_NAMES } from '../../../utils/topicNames';
-
-const BADGE_EMOJIS: Record<string, string> = {
-  'first-adventure': '🌟',
-  'perfect-score': '💯',
-  '5-day-streak': '🔥',
-  'speed-master': '⚡',
-  'topic-master': '🎓',
-  explorer: '🗺️',
-};
+import { BadgeIcon } from '../../../components/badges/BadgeIcon';
 
 const WORLD_EMOJIS: Record<string, string> = {
   space: '🚀',
@@ -155,7 +147,7 @@ export function OverviewTab({ child, stats }: Props) {
                 title={badge.description}
                 className="flex items-center gap-2 bg-purple-wizzy/5 border border-purple-wizzy/10 rounded-xl px-3 py-2 text-sm"
               >
-                <span className="text-lg">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
+                <BadgeIcon src={badge.iconUrl} alt={badge.badgeName} size={22} />
                 <span className="font-medium text-gray-700">{badge.badgeName}</span>
               </div>
             ))}

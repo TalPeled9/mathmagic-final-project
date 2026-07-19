@@ -16,7 +16,7 @@ vi.mock('../../models/TopicProgress', () => ({
   },
 }));
 
-import { checkAndAwardBadges } from '../../services/gamification/badgeService';
+import { checkAndAwardBadges, resolveBadges } from '../../services/gamification/badgeService';
 import { Adventure } from '../../models/Adventure';
 import { TopicProgress } from '../../models/TopicProgress';
 
@@ -74,15 +74,7 @@ describe('checkAndAwardBadges', () => {
 
     it('does NOT re-award if already owned', async () => {
       const child = makeChild({
-        badges: [
-          {
-            badgeType: 'first-adventure',
-            badgeName: 'First Adventure',
-            description: '',
-            iconUrl: '',
-            earnedAt: new Date(),
-          },
-        ] as never,
+        badges: [{ badgeType: 'first-adventure', earnedAt: new Date() }] as never,
       });
       const badges = await checkAndAwardBadges(child, baseStats, baseContext);
       expect(badges.some((b) => b.badgeType === 'first-adventure')).toBe(false);
@@ -286,15 +278,7 @@ describe('checkAndAwardBadges', () => {
   describe('no re-award', () => {
     it('skips badge if already in child.badges', async () => {
       const child = makeChild({
-        badges: [
-          {
-            badgeType: 'perfect-score',
-            badgeName: 'Perfect Score',
-            description: '',
-            iconUrl: '',
-            earnedAt: new Date(),
-          },
-        ] as never,
+        badges: [{ badgeType: 'perfect-score', earnedAt: new Date() }] as never,
       });
       const stats = { totalChallenges: 3, correctAnswers: 3, incorrectAnswers: 0, hintsUsed: 0 };
       const badges = await checkAndAwardBadges(child, stats, baseContext);
@@ -316,7 +300,41 @@ describe('checkAndAwardBadges', () => {
         expect(badge).toHaveProperty('iconUrl');
         expect(badge).toHaveProperty('earnedAt');
         expect(typeof badge.earnedAt).toBe('string'); // ISO string
+        expect(badge.iconUrl).toMatch(/^\/images\/badges\/.+\.svg$/);
       }
     });
+  });
+});
+
+describe('resolveBadges', () => {
+  it('joins stored badges against BADGE_DEFINITIONS', () => {
+    const earnedAt = new Date('2026-01-15T10:00:00.000Z');
+    const result = resolveBadges([{ badgeType: 'first-adventure', earnedAt }]);
+
+    expect(result).toEqual([
+      {
+        badgeType: 'first-adventure',
+        badgeName: 'First Adventure',
+        description: 'Completed your very first adventure',
+        iconUrl: '/images/badges/first-adventure.svg',
+        unlockCondition: 'Complete any adventure',
+        earnedAt: '2026-01-15T10:00:00.000Z',
+      },
+    ]);
+  });
+
+  it('skips badge types with no matching definition', () => {
+    const earnedAt = new Date('2026-01-15T10:00:00.000Z');
+    const result = resolveBadges([
+      { badgeType: 'retired-badge', earnedAt },
+      { badgeType: 'explorer', earnedAt },
+    ]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].badgeType).toBe('explorer');
+  });
+
+  it('returns an empty array for no earned badges', () => {
+    expect(resolveBadges([])).toEqual([]);
   });
 });

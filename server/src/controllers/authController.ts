@@ -17,7 +17,7 @@ import {
 } from '../utils/cookieOptions';
 import { ApiError } from '../utils/ApiError';
 import { isTokenRevoked, revokeToken } from '../services/tokenDenylist';
-import { IUser } from '../model/User';
+import { IUser } from '../models/User';
 
 function issueCsrfCookie(res: Response): string {
   const token = crypto.randomBytes(32).toString('hex');

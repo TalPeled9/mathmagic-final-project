@@ -27,6 +27,7 @@ import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
 import { WORLD_NAMES } from '@/lib/adventureLabels';
 import { WORLD_EMOJIS } from '@mathmagic/types';
+import { BadgeIcon } from '@/components/badges/BadgeIcon';
 import type {
   ICurrentChallenge,
   CompleteAdventureResponse,
@@ -47,17 +48,6 @@ interface ChatMessage {
   hint?: HintResponse; // for hint messages — carries the mini-quiz data
   challenge?: ReplayChallenge; // for replay challenge cards
 }
-
-// ── BADGE EMOJI MAP ───────────────────────────────────────────────────────────
-
-const BADGE_EMOJIS: Record<string, string> = {
-  'first-adventure': '🌟',
-  'perfect-score': '💯',
-  '5-day-streak': '🔥',
-  'speed-master': '⚡',
-  'topic-master': '🎓',
-  explorer: '🗺️',
-};
 
 // ── CONFETTI CONFIG ───────────────────────────────────────────────────────────
 
@@ -1687,7 +1677,7 @@ function CompletionOverlay({ data, onDashboard, onNewAdventure }: CompletionOver
                 key={badge.badgeType}
                 className="flex items-center gap-3 bg-purple-wizzy/5 rounded-xl px-4 py-3 w-full border border-purple-wizzy/10"
               >
-                <span className="text-2xl">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
+                <BadgeIcon src={badge.iconUrl} alt={badge.badgeName} size={28} />
                 <div>
                   <p className="font-bold text-purple-wizzy text-sm">{badge.badgeName}</p>
                   <p className="text-xs text-gray-500">{badge.description}</p>
