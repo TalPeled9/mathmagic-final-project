@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
+  BookOpen,
   Lightbulb,
   Sparkles,
   Star,
@@ -24,23 +25,27 @@ import defaultAvatar from '@/assets/default_avatar.png';
 import wizzyImg from '@/assets/wizzy.png';
 import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
+import { WORLD_NAMES } from '@/lib/adventureLabels';
+import { WORLD_EMOJIS } from '@mathmagic/types';
 import type {
   ICurrentChallenge,
   CompleteAdventureResponse,
   AnswerChallengeResponse,
   HintResponse,
   StorySegment,
+  ReplayChallenge,
 } from '@mathmagic/types';
 
 // ── Local types ───────────────────────────────────────────────────────────────
 
 interface ChatMessage {
   id: string;
-  role: 'wizzy' | 'child' | 'system' | 'hint';
+  role: 'wizzy' | 'child' | 'system' | 'hint' | 'challenge';
   text: string;
   imageUrl?: string;
   isCorrect?: boolean; // for system messages
   hint?: HintResponse; // for hint messages — carries the mini-quiz data
+  challenge?: ReplayChallenge; // for replay challenge cards
 }
 
 // ── BADGE EMOJI MAP ───────────────────────────────────────────────────────────
@@ -198,7 +203,9 @@ export default function StoryChat() {
   const [pendingContinue, setPendingContinue] = useState(false);
   const [adventureContext, setAdventureContext] = useState<{
     mathTopic: string;
+    mathTopicName: string;
     storyWorld: string;
+    starsEarned: number;
   } | null>(null);
   const [showCorrectFlash, setShowCorrectFlash] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
@@ -261,7 +268,12 @@ export default function StoryChat() {
 
     const load = async () => {
       const adventure = await adventureService.get(adventureId);
-      setAdventureContext({ mathTopic: adventure.mathTopic, storyWorld: adventure.storyWorld });
+      setAdventureContext({
+        mathTopic: adventure.mathTopic,
+        mathTopicName: adventure.mathTopicName,
+        storyWorld: adventure.storyWorld,
+        starsEarned: adventure.starsEarned,
+      });
 
       // Pre-fetch base64 image data for every step that has a stored image
       const stepImageUrls: Record<number, string> = {};
@@ -280,22 +292,38 @@ export default function StoryChat() {
         );
       }
 
-      // Reconstruct chat from persisted conversation history
+      // Reconstruct chat from persisted conversation history (image mapping keys
+      // off wizzy-message order, which the timestamp merge preserves).
       let wizzyCount = 0;
-      const msgs: ChatMessage[] = adventure.conversationHistory.map((entry, i) => {
+      const historyMsgs = adventure.conversationHistory.map((entry, i) => {
         const isCorrectMsg =
           entry.role === 'system' &&
           (entry.content.startsWith('Correct') || entry.content.startsWith('Great job'));
         const imageUrl = entry.role === 'wizzy' ? stepImageUrls[wizzyCount++] : undefined;
-        return {
+        const msg: ChatMessage = {
           id: `hist-${i}`,
           role: entry.role as 'wizzy' | 'child' | 'system',
           text: entry.content,
           imageUrl,
           isCorrect: entry.role === 'system' ? isCorrectMsg : undefined,
         };
+        return { ts: new Date(entry.timestamp).getTime(), msg };
       });
-      setMessages(msgs);
+
+      let ordered = historyMsgs;
+      if (adventure.status === 'completed' && adventure.replayChallenges?.length) {
+        const challengeMsgs = adventure.replayChallenges.map((c, i) => ({
+          ts: new Date(c.timestamp).getTime(),
+          msg: {
+            id: `chal-${i}`,
+            role: 'challenge' as const,
+            text: c.problemText,
+            challenge: c,
+          },
+        }));
+        ordered = [...historyMsgs, ...challengeMsgs].sort((a, b) => a.ts - b.ts);
+      }
+      setMessages(ordered.map((x) => x.msg));
 
       if (adventure.status === 'completed') {
         setAdventureStatus('completed');
@@ -402,8 +430,16 @@ export default function StoryChat() {
       try {
         const response = await adventureService.answer(adventureId, { answer });
         const isCorrect = response.correct;
-        addMessage({ role: 'system', text: response.feedback, isCorrect });
-        stopAndSpeak(response.feedback);
+        // On the final (exhausted) attempt the server reveals the answer via
+        // `correctAnswer`, but the panel that would show it unmounts immediately —
+        // so surface the answer in the chat message itself (matching the persisted
+        // history text) rather than the answer-less generic feedback.
+        const revealed = !isCorrect && response.correctAnswer !== undefined;
+        const feedbackText = revealed
+          ? `The correct answer was ${response.correctAnswer}. Keep going!`
+          : response.feedback;
+        addMessage({ role: 'system', text: feedbackText, isCorrect });
+        stopAndSpeak(feedbackText);
         setLastAnswerFeedback(response);
 
         if (isCorrect) {
@@ -492,11 +528,33 @@ export default function StoryChat() {
   };
   const worldBg = WORLD_TINTS[adventureContext?.storyWorld ?? 'default'] ?? WORLD_TINTS.default;
 
+  // Richer, more saturated world gradients for the read-only replay page —
+  // a finished story gets a bolder backdrop than live play. Kept at a pastel
+  // (~200-level) intensity so the light chat bubbles stay legible.
+  const REPLAY_TINTS: Record<string, string> = {
+    space: 'linear-gradient(160deg, #c7d2fe 0%, #ddd6fe 50%, #f5d0fe 100%)',
+    fantasy: 'linear-gradient(160deg, #e9d5ff 0%, #f5d0fe 50%, #fbcfe8 100%)',
+    dinosaur: 'linear-gradient(160deg, #d9f99d 0%, #bbf7d0 50%, #fef08a 100%)',
+    ocean: 'linear-gradient(160deg, #bfdbfe 0%, #a5f3fc 50%, #cffafe 100%)',
+    jungle: 'linear-gradient(160deg, #bbf7d0 0%, #a7f3d0 50%, #d9f99d 100%)',
+    pirates: 'linear-gradient(160deg, #fde68a 0%, #fed7aa 50%, #fecaca 100%)',
+    robots: 'linear-gradient(160deg, #e2e8f0 0%, #c7d2fe 50%, #bfdbfe 100%)',
+    candy: 'linear-gradient(160deg, #fbcfe8 0%, #f5d0fe 50%, #fed7aa 100%)',
+    'magic-school': 'linear-gradient(160deg, #ddd6fe 0%, #c7d2fe 50%, #fde68a 100%)',
+    'ancient-temple': 'linear-gradient(160deg, #fde68a 0%, #fcd34d 50%, #fed7aa 100%)',
+    default: 'linear-gradient(160deg, #ddd6fe 0%, #fbcfe8 50%, #fde68a 100%)',
+  };
+
   const wizzyStatus: keyof typeof WIZZY_STATUS_MAP = isProcessing
     ? 'thinking'
     : isSpeaking
       ? 'talking'
       : 'idle';
+
+  const isReplay = adventureStatus === 'completed';
+  const pageBg = isReplay
+    ? (REPLAY_TINTS[adventureContext?.storyWorld ?? 'default'] ?? REPLAY_TINTS.default)
+    : worldBg;
 
   if (adventureStatus === 'loading') {
     return (
@@ -522,7 +580,7 @@ export default function StoryChat() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden" style={{ background: worldBg }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: pageBg }}>
       <WorldParticleLayer world={adventureContext?.storyWorld ?? 'default'} />
 
       {/* ── Header ── */}
@@ -539,55 +597,112 @@ export default function StoryChat() {
             <span className="hidden sm:inline">Dashboard</span>
           </button>
 
-          <img src={mathmagicLogo} alt="MathMagic" className="h-11 w-auto" />
-
-          {/* Wizzy character status + mute toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleMute}
-              title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
-            >
-              {isMuted ? (
-                <VolumeX size={15} className="text-purple-wizzy/50" />
-              ) : (
-                <Volume2 size={15} className="text-purple-wizzy" />
-              )}
-            </button>
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{
-                    background: WIZZY_STATUS_MAP[wizzyStatus].dot,
-                    boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
-                    animation:
-                      wizzyStatus === 'thinking' || wizzyStatus === 'talking'
-                        ? 'sparkle 0.8s ease-in-out infinite'
-                        : 'none',
-                  }}
-                />
-                <span
-                  className="text-[11px] font-semibold"
-                  style={{ color: WIZZY_STATUS_MAP[wizzyStatus].color }}
-                >
-                  {WIZZY_STATUS_MAP[wizzyStatus].text}
+          {isReplay ? (
+            <>
+              {/* Center: adventure title + replay badge */}
+              <div className="flex flex-col items-center min-w-0 px-2">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-purple-wizzy/70">
+                  <BookOpen size={12} />
+                  Story Replay
+                </span>
+                <span className="text-sm font-black text-gray-700 truncate max-w-[60vw]">
+                  {WORLD_EMOJIS[adventureContext?.storyWorld ?? ''] ?? '✨'}{' '}
+                  {WORLD_NAMES[adventureContext?.storyWorld ?? ''] ?? adventureContext?.storyWorld}
+                  {' · '}
+                  {adventureContext?.mathTopicName}
                 </span>
               </div>
-            </div>
-            <div
-              className="w-10 h-10 rounded-full overflow-hidden border-2 shadow-md flex-shrink-0"
-              style={{
-                borderColor: WIZZY_STATUS_MAP[wizzyStatus].dot,
-                boxShadow: `0 0 10px ${WIZZY_STATUS_MAP[wizzyStatus].dot}40`,
-                animation:
-                  wizzyStatus === 'thinking' ? 'mm-wizzy-bob 1.2s ease-in-out infinite' : 'none',
-              }}
-            >
-              <img src={wizzyImg} alt="Wizzy" className="w-full h-full object-cover object-top" />
-            </div>
-          </div>
+
+              {/* Right: stars earned + mute */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3].map((star) => (
+                    <Star
+                      key={star}
+                      size={16}
+                      className={
+                        star <= (adventureContext?.starsEarned ?? 0)
+                          ? 'text-yellow-400'
+                          : 'text-gray-300'
+                      }
+                      fill={
+                        star <= (adventureContext?.starsEarned ?? 0) ? '#facc15' : 'transparent'
+                      }
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={toggleMute}
+                  title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
+                >
+                  {isMuted ? (
+                    <VolumeX size={15} className="text-purple-wizzy/50" />
+                  ) : (
+                    <Volume2 size={15} className="text-purple-wizzy" />
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <img src={mathmagicLogo} alt="MathMagic" className="h-11 w-auto" />
+
+              {/* Wizzy character status + mute toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleMute}
+                  title={isMuted ? 'Unmute Wizzy' : 'Mute Wizzy'}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors flex-shrink-0"
+                >
+                  {isMuted ? (
+                    <VolumeX size={15} className="text-purple-wizzy/50" />
+                  ) : (
+                    <Volume2 size={15} className="text-purple-wizzy" />
+                  )}
+                </button>
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[11px] font-bold text-gray-500">Wizzy</span>
+                  <div className="flex items-center gap-1">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{
+                        background: WIZZY_STATUS_MAP[wizzyStatus].dot,
+                        boxShadow: `0 0 6px ${WIZZY_STATUS_MAP[wizzyStatus].dot}`,
+                        animation:
+                          wizzyStatus === 'thinking' || wizzyStatus === 'talking'
+                            ? 'sparkle 0.8s ease-in-out infinite'
+                            : 'none',
+                      }}
+                    />
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{ color: WIZZY_STATUS_MAP[wizzyStatus].color }}
+                    >
+                      {WIZZY_STATUS_MAP[wizzyStatus].text}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 shadow-md flex-shrink-0"
+                  style={{
+                    borderColor: WIZZY_STATUS_MAP[wizzyStatus].dot,
+                    boxShadow: `0 0 10px ${WIZZY_STATUS_MAP[wizzyStatus].dot}40`,
+                    animation:
+                      wizzyStatus === 'thinking'
+                        ? 'mm-wizzy-bob 1.2s ease-in-out infinite'
+                        : 'none',
+                  }}
+                >
+                  <img
+                    src={wizzyImg}
+                    alt="Wizzy"
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -625,6 +740,8 @@ export default function StoryChat() {
                   );
                 if (msg.role === 'hint' && msg.hint)
                   return <HintMessage key={msg.id} hint={msg.hint} />;
+                if (msg.role === 'challenge' && msg.challenge)
+                  return <ReplayChallengeCard key={msg.id} challenge={msg.challenge} />;
                 return (
                   <SystemMessage key={msg.id} text={msg.text} isCorrect={msg.isCorrect ?? false} />
                 );
@@ -768,9 +885,7 @@ export default function StoryChat() {
       )}
 
       {/* ── Full-screen image lightbox ── */}
-      {lightboxUrl && (
-        <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />
-      )}
+      {lightboxUrl && <ImageLightbox imageUrl={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
     </div>
   );
 }
@@ -972,6 +1087,85 @@ function HintMessage({ hint }: { hint: HintResponse }) {
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ReplayChallengeCard({ challenge }: { challenge: ReplayChallenge }) {
+  return (
+    <div
+      className="story-message-enter rounded-3xl overflow-hidden max-w-2xl mx-auto w-full"
+      style={{
+        background: 'linear-gradient(160deg, #faf5ff 0%, #f3e8ff 40%, #ede9fe 100%)',
+        border: '2px solid rgba(139,92,246,0.22)',
+        boxShadow: '0 2px 8px rgba(139,92,246,0.08)',
+      }}
+    >
+      <div
+        className="h-1.5 w-full"
+        style={{ background: 'linear-gradient(90deg, #8b5cf6, #f59e0b, #8b5cf6)' }}
+      />
+      <div className="p-5">
+        <div
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold text-white mb-4"
+          style={{ background: 'linear-gradient(90deg, #7c3aed, #8b5cf6, #a78bfa)' }}
+        >
+          <Wand2 size={14} className="text-yellow-300" />
+          Math Challenge
+          <Zap size={14} className="text-yellow-300 fill-yellow-300" />
+        </div>
+
+        <p className="text-xl font-extrabold text-center text-gray-800 tracking-tight mb-3">
+          <MathText text={challenge.problemText} />
+        </p>
+
+        {challenge.mathExpression && (
+          <div className="flex justify-center mb-4">
+            <div
+              className="px-5 py-1.5 rounded-2xl text-2xl font-black text-purple-800 tracking-widest"
+              style={{ background: 'white', border: '2px solid rgba(139,92,246,0.25)' }}
+            >
+              <MathText text={challenge.mathExpression} />
+            </div>
+          </div>
+        )}
+
+        {challenge.clockTime && (
+          <div className="flex justify-center mb-4">
+            <AnalogClock time={challenge.clockTime} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          {challenge.options.map((option, i) => {
+            const isCorrect = option === challenge.correctAnswer;
+            return (
+              <div
+                key={i}
+                className="relative rounded-2xl overflow-hidden"
+                style={{
+                  minHeight: 56,
+                  background: isCorrect ? '#f0fdf4' : 'white',
+                  border: isCorrect ? '2px solid #6ee7b7' : '2px solid rgba(139,92,246,0.15)',
+                }}
+              >
+                <div className="flex items-center gap-3 px-3 py-3">
+                  <div
+                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                    style={{ background: isCorrect ? '#10b981' : '#8b5cf6' }}
+                  >
+                    {OPTION_SHAPES[i]?.label ?? ''}
+                  </div>
+                  <span className="font-bold text-gray-800 text-sm text-left flex-1">
+                    <MathText text={option} />
+                  </span>
+                  {isCorrect && <Star size={15} className="text-emerald-500 fill-emerald-500" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
