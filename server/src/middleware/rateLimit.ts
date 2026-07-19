@@ -9,3 +9,13 @@ export const aiRateLimit = rateLimit({
     },
   },
 });
+
+export const emailRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: {
+    error: {
+      message: 'Too many report emails requested. Please try again in a bit.',
+    },
+  },
+});

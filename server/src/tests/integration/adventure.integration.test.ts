@@ -28,9 +28,10 @@ vi.mock('../../services/ai/imageGenerationService', () => ({
   generateStoryImage: vi.fn().mockResolvedValue(null),
 }));
 
-// Bypass AI rate limit for tests so requests don't get throttled
+// Bypass rate limits for tests so requests don't get throttled
 vi.mock('../../middleware/rateLimit', () => ({
   aiRateLimit: (_req: unknown, _res: unknown, next: () => void) => next(),
+  emailRateLimit: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 
 // ─── Mock return value fixtures ───────────────────────────────────────────────
