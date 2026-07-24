@@ -12,7 +12,12 @@ import {
   WORLD_EMOJIS,
   type AdventureSummary,
   type CompleteAdventureResponse,
+  type BadgeDefinition,
 } from '@mathmagic/types';
+import { WORLD_NAMES } from '@/lib/adventureLabels';
+import { BadgeListModal } from '@/components/badges/BadgeListModal';
+import { BadgeIcon } from '@/components/badges/BadgeIcon';
+import { fetchBadgeDefinitions } from '@/services/badgeService';
 
 // ── Static config ─────────────────────────────────────────────────────────────
 
@@ -31,19 +36,6 @@ const LEVEL_NAMES: readonly string[] = [
   'Grand Wizard',
 ];
 
-const TOPIC_NAMES: Record<string, string> = {
-  addition: 'Addition',
-  subtraction: 'Subtraction',
-  multiplication: 'Multiplication',
-  division: 'Division',
-  fractions: 'Fractions',
-  patterns: 'Patterns',
-  time: 'Time',
-  money: 'Money',
-  measurement: 'Measurement',
-  shapes: 'Shapes',
-};
-
 const TOPIC_ICONS: Record<string, string> = {
   addition: '➕',
   subtraction: '➖',
@@ -55,37 +47,6 @@ const TOPIC_ICONS: Record<string, string> = {
   money: '💰',
   measurement: '📏',
   shapes: '🔺',
-};
-
-const WORLD_NAMES: Record<string, string> = {
-  space: 'Space Station',
-  fantasy: 'Enchanted Kingdom',
-  dinosaur: 'Dino Valley',
-  ocean: 'Deep Ocean',
-  jungle: 'Jungle Explorer',
-  pirates: 'Pirate Seas',
-  robots: 'Robot City',
-  candy: 'Candy Land',
-  'magic-school': 'Magic School',
-  'ancient-temple': 'Ancient Temple',
-};
-
-const BADGE_EMOJIS: Record<string, string> = {
-  'first-adventure': '🌟',
-  'perfect-score': '💯',
-  '5-day-streak': '🔥',
-  'speed-master': '⚡',
-  'topic-master': '🎓',
-  explorer: '🗺️',
-};
-
-const BADGE_COLORS: Record<string, string> = {
-  'first-adventure': 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-  'perfect-score': 'linear-gradient(135deg, #34d399, #10b981)',
-  '5-day-streak': 'linear-gradient(135deg, #f97316, #ef4444)',
-  'speed-master': 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-  'topic-master': 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
-  explorer: 'linear-gradient(135deg, #fb923c, #f59e0b)',
 };
 
 const WORLD_GRADIENTS: Record<string, string> = {
@@ -100,16 +61,6 @@ const WORLD_GRADIENTS: Record<string, string> = {
   'magic-school': 'linear-gradient(135deg, #5b21b6, #1d4ed8)',
   'ancient-temple': 'linear-gradient(135deg, #78350f, #d97706)',
 };
-
-const PLACEHOLDER_BADGES = [
-  { type: 'first-adventure', label: 'First Adventure', hint: 'Complete your first adventure' },
-  {
-    type: 'perfect-score',
-    label: 'Perfect Score',
-    hint: 'Get all questions right in an adventure',
-  },
-  { type: '5-day-streak', label: '5-Day Streak', hint: 'Play 5 days in a row' },
-];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -142,6 +93,9 @@ export default function ChildDashboard() {
   const [isLoadingAdventures, setIsLoadingAdventures] = useState(true);
   const [barPercent, setBarPercent] = useState(0);
   const [showReward, setShowReward] = useState(!!recentCompletion);
+  const [badgeListOpen, setBadgeListOpen] = useState(false);
+  const [badgeTotal, setBadgeTotal] = useState<number | null>(null);
+  const [lockedPreview, setLockedPreview] = useState<BadgeDefinition[]>([]);
 
   const totalXP = activeChild?.totalXP ?? 0;
   const currentLevel = activeChild?.currentLevel ?? 1;
@@ -169,6 +123,25 @@ export default function ChildDashboard() {
     const t = setTimeout(() => setShowReward(false), 5000);
     return () => clearTimeout(t);
   }, [showReward]);
+
+  useEffect(() => {
+    let active = true;
+    fetchBadgeDefinitions()
+      .then((defs) => {
+        if (!active) return;
+        setBadgeTotal(defs.length);
+        const earnedTypes = new Set(activeChild?.badges.map((b) => b.badgeType) ?? []);
+        setLockedPreview(defs.filter((d) => !earnedTypes.has(d.badgeType)).slice(0, 3));
+      })
+      .catch(() => {
+        if (!active) return;
+        setBadgeTotal(null);
+        setLockedPreview([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeChild?.badges]);
 
   if (!activeChild) return null;
 
@@ -415,26 +388,35 @@ export default function ChildDashboard() {
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span>🏅</span> Badges
-              </h2>
+              <button
+                type="button"
+                onClick={() => setBadgeListOpen(true)}
+                className="mb-4 flex w-full items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-600 transition-colors hover:text-violet-600"
+              >
+                <span>🏅</span>
+                <span>Badges</span>
+                <span className="ml-auto flex items-center gap-1 text-xs font-semibold normal-case tracking-normal text-violet-500">
+                  {activeChild.badges.length}
+                  {badgeTotal !== null && ` of ${badgeTotal}`}
+                  <span aria-hidden="true">›</span>
+                </span>
+              </button>
 
               {activeChild.badges.length > 0 ? (
-                <div className="grid grid-cols-3 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-3 gap-3 lg:grid-cols-2 lg:max-h-80 lg:overflow-y-auto scrollbar-hide">
                   {activeChild.badges.map((badge, i) => (
                     <div
                       key={badge.badgeType}
-                      className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center"
+                      className="flex flex-col items-center justify-center rounded-2xl border px-3 py-4 text-center"
                       style={{
-                        background:
-                          BADGE_COLORS[badge.badgeType] ??
-                          'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                        background: 'rgba(255,255,255,0.9)',
+                        borderColor: 'rgba(139,92,246,0.2)',
                         animation: `badge-pop 0.55s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms both`,
                       }}
                       title={badge.description}
                     >
-                      <span className="text-3xl mb-2">{BADGE_EMOJIS[badge.badgeType] ?? '🏅'}</span>
-                      <span className="text-xs font-bold text-white text-center leading-tight">
+                      <BadgeIcon src={badge.iconUrl} alt={badge.badgeName} size={40} />
+                      <span className="mt-2 text-xs font-bold leading-tight text-gray-700">
                         {badge.badgeName}
                       </span>
                     </div>
@@ -442,15 +424,15 @@ export default function ChildDashboard() {
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-3 lg:grid-cols-2">
-                  {PLACEHOLDER_BADGES.map(({ type, label, hint }) => (
+                  {lockedPreview.map((def) => (
                     <div
-                      key={type}
-                      className="flex flex-col items-center justify-center py-4 px-3 rounded-2xl text-center border-2 border-dashed border-gray-200"
-                      title={hint}
+                      key={def.id}
+                      className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-3 py-4 text-center"
+                      title={def.unlockCondition}
                     >
-                      <span className="text-3xl mb-2 opacity-30">{BADGE_EMOJIS[type] ?? '🏅'}</span>
-                      <span className="text-xs text-gray-300 font-medium text-center leading-tight">
-                        {label}
+                      <BadgeIcon src={def.iconUrl} alt={def.badgeName} size={40} locked />
+                      <span className="mt-2 text-xs font-medium leading-tight text-gray-300">
+                        {def.badgeName}
                       </span>
                     </div>
                   ))}
@@ -489,55 +471,10 @@ export default function ChildDashboard() {
                 <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <span>🗺️</span> Continue Your Adventure
                 </h2>
-                <button
-                  onClick={() => navigate(`/child/story/${inProgressAdventure._id}`)}
-                  className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all group hover:scale-[1.01]"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, rgba(139,92,246,0.07), rgba(109,40,217,0.04))',
-                    border: '2px solid rgba(139,92,246,0.2)',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      'rgba(139,92,246,0.45)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      'rgba(139,92,246,0.2)';
-                  }}
-                >
-                  <span className="text-4xl flex-shrink-0">
-                    {WORLD_EMOJIS[inProgressAdventure.storyWorld] ?? '✨'}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-800 group-hover:text-purple-wizzy transition-colors">
-                      {WORLD_NAMES[inProgressAdventure.storyWorld] ??
-                        inProgressAdventure.storyWorld}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-0.5">
-                      {TOPIC_ICONS[inProgressAdventure.mathTopic] ?? '📚'}{' '}
-                      {TOPIC_NAMES[inProgressAdventure.mathTopic] ?? inProgressAdventure.mathTopic}
-                      {' · '}Step {inProgressAdventure.currentStepIndex + 1} of{' '}
-                      {inProgressAdventure.totalSteps}
-                    </p>
-                    <div
-                      className="w-full h-1.5 rounded-full overflow-hidden mt-2"
-                      style={{ background: 'rgba(139,92,246,0.1)' }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.round(((inProgressAdventure.currentStepIndex + 1) / inProgressAdventure.totalSteps) * 100)}%`,
-                          background: 'linear-gradient(90deg, #8b5cf6, #f59e0b)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={20}
-                    className="text-gray-300 group-hover:text-purple-wizzy transition-colors flex-shrink-0"
-                  />
-                </button>
+                <ContinueCard
+                  adventure={inProgressAdventure}
+                  onOpen={() => navigate(`/child/story/${inProgressAdventure._id}`)}
+                />
               </div>
             )}
           </div>
@@ -547,11 +484,8 @@ export default function ChildDashboard() {
             <div
               className="rounded-2xl p-5 lg:h-full lg:flex lg:flex-col"
               style={{
-                background:
-                  !isLoadingAdventures && completedAdventures.length === 0
-                    ? 'linear-gradient(135deg, rgba(139,92,246,0.10), rgba(245,158,11,0.14))'
-                    : 'rgba(255,255,255,0.75)',
-                border: '1px solid rgba(139,92,246,0.1)',
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.14), rgba(245,158,11,0.18))',
+                border: '1px solid rgba(139,92,246,0.15)',
                 backdropFilter: 'blur(8px)',
               }}
             >
@@ -572,7 +506,7 @@ export default function ChildDashboard() {
                 >
                   <div
                     className="shrink-0 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 text-center px-3"
-                    style={{ width: 140, height: 160 }}
+                    style={{ width: 168, height: 192 }}
                   >
                     <span className="text-3xl opacity-40">🔮</span>
                     <p className="text-xs text-gray-300 font-medium leading-tight">
@@ -584,53 +518,15 @@ export default function ChildDashboard() {
                 <>
                   <style>{`.adventure-library::-webkit-scrollbar{display:none}`}</style>
                   <div
-                    className="adventure-library flex gap-3 overflow-x-auto py-3 px-1 lg:flex-wrap lg:overflow-x-visible"
+                    className="adventure-library flex gap-3 overflow-x-auto py-3 px-1 lg:flex-wrap lg:content-start lg:flex-1 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto"
                     style={{ scrollbarWidth: 'none' }}
                   >
                     {completedAdventures.map((adventure) => (
-                      <div
+                      <LibraryCard
                         key={adventure._id}
-                        className="shrink-0 flex flex-col items-center justify-center gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-default select-none"
-                        style={{
-                          width: 140,
-                          height: 160,
-                          background:
-                            WORLD_GRADIENTS[adventure.storyWorld] ??
-                            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.boxShadow =
-                            '0 8px 24px rgba(0,0,0,0.25)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLDivElement).style.boxShadow =
-                            '0 4px 12px rgba(0,0,0,0.15)';
-                        }}
-                      >
-                        <span className="text-4xl">
-                          {WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}
-                        </span>
-                        <p className="font-bold text-sm text-white truncate w-full text-center px-1">
-                          {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
-                        </p>
-                        <p className="text-xs text-white/70 truncate w-full text-center">
-                          {TOPIC_ICONS[adventure.mathTopic] ?? '📚'}{' '}
-                          {TOPIC_NAMES[adventure.mathTopic] ?? adventure.mathTopic}
-                        </p>
-                        <div className="flex items-center gap-0.5 mt-0.5">
-                          {[1, 2, 3].map((star) => (
-                            <Star
-                              key={star}
-                              size={14}
-                              className={
-                                star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/20'
-                              }
-                              fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                        adventure={adventure}
+                        onOpen={() => navigate(`/child/story/${adventure._id}`)}
+                      />
                     ))}
                   </div>
                 </>
@@ -682,6 +578,179 @@ export default function ChildDashboard() {
           </button>
         </div>
       </div>
+
+      <BadgeListModal
+        open={badgeListOpen}
+        onClose={() => setBadgeListOpen(false)}
+        earnedBadges={activeChild.badges}
+      />
     </div>
+  );
+}
+
+// ── Continue card (in-progress adventure, image hero with left scrim) ──────────
+
+function ContinueCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpen: () => void }) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    adventureService
+      .getImage(adventure._id, 0)
+      .then(({ imageUrl }) => {
+        if (!cancelled) setImageUrl(imageUrl);
+      })
+      .catch(() => {
+        // No first image yet — the dark gradient fallback is fine.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [adventure._id]);
+
+  const progressPercent = Math.round(
+    ((adventure.currentStepIndex + 1) / adventure.totalSteps) * 100
+  );
+  const textShadow = { textShadow: '0 1px 4px rgba(0,0,0,0.7)' };
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative w-full flex items-center gap-4 rounded-xl p-4 text-left overflow-hidden transition-all hover:scale-[1.01]"
+      style={{
+        minHeight: 96,
+        background: 'linear-gradient(135deg, #6d28d9, #4c1d95)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 4px 14px rgba(76,29,149,0.35)',
+      }}
+    >
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      {imageUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.15) 100%)',
+          }}
+        />
+      )}
+
+      <span className="relative text-4xl flex-shrink-0" style={textShadow}>
+        {WORLD_EMOJIS[adventure.storyWorld] ?? '✨'}
+      </span>
+      <div className="relative flex-1 min-w-0">
+        <p className="font-bold text-white truncate" style={textShadow}>
+          {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+        </p>
+        <p className="text-sm text-white/80 truncate mt-0.5" style={textShadow}>
+          {TOPIC_ICONS[adventure.mathTopic] ?? '📚'} {adventure.mathTopicName}
+          {' · '}Step {adventure.currentStepIndex + 1} of {adventure.totalSteps}
+        </p>
+        <div
+          className="w-full h-1.5 rounded-full overflow-hidden mt-2"
+          style={{ background: 'rgba(255,255,255,0.25)' }}
+        >
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${progressPercent}%`,
+              background: 'linear-gradient(90deg, #a78bfa, #fbbf24)',
+            }}
+          />
+        </div>
+      </div>
+      <ChevronRight size={20} className="relative text-white/70 flex-shrink-0" />
+    </button>
+  );
+}
+
+// ── Library card (completed adventure, image-backed, clickable) ────────────────
+
+function LibraryCard({ adventure, onOpen }: { adventure: AdventureSummary; onOpen: () => void }) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    adventureService
+      .getImage(adventure._id, 0)
+      .then(({ imageUrl }) => {
+        if (!cancelled) setImageUrl(imageUrl);
+      })
+      .catch(() => {
+        // No first image for this adventure — the gradient fallback is fine.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [adventure._id]);
+
+  const gradient =
+    WORLD_GRADIENTS[adventure.storyWorld] ?? 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+  const textShadow = { textShadow: '0 1px 3px rgba(0,0,0,0.6)' };
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative shrink-0 flex flex-col items-center justify-end gap-1.5 rounded-2xl p-3 text-center transition-all hover:scale-105 cursor-pointer overflow-hidden"
+      style={{
+        width: 168,
+        height: 192,
+        background: gradient,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      }}
+    >
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      {imageUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.12) 100%)',
+          }}
+        />
+      )}
+
+      <p
+        className="relative font-bold text-sm text-white truncate w-full text-center px-1"
+        style={textShadow}
+      >
+        {WORLD_NAMES[adventure.storyWorld] ?? adventure.storyWorld}
+      </p>
+      <p className="relative text-xs text-white/80 truncate w-full text-center" style={textShadow}>
+        {adventure.mathTopicName}
+      </p>
+      <div className="relative flex items-center gap-0.5 mt-0.5">
+        {[1, 2, 3].map((star) => (
+          <Star
+            key={star}
+            size={14}
+            className={star <= adventure.starsEarned ? 'text-yellow-300' : 'text-white/30'}
+            fill={star <= adventure.starsEarned ? '#fde047' : 'transparent'}
+          />
+        ))}
+      </div>
+    </button>
   );
 }

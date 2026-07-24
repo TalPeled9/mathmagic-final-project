@@ -4,6 +4,7 @@ import { TopicProgress } from '../../models/TopicProgress';
 import { BADGE_DEFINITIONS } from '../../config/badges';
 import type { IChildDocument } from '../../models/Child';
 import type { AdventureStats } from './xpService';
+import { logger } from '../../lib/logger';
 
 export interface BadgeContext {
   currentStoryWorld: string;
@@ -117,27 +118,48 @@ export async function checkAndAwardBadges(
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+/** Shape actually persisted on the Child document. */
+export interface StoredBadge {
+  badgeType: string;
+  earnedAt: Date;
+}
+
+/**
+ * Joins stored badges against BADGE_DEFINITIONS so the client always receives
+ * fully-populated badges. Badge types with no definition (e.g. a badge retired
+ * from config) are skipped rather than surfaced as broken entries.
+ */
+export function resolveBadges(earned: StoredBadge[]): IBadge[] {
+  const resolved: IBadge[] = [];
+
+  for (const stored of earned) {
+    const def = BADGE_DEFINITIONS.find((b) => b.badgeType === stored.badgeType);
+    if (!def) {
+      logger.warn(`[badges] no definition for stored badgeType "${stored.badgeType}"`);
+      continue;
+    }
+
+    resolved.push({
+      badgeType: def.badgeType,
+      badgeName: def.badgeName,
+      description: def.description,
+      iconUrl: def.iconUrl,
+      unlockCondition: def.unlockCondition,
+      earnedAt: new Date(stored.earnedAt).toISOString(),
+    });
+  }
+
+  return resolved;
+}
+
 function pushBadge(child: IChildDocument, badgeType: string): IBadge | undefined {
   const def = BADGE_DEFINITIONS.find((b) => b.badgeType === badgeType);
   if (!def) return undefined;
 
   const earnedAt = new Date();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (child.badges as any[]).push({
-    badgeType: def.badgeType,
-    badgeName: def.badgeName,
-    description: def.description,
-    iconUrl: def.iconEmoji, // store emoji in iconUrl for now; future: proper URL
-    earnedAt,
-  });
+  child.badges.push({ badgeType: def.badgeType, earnedAt });
 
-  return {
-    badgeType: def.badgeType,
-    badgeName: def.badgeName,
-    description: def.description,
-    iconUrl: def.iconEmoji,
-    earnedAt: earnedAt.toISOString(),
-  };
+  return resolveBadges([{ badgeType: def.badgeType, earnedAt }])[0];
 }
 
 /** Counts how many consecutive calendar days the child has completed at least one adventure. */

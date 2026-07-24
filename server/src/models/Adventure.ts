@@ -9,6 +9,15 @@ interface IConversationEntry {
   timestamp: Date;
 }
 
+interface IReplayChallenge {
+  problemText: string;
+  mathExpression?: string;
+  clockTime?: string;
+  options: string[];
+  correctAnswer: string;
+  timestamp: Date;
+}
+
 interface IPregeneratedStep {
   mode: StoryMode;
   llmResponse: Record<string, unknown>;
@@ -35,6 +44,7 @@ export interface IAdventureDocument extends Document {
   totalSteps: number;
   currentChallenge: ICurrentChallengeSubdoc | null;
   conversationHistory: IConversationEntry[];
+  replayChallenges: IReplayChallenge[];
   lastChoices: string[];
   currentHints: string[]; // hint texts accumulated for the active challenge
   startedAt: Date;
@@ -91,6 +101,18 @@ const conversationEntrySchema = new Schema<IConversationEntry>(
   { _id: false }
 );
 
+const replayChallengeSchema = new Schema<IReplayChallenge>(
+  {
+    problemText: { type: String, required: true },
+    mathExpression: { type: String },
+    clockTime: { type: String },
+    options: { type: [String], required: true },
+    correctAnswer: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const adventureSchema = new Schema<IAdventureDocument>(
   {
     childId: { type: Schema.Types.ObjectId, ref: 'Child', required: true, index: true },
@@ -101,6 +123,7 @@ const adventureSchema = new Schema<IAdventureDocument>(
     totalSteps: { type: Number, default: 10 },
     currentChallenge: { type: currentChallengeSchema, default: null },
     conversationHistory: { type: [conversationEntrySchema], default: [] },
+    replayChallenges: { type: [replayChallengeSchema], default: [] },
     lastChoices: { type: [String], default: [] },
     currentHints: { type: [String], default: [] },
     startedAt: { type: Date, default: Date.now },

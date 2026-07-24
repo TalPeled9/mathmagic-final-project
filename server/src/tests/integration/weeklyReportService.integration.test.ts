@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import User from '../../model/User';
+import User from '../../models/User';
 import { Child } from '../../models/Child';
 import { Adventure } from '../../models/Adventure';
 import { LearningSession } from '../../models/LearningSession';
@@ -52,16 +52,10 @@ describe('weeklyReportService', () => {
       badges: [
         {
           badgeType: 'first-adventure',
-          badgeName: 'First Adventure',
-          description: 'Completed your very first adventure',
-          iconUrl: '',
           earnedAt: new Date('2026-01-06T10:00:00.000Z'), // inside week
         },
         {
           badgeType: 'perfect-score',
-          badgeName: 'Perfect Score',
-          description: 'Answered every question correctly without any hints',
-          iconUrl: '',
           earnedAt: new Date('2025-12-20T10:00:00.000Z'), // outside week
         },
       ],
@@ -146,7 +140,7 @@ describe('weeklyReportService', () => {
 
     expect(stats.newBadgesThisWeek).toHaveLength(1);
     expect(stats.newBadgesThisWeek[0].badgeType).toBe('first-adventure');
-    expect(stats.newBadgesThisWeek[0].iconEmoji).toBe('🌟');
+    expect(stats.newBadgesThisWeek[0].badgeName).toBe('First Adventure');
   });
 
   it('reports hasActivity: false for a child with no adventures or minutes this week', async () => {

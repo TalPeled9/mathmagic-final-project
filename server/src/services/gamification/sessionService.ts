@@ -4,27 +4,8 @@ import { LearningSession } from '../../models/LearningSession';
 import { Adventure } from '../../models/Adventure';
 
 /**
- * Returns total learning minutes for a child in the last 7 days.
- * Only counts sessions that have been closed (endTime set).
- */
-export async function getWeeklyLearningMinutes(childId: string): Promise<number> {
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const result = await LearningSession.aggregate([
-    {
-      $match: {
-        childId: new Types.ObjectId(childId),
-        date: { $gte: weekAgo },
-        duration: { $exists: true, $gt: 0 },
-      },
-    },
-    { $group: { _id: null, total: { $sum: '$duration' } } },
-  ]);
-  return result[0]?.total ?? 0;
-}
-
-/**
  * Returns total learning minutes for a child within an explicit [start, end) window.
- * Unlike getWeeklyLearningMinutes (rolling last-7-days from now), this takes fixed
+ * Unlike getDailySessionBreakdown (rolling window from now), this takes fixed
  * bounds so callers can align to a calendar week rather than the current moment.
  */
 export async function getMinutesInRange(childId: string, start: Date, end: Date): Promise<number> {

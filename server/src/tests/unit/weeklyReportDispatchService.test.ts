@@ -7,7 +7,7 @@ const mockConfig = vi.hoisted(() => ({
 vi.mock('../../config/index', () => ({ config: mockConfig }));
 
 const mockFindById = vi.hoisted(() => vi.fn());
-vi.mock('../../model/User', () => ({ default: { findById: mockFindById } }));
+vi.mock('../../models/User', () => ({ default: { findById: mockFindById } }));
 
 const mockGetParentWeekReport = vi.hoisted(() => vi.fn());
 vi.mock('../../services/weeklyReportService', () => ({

@@ -179,6 +179,7 @@ export interface GetAvailableResponse {
 export interface AdventureSummary {
   _id: string;
   mathTopic: string;
+  mathTopicName: string;
   storyWorld: string;
   status: 'in-progress' | 'completed';
   currentStepIndex: number;
@@ -197,12 +198,23 @@ export interface ConversationEntry {
   role: 'wizzy' | 'child' | 'system';
   content: string;
   dialogue?: string;
+  timestamp: string;
+}
+
+export interface ReplayChallenge {
+  problemText: string;
+  mathExpression?: string;
+  clockTime?: string;
+  options: string[];
+  correctAnswer: string;
+  timestamp: string;
 }
 
 export interface GetAdventureResponse {
   adventureId: string;
   status: 'in-progress' | 'completed';
   mathTopic: string;
+  mathTopicName: string;
   storyWorld: string;
   currentStepIndex: number;
   totalSteps: number;
@@ -210,6 +222,7 @@ export interface GetAdventureResponse {
   xpEarned: number;
   starsEarned: number;
   conversationHistory: ConversationEntry[];
+  replayChallenges: ReplayChallenge[];
   currentChallenge: ICurrentChallenge | null;
   lastChoices: string[];
   stepImages: Record<number, string>;

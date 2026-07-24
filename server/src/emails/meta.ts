@@ -32,3 +32,21 @@ export function getWorldMeta(storyWorld: string): { emoji: string; name: string 
     name: WORLD_NAMES[storyWorld] ?? storyWorld,
   };
 }
+
+// The app itself now renders badges as SVG icons (server/src/config/badges.ts),
+// which email clients don't reliably support — emoji stay the reliable choice here.
+const BADGE_EMOJIS: Record<string, string> = {
+  'first-adventure': '🌟',
+  'perfect-score': '🎯',
+  '5-day-streak': '🔥',
+  'speed-master': '⚡',
+  'topic-master': '🏆',
+  explorer: '🧭',
+  'math-veteran': '🎖️',
+  'world-conqueror': '🌍',
+  'hint-free-run': '🧠',
+};
+
+export function getBadgeEmoji(badgeType: string): string {
+  return BADGE_EMOJIS[badgeType] ?? '🏅';
+}

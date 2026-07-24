@@ -353,6 +353,19 @@ export function appendToHistory(
   }
 }
 
+export function appendReplayChallenge(
+  adventure: IAdventureDocument,
+  challenge: {
+    problemText: string;
+    mathExpression?: string;
+    clockTime?: string;
+    options: string[];
+    correctAnswer: string;
+  }
+): void {
+  adventure.replayChallenges.push({ ...challenge, timestamp: new Date() });
+}
+
 // ─── Topic Progress (delegates to masteryService) ───────────────────────────
 
 export { updateTopicMastery as updateTopicProgress };

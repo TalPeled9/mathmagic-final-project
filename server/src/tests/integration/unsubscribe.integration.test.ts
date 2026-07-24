@@ -4,7 +4,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import app from '../../app';
-import User from '../../model/User';
+import User from '../../models/User';
 
 describe('GET /api/email-preferences/unsubscribe/:token', () => {
   let mongoServer: MongoMemoryServer;

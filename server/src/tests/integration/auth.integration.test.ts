@@ -7,7 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import app from '../../app';
 import { googleOAuthClient } from '../../config/auth';
-import User from '../../model/User';
+import User from '../../models/User';
 import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE, REFRESH_TOKEN_COOKIE } from '../../utils/cookieOptions';
 import { generateAccessToken, generateRefreshToken, verifyAccessToken } from '../../utils/jwt';
 

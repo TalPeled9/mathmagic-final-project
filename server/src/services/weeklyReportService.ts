@@ -1,12 +1,12 @@
 import { Types } from 'mongoose';
-import User, { IUser } from '../model/User';
+import User, { IUser } from '../models/User';
 import { Child, IChildDocument } from '../models/Child';
 import { Adventure } from '../models/Adventure';
 import { TopicProgress } from '../models/TopicProgress';
 import { getMinutesInRange, getCurrentDayStreak } from './gamification/sessionService';
 import { getWeekStart } from './adventureService';
 import { getLevelForXP, LEVEL_THRESHOLDS } from '../config/levelThresholds';
-import { getBadgeById } from '../config/badges';
+import { resolveBadges } from './gamification/badgeService';
 import { getCurriculumTopicById } from '../config/curriculumTopics';
 
 export interface WeeklyAdventureSummary {
@@ -23,8 +23,7 @@ export interface WeeklyAdventureSummary {
 export interface WeeklyBadgeSummary {
   badgeType: string;
   badgeName: string;
-  iconEmoji: string;
-  earnedAt: Date;
+  earnedAt: string;
 }
 
 export interface WeeklyTopicSummary {
@@ -119,14 +118,13 @@ export async function getChildWeekStats(
     };
   });
 
-  const newBadgesThisWeek: WeeklyBadgeSummary[] = child.badges
-    .filter((b) => b.earnedAt >= weekStart && b.earnedAt < weekEnd)
-    .map((b) => ({
-      badgeType: b.badgeType,
-      badgeName: b.badgeName,
-      iconEmoji: getBadgeById(b.badgeType)?.iconEmoji ?? '🏅',
-      earnedAt: b.earnedAt,
-    }));
+  const newBadgesThisWeek: WeeklyBadgeSummary[] = resolveBadges(
+    child.badges.filter((b) => b.earnedAt >= weekStart && b.earnedAt < weekEnd)
+  ).map((b) => ({
+    badgeType: b.badgeType,
+    badgeName: b.badgeName,
+    earnedAt: b.earnedAt,
+  }));
 
   const recentAdventures: WeeklyAdventureSummary[] = adventuresThisWeek
     .slice(0, MAX_RECENT_ADVENTURES)

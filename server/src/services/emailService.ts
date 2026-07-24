@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import { Resend } from 'resend';
 import { config } from '../config/index';
 import { logger } from '../lib/logger';
-import { IUser } from '../model/User';
+import { IUser } from '../models/User';
 
 let _resendClient: Resend | null = null;
 

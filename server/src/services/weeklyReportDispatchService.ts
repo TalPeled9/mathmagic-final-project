@@ -1,4 +1,4 @@
-import User from '../model/User';
+import User from '../models/User';
 import { config } from '../config/index';
 import { getParentWeekReport } from './weeklyReportService';
 import { getOrCreateUnsubscribeToken, sendEmail } from './emailService';

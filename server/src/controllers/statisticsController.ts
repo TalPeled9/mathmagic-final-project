@@ -7,6 +7,7 @@ import {
   getDailySessionBreakdown,
   getCurrentDayStreak,
 } from '../services/gamification/sessionService';
+import { resolveBadges } from '../services/gamification/badgeService';
 import { getLevelForXP, LEVEL_THRESHOLDS } from '../config/levelThresholds';
 
 export async function getChildStatistics(req: Request, res: Response): Promise<void> {
@@ -69,7 +70,7 @@ export async function getChildStatistics(req: Request, res: Response): Promise<v
       xpToNextLevel: levelInfo.xpToNext,
       isMaxLevel: levelInfo.xpToNext === null,
     },
-    badges: child.badges,
+    badges: resolveBadges(child.badges),
     currentDayStreak,
     totalAdventuresCompleted,
     recentAdventures: recentAdventures.map((a) => ({

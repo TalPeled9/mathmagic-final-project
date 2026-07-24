@@ -6,6 +6,7 @@ import { StatTile } from './StatTile';
 import { BadgeChip } from './BadgeChip';
 import { AdventureRow } from './AdventureRow';
 import { EmptyWeekNotice } from './EmptyWeekNotice';
+import { getBadgeEmoji } from '../meta';
 import type { ChildWeekStats } from '../../services/weeklyReportService';
 
 interface Props {
@@ -111,7 +112,7 @@ export function ChildSection({ child }: Props) {
               New badges this week
             </Text>
             {child.newBadgesThisWeek.map((badge) => (
-              <BadgeChip key={badge.badgeType} emoji={badge.iconEmoji} name={badge.badgeName} />
+              <BadgeChip key={badge.badgeType} emoji={getBadgeEmoji(badge.badgeType)} name={badge.badgeName} />
             ))}
           </Column>
         </Row>

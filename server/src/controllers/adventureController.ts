@@ -25,6 +25,7 @@ import {
   calculateAdventureRewards,
   applyRewardsToChild,
   appendToHistory,
+  appendReplayChallenge,
   updateTopicProgress,
   prefetchNextStep,
   prefetchForChoices,
@@ -161,6 +162,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     adventureId: adventure._id.toString(),
     status: adventure.status,
     mathTopic: adventure.mathTopic,
+    mathTopicName: getCurriculumTopicById(adventure.mathTopic)?.name ?? adventure.mathTopic,
     storyWorld: adventure.storyWorld,
     currentStepIndex: adventure.currentStepIndex,
     totalSteps: adventure.totalSteps,
@@ -169,6 +171,7 @@ export async function getAdventure(req: Request, res: Response): Promise<void> {
     starsEarned: adventure.starsEarned,
     // Extra fields used by StoryChat to reconstruct full conversation history
     conversationHistory: adventure.conversationHistory,
+    replayChallenges: adventure.replayChallenges,
     currentChallenge: challenge,
     lastChoices: adventure.lastChoices,
     stepImages,
@@ -288,6 +291,17 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
       adventure.pregeneratedChoiceSteps = [];
       adventure.lastChoices = segment.choices;
       appendToHistory(adventure, 'wizzy', segment.narrative);
+      // Persist the replay challenge AFTER the narrative so its timestamp sorts the
+      // question card after Wizzy's bubble (and image), before the child's answer.
+      if (adventure.currentChallenge) {
+        appendReplayChallenge(adventure, {
+          problemText: adventure.currentChallenge.problemText,
+          mathExpression: adventure.currentChallenge.mathExpression,
+          clockTime: adventure.currentChallenge.clockTime,
+          options: adventure.currentChallenge.options,
+          correctAnswer: adventure.currentChallenge.correctAnswer,
+        });
+      }
       await adventure.save();
       void prefetchNextStep(adventure, child);
       res.json({ segment });
@@ -447,6 +461,17 @@ export async function continueAdventure(req: Request, res: Response): Promise<vo
 
   adventure.lastChoices = segment.choices;
   appendToHistory(adventure, 'wizzy', segment.narrative);
+  // Persist the replay challenge AFTER the narrative so its timestamp sorts the
+  // question card after Wizzy's bubble (and image), before the child's answer.
+  if (adventure.currentChallenge) {
+    appendReplayChallenge(adventure, {
+      problemText: adventure.currentChallenge.problemText,
+      mathExpression: adventure.currentChallenge.mathExpression,
+      clockTime: adventure.currentChallenge.clockTime,
+      options: adventure.currentChallenge.options,
+      correctAnswer: adventure.currentChallenge.correctAnswer,
+    });
+  }
   await adventure.save();
 
   // Fire next pre-generation based on what was just served
@@ -713,6 +738,7 @@ export async function getChildAdventures(req: Request, res: Response): Promise<v
     adventures: adventures.map((a) => ({
       _id: a._id.toString(),
       mathTopic: a.mathTopic,
+      mathTopicName: getCurriculumTopicById(a.mathTopic)?.name ?? a.mathTopic,
       storyWorld: a.storyWorld,
       status: a.status,
       currentStepIndex: a.currentStepIndex,

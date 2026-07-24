@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import User from '../model/User';
+import User from '../models/User';
 import { config } from '../config/index';
 import { renderUnsubscribeConfirmationHtml } from '../emails/render';
 

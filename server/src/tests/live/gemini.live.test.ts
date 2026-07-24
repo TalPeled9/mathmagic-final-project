@@ -5,7 +5,7 @@ import request from 'supertest';
 import type { Response } from 'supertest';
 
 import app from '../../app';
-import User from '../../model/User';
+import User from '../../models/User';
 import { Adventure } from '../../models/Adventure';
 import { Child } from '../../models/Child';
 import { generateAccessToken } from '../../utils/jwt';

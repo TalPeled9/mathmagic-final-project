@@ -11,7 +11,7 @@ vi.mock('resend', () => ({
 }));
 
 import app from '../../app';
-import User from '../../model/User';
+import User from '../../models/User';
 import { Child } from '../../models/Child';
 import { generateAccessToken } from '../../utils/jwt';
 import { ACCESS_TOKEN_COOKIE, CSRF_COOKIE } from '../../utils/cookieOptions';
