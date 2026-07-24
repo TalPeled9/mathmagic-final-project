@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Star, Zap, LogOut, ChevronRight, BookOpen, Trophy, Wand2 } from 'lucide-react';
 import { SkeletonCard } from '@/components/loaders';
 import MagicBackground from '@/components/MagicBackground';
-import defaultAvatar from '@/assets/default_avatar.png';
+import { getDefaultAvatar } from '@/lib/avatar';
 import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { adventureService } from '@/services/adventureService';
@@ -145,6 +145,7 @@ export default function ChildDashboard() {
 
   if (!activeChild) return null;
 
+  const defaultAvatar = getDefaultAvatar(activeChild.gender);
   const inProgressAdventure = adventures.find((a) => a.status === 'in-progress') ?? null;
   const completedAdventures = adventures.filter((a) => a.status === 'completed');
   const completedCount = completedAdventures.length;

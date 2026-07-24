@@ -1,5 +1,5 @@
 import type { IChild } from '@mathmagic/types';
-import defaultAvatar from '@/assets/default_avatar.png';
+import { getDefaultAvatar } from '@/lib/avatar';
 
 const LEVEL_NAMES: readonly string[] = [
   'Beginner', 'Math Explorer', 'Number Wizard', 'Problem Solver',
@@ -17,6 +17,7 @@ interface ProfileCardProps {
 }
 
 export default function ProfileCard({ child, onSelect }: ProfileCardProps) {
+  const defaultAvatar = getDefaultAvatar(child.gender);
   const avatarSrc = child.avatars[child.activeAvatarIndex]?.imageData || defaultAvatar;
   const level = child.currentLevel ?? 1;
 

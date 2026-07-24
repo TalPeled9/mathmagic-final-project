@@ -20,14 +20,18 @@ const gradeLevelSchema = z.union([
   z.literal(6),
 ]);
 
+const genderSchema = z.enum(['boy', 'girl']);
+
 const createChildSchema = z.object({
   name: z.string().min(MIN_CHILD_NAME_LENGTH, 'Name is required').max(MAX_CHILD_NAME_LENGTH),
   gradeLevel: gradeLevelSchema,
+  gender: genderSchema,
 });
 
 const updateChildSchema = z.object({
   name: z.string().min(MIN_CHILD_NAME_LENGTH).max(MAX_CHILD_NAME_LENGTH).optional(),
   gradeLevel: gradeLevelSchema.optional(),
+  gender: genderSchema.optional(),
   narratorVoice: z.string().optional(),
 });
 
@@ -83,6 +87,12 @@ router.put(
   requireAuth,
   validate({ params: childIdSchema, body: updateChildSchema }),
   parentController.updateChild
+);
+router.delete(
+  '/children/:childId',
+  requireAuth,
+  validate({ params: childIdSchema }),
+  parentController.deleteChild
 );
 router.post(
   '/children/:childId/avatar',

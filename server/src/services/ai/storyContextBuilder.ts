@@ -72,6 +72,7 @@ export function buildStorySummary(state: AdventureState): string {
 export function buildStoryStepContext(state: AdventureState): LLMStoryPromptContext {
   return {
     childName: state.childName,
+    gender: state.gender,
     gradeLevel: state.gradeLevel,
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
@@ -153,6 +154,7 @@ export function buildMathQuestionContext(state: AdventureState): LLMMathQuestion
   const requireExpression = topic?.expressionFor?.includes(state.currentDifficulty) ?? false;
   return {
     childName: state.childName,
+    gender: state.gender,
     gradeLevel: state.gradeLevel,
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
@@ -185,6 +187,7 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
   );
   return {
     childName: state.childName,
+    gender: state.gender,
     gradeLevel: state.gradeLevel,
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,
@@ -209,6 +212,7 @@ export function buildHintContext(state: AdventureState): LLMHintContext {
 export function buildEndStoryContext(state: AdventureState): LLMEndStoryContext {
   return {
     childName: state.childName,
+    gender: state.gender,
     gradeLevel: state.gradeLevel,
     mathTopic: state.mathTopic,
     storyWorld: state.storyWorld,

@@ -1,5 +1,7 @@
 export type GradeLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
+export type Gender = 'boy' | 'girl';
+
 export interface IBadge {
   badgeType: string;
   badgeName: string;
@@ -30,6 +32,7 @@ export interface IChild {
   parentId: string;
   name: string;
   gradeLevel: GradeLevel;
+  gender: Gender;
   avatars: AvatarSlot[];
   activeAvatarIndex: number;
   weeklyGenerationsRemaining: number; // 0–3
@@ -48,11 +51,13 @@ export interface IChild {
 export interface CreateChildRequest {
   name: string;
   gradeLevel: GradeLevel;
+  gender: Gender;
 }
 
 export interface UpdateChildRequest {
   name?: string;
   gradeLevel?: GradeLevel;
+  gender?: Gender;
   narratorVoice?: string;
 }
 

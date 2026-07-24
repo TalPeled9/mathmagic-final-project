@@ -79,6 +79,7 @@ export const childService = {
     api.post<{ child: IChild }>('/parent/children', data).then((r) => r.child),
   update: (id: string, data: UpdateChildRequest) =>
     api.put<{ child: IChild }>(`/parent/children/${id}`, data).then((r) => r.child),
+  remove: (id: string) => api.delete<void>(`/parent/children/${id}`),
   generateAvatar: (id: string, data: GenerateAvatarRequest) =>
     api.post<{ child: IChild }>(`/parent/children/${id}/avatar`, data).then((r) => r.child),
   setActiveAvatar: (id: string, data: SetActiveAvatarRequest) =>

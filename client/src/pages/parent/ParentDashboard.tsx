@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Sparkles, Plus, X, Users, LogOut, Settings, Clock, Star } from 'lucide-react';
-import { ParentLoader, GradientRing } from '@/components/loaders';
+import { Sparkles, Plus, Users, LogOut, Settings, Clock, Star } from 'lucide-react';
+import { ParentLoader } from '@/components/loaders';
 import MagicBackground from '@/components/MagicBackground';
 import { childService, type ChildWithTopics } from '../../services/childService';
-import type { GradeLevel } from '@mathmagic/types';
+import type { GradeLevel, Gender, IChild } from '@mathmagic/types';
 import { useAuth } from '@/hooks/useAuth';
 import { ChildSection } from '@/components/parent/ChildSection';
 import { ParentSettingsModal } from '@/components/parent/ParentSettingsModal';
-import defaultAvatar from '@/assets/default_avatar.png';
-
-const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
+import { AddChildForm } from '@/components/parent/AddChildForm';
+import { getDefaultAvatar } from '@/lib/avatar';
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -31,6 +30,7 @@ export default function ParentDashboard() {
 
   const [newName, setNewName] = useState('');
   const [newGrade, setNewGrade] = useState<GradeLevel>(1);
+  const [newGender, setNewGender] = useState<Gender>('boy');
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
@@ -48,19 +48,30 @@ export default function ParentDashboard() {
     e.preventDefault();
     setIsCreating(true);
     try {
-      const child = await childService.create({ name: newName, gradeLevel: newGrade });
+      const child = await childService.create({ name: newName, gradeLevel: newGrade, gender: newGender });
       const withTopics = child as ChildWithTopics;
       setChildren((prev) => [...prev, withTopics]);
       setSelectedChildId(child._id);
       setShowAddForm(false);
       setNewName('');
       setNewGrade(1);
+      setNewGender('boy');
       toast.success(`${child.name}'s profile created!`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create profile');
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleChildUpdate = (updated: IChild) => {
+    setChildren((prev) => prev.map((c) => (c._id === updated._id ? { ...c, ...updated } : c)));
+  };
+
+  const handleChildDelete = (childId: string) => {
+    const remaining = children.filter((c) => c._id !== childId);
+    setChildren(remaining);
+    setSelectedChildId((prev) => (prev === childId ? (remaining[0]?._id ?? null) : prev));
   };
 
   const selectedChild = children.find((c) => c._id === selectedChildId) ?? children[0] ?? null;
@@ -214,7 +225,7 @@ export default function ParentDashboard() {
                           />
                         ) : (
                           <img
-                            src={defaultAvatar}
+                            src={getDefaultAvatar(child.gender)}
                             alt={child.name}
                             className="w-full h-full object-cover"
                           />
@@ -243,126 +254,43 @@ export default function ParentDashboard() {
 
               {/* Add form or child section */}
               {showAddForm ? (
-                <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border-2 border-purple-wizzy/10">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
-                    <button
-                      onClick={() => setShowAddForm(false)}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <form onSubmit={handleCreate} className="space-y-3">
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">Child's Name</label>
-                      <input
-                        type="text"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        placeholder="Enter child's first name"
-                        maxLength={50}
-                        required
-                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">Grade Level</label>
-                      <select
-                        value={newGrade}
-                        onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
-                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                      >
-                        {GRADES.map((g) => (
-                          <option key={g} value={g}>
-                            Grade {g}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddForm(false)}
-                        className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isCreating}
-                        className="flex-1 py-2.5 rounded-xl bg-purple-wizzy text-white text-sm font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        {isCreating && <GradientRing size={16} thickness={2.5} label="" />}
-                        {isCreating ? 'Creating...' : 'Create Profile'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                <AddChildForm
+                  name={newName}
+                  onNameChange={setNewName}
+                  gradeLevel={newGrade}
+                  onGradeLevelChange={setNewGrade}
+                  gender={newGender}
+                  onGenderChange={setNewGender}
+                  onSubmit={handleCreate}
+                  onCancel={() => setShowAddForm(false)}
+                  isSubmitting={isCreating}
+                />
               ) : (
-                selectedChild && <ChildSection key={selectedChild._id} child={selectedChild} />
+                selectedChild && (
+                  <ChildSection
+                    key={selectedChild._id}
+                    child={selectedChild}
+                    onChildUpdate={handleChildUpdate}
+                    onChildDelete={handleChildDelete}
+                  />
+                )
               )}
             </>
           )}
 
           {/* No children + add form */}
           {!isLoading && children.length === 0 && showAddForm && (
-            <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border-2 border-purple-wizzy/10">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-purple-wizzy">New Child Profile</h3>
-                <button
-                  onClick={() => setShowAddForm(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <form onSubmit={handleCreate} className="space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Child's Name</label>
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Enter child's first name"
-                    maxLength={50}
-                    required
-                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Grade Level</label>
-                  <select
-                    value={newGrade}
-                    onChange={(e) => setNewGrade(Number(e.target.value) as GradeLevel)}
-                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
-                  >
-                    {GRADES.map((g) => (
-                      <option key={g} value={g}>
-                        Grade {g}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddForm(false)}
-                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isCreating}
-                    className="flex-1 py-2.5 rounded-xl bg-purple-wizzy text-white text-sm font-semibold hover:bg-purple-wizzy/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    {isCreating && <GradientRing size={16} thickness={2.5} label="" />}
-                    {isCreating ? 'Creating...' : 'Create Profile'}
-                  </button>
-                </div>
-              </form>
-            </div>
+            <AddChildForm
+              name={newName}
+              onNameChange={setNewName}
+              gradeLevel={newGrade}
+              onGradeLevelChange={setNewGrade}
+              gender={newGender}
+              onGenderChange={setNewGender}
+              onSubmit={handleCreate}
+              onCancel={() => setShowAddForm(false)}
+              isSubmitting={isCreating}
+            />
           )}
 
           {/* First-time add button (no children) */}

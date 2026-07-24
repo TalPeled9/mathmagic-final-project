@@ -4,6 +4,7 @@ import type { LLMHintContext } from '@mathmagic/types';
 
 const baseCtx: LLMHintContext = {
   childName: 'Alice',
+  gender: 'girl',
   gradeLevel: 2,
   mathTopic: 'g1_addition',
   storyWorld: 'fantasy',

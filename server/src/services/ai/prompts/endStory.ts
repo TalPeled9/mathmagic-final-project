@@ -5,6 +5,7 @@ export function buildEndStoryPrompt(ctx: LLMEndStoryContext): string {
 
 CHILD CONTEXT:
 - Child's name: ${ctx.childName}
+- Child's gender: ${ctx.gender} — if writing in a language with grammatical gender (e.g. Hebrew), address and describe the child using this gender consistently throughout
 - Child grade level: ${ctx.gradeLevel}
 - Math topic: ${ctx.mathTopic}
 - Story world / theme: ${ctx.storyWorld}
