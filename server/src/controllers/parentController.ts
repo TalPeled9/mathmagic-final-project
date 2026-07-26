@@ -68,6 +68,21 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
   res.json({ id: String(user._id), email: user.email, name: user.name, createdAt: user.createdAt });
 }
 
+export async function getNotificationPreferences(req: Request, res: Response): Promise<void> {
+  const user = await User.findById(req.user!.userId).select('weeklyReportOptIn');
+  if (!user) throw ApiError.notFound('User not found');
+  res.json({ weeklyReportOptIn: user.weeklyReportOptIn !== false });
+}
+
+export async function updateNotificationPreferences(req: Request, res: Response): Promise<void> {
+  const { weeklyReportOptIn } = req.body as { weeklyReportOptIn: boolean };
+  const user = await User.findById(req.user!.userId);
+  if (!user) throw ApiError.notFound('User not found');
+  user.weeklyReportOptIn = weeklyReportOptIn;
+  await user.save();
+  res.json({ weeklyReportOptIn: user.weeklyReportOptIn });
+}
+
 export async function getChildren(req: Request, res: Response): Promise<void> {
   const parentId = req.user!.userId;
   const currentWeekStart = getWeekStart(new Date());

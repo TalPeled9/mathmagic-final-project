@@ -4,7 +4,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: ['./src/tests/setup.ts'],
-    include: ['src/tests/unit/**/*.test.ts', 'src/tests/integration/**/*.test.ts'],
+    include: [
+      'src/tests/unit/**/*.test.{ts,tsx}',
+      'src/tests/integration/**/*.test.{ts,tsx}',
+    ],
     clearMocks: true,
     restoreMocks: true,
     testTimeout: 30000,

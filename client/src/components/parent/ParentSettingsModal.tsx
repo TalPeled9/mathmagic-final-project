@@ -1,29 +1,89 @@
-import { useEffect } from 'react';
-import { X, Bell, Lock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { X, Bell, Lock, Send } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { notificationService } from '../../services/notificationService';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-function PlaceholderToggle({ label, description }: { label: string; description?: string }) {
+function WeeklyReportSetting() {
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [isToggling, setIsToggling] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    notificationService
+      .get()
+      .then((prefs) => setEnabled(prefs.weeklyReportOptIn))
+      .catch(() => setEnabled(true));
+  }, []);
+
+  const handleToggle = async () => {
+    if (enabled === null || isToggling) return;
+    const next = !enabled;
+    setEnabled(next);
+    setIsToggling(true);
+    try {
+      await notificationService.update(next);
+    } catch (err) {
+      setEnabled(!next);
+      toast.error(err instanceof Error ? err.message : 'Failed to update preference');
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
+  const handleSendNow = async () => {
+    setIsSending(true);
+    try {
+      const result = await notificationService.sendWeeklyReportNow();
+      if (result.sent) {
+        toast.success('Report sent to your inbox!');
+      } else if (result.reason === 'no-activity') {
+        toast.error("No activity yet this week — there's nothing to report.");
+      } else if (result.reason === 'resend-not-configured') {
+        toast.error('Email sending is not configured yet.');
+      } else {
+        toast.error('Could not send the report. Please try again.');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send report');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-gray-700">{label}</p>
-        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Soon</span>
+    <div className="py-3 border-b border-gray-100 last:border-0">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Weekly Progress Report</p>
+          <p className="text-xs text-gray-400 mt-0.5">Weekly learning summary per child</p>
+        </div>
         <button
-          disabled
-          className="w-10 h-5 bg-gray-100 rounded-full relative cursor-not-allowed"
-          aria-label={`Toggle ${label}`}
+          onClick={handleToggle}
+          disabled={enabled === null}
+          className="w-10 h-5 rounded-full relative transition-colors disabled:opacity-50"
+          style={{ backgroundColor: enabled ? 'rgb(139,92,246)' : 'rgb(229,231,235)' }}
+          aria-label="Toggle Weekly Progress Report"
         >
-          <span className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm" />
+          <span
+            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all"
+            style={{ left: enabled ? '22px' : '2px' }}
+          />
         </button>
       </div>
+      <button
+        onClick={handleSendNow}
+        disabled={isSending}
+        className="mt-2 flex items-center gap-1.5 text-xs text-purple-wizzy hover:text-purple-wizzy/80 font-medium disabled:opacity-60"
+      >
+        <Send size={12} />
+        {isSending ? 'Sending…' : 'Send Weekly Report Now'}
+      </button>
     </div>
   );
 }
@@ -79,10 +139,7 @@ export function ParentSettingsModal({ isOpen, onClose }: Props) {
                 <h3 className="font-semibold text-gray-700 text-sm">Notifications</h3>
               </div>
               <div className="bg-gray-50 rounded-xl px-4">
-                <PlaceholderToggle
-                  label="Weekly Progress Report"
-                  description="Weekly learning summary per child"
-                />
+                <WeeklyReportSetting />
               </div>
             </div>
 

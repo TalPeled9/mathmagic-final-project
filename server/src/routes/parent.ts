@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth';
 import { validate } from '../middleware/validateRequest';
 import * as parentController from '../controllers/parentController';
 import * as statisticsController from '../controllers/statisticsController';
+import reportsRouter from './reports';
 
 const MIN_CHILD_NAME_LENGTH = 1;
 const MAX_CHILD_NAME_LENGTH = 50;
@@ -41,7 +42,23 @@ const setActiveAvatarSchema = z.object({
   avatarIndex: z.number().int().min(0).max(2),
 });
 
+const notificationPreferencesSchema = z.object({
+  weeklyReportOptIn: z.boolean(),
+});
+
 router.get('/profile', requireAuth, parentController.getProfile);
+router.get(
+  '/notification-preferences',
+  requireAuth,
+  parentController.getNotificationPreferences
+);
+router.patch(
+  '/notification-preferences',
+  requireAuth,
+  validate({ body: notificationPreferencesSchema }),
+  parentController.updateNotificationPreferences
+);
+router.use('/reports', reportsRouter);
 router.get('/children', requireAuth, parentController.getChildren);
 router.post(
   '/children',

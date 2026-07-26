@@ -7,6 +7,8 @@ export interface IUser {
   googleId?: string;
   passwordHash?: string;
   name: string;
+  weeklyReportOptIn: boolean;
+  unsubscribeToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +20,8 @@ const userSchema = new mongoose.Schema<IUser>(
     googleId: { type: String, unique: true, sparse: true },
     passwordHash: { type: String },
     name: { type: String, required: true, trim: true, maxlength: 100 },
+    weeklyReportOptIn: { type: Boolean, default: true },
+    unsubscribeToken: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 );

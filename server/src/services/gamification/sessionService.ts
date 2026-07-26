@@ -4,6 +4,25 @@ import { LearningSession } from '../../models/LearningSession';
 import { Adventure } from '../../models/Adventure';
 
 /**
+ * Returns total learning minutes for a child within an explicit [start, end) window.
+ * Unlike getDailySessionBreakdown (rolling window from now), this takes fixed
+ * bounds so callers can align to a calendar week rather than the current moment.
+ */
+export async function getMinutesInRange(childId: string, start: Date, end: Date): Promise<number> {
+  const result = await LearningSession.aggregate([
+    {
+      $match: {
+        childId: new Types.ObjectId(childId),
+        date: { $gte: start, $lt: end },
+        duration: { $exists: true, $gt: 0 },
+      },
+    },
+    { $group: { _id: null, total: { $sum: '$duration' } } },
+  ]);
+  return result[0]?.total ?? 0;
+}
+
+/**
  * Returns per-day learning minutes for the last `days` calendar days.
  * Gaps (days with no sessions) are filled with 0 minutes so the client
  * always receives a complete, chart-ready array.

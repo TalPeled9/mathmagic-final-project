@@ -32,6 +32,15 @@ export const config = {
     apiKey: process.env.ELEVENLABS_API_KEY ?? '',
     paid: process.env.ELEVENLABS_PAID === 'true',
   },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY ?? '',
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'MathMagic Reports <reports@yourdomain.com>',
+  },
+  weeklyReport: {
+    cronSchedule: process.env.WEEKLY_REPORT_CRON || '0 8 * * 1',
+    timezone: process.env.WEEKLY_REPORT_TIMEZONE || 'UTC',
+    enabled: process.env.WEEKLY_REPORT_ENABLED !== 'false',
+  },
   isProduction: process.env.NODE_ENV === 'production',
 } as const;
 
