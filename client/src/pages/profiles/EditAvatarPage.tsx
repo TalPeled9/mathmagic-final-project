@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, RefreshCw, Check } from 'lucide-react';
 import { ParentLoader } from '@/components/loaders';
 import mathmagicLogo from '@/assets/mathmagic-logo.png';
-import defaultAvatar from '@/assets/default_avatar.png';
+import { getDefaultAvatar } from '@/lib/avatar';
 import { childService } from '@/services/childService';
 import type { IChild } from '@mathmagic/types';
 
@@ -47,6 +47,7 @@ export default function EditAvatarPage() {
 
   if (!child) return null;
 
+  const defaultAvatar = getDefaultAvatar(child.gender);
   const quotaExhausted = child.weeklyGenerationsRemaining <= 0;
   // slots 1, 2, 3 are generated; slot 0 is always the default
   const generatedCount = child.avatars.length - 1;

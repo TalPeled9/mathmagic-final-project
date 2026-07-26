@@ -3,7 +3,7 @@ import { LayoutDashboard, BookOpen, Clock, Settings, Trophy, Star, Zap } from 'l
 import { ParentLoader } from '@/components/loaders';
 import { childService, type ChildStatistics, type ChildWithTopics } from '@/services/childService';
 import type { IChild } from '@mathmagic/types';
-import defaultAvatar from '@/assets/default_avatar.png';
+import { getDefaultAvatar } from '@/lib/avatar';
 import { OverviewTab } from '@/pages/parent/tabs/OverviewTab';
 import { TopicsTab } from '@/pages/parent/tabs/TopicsTab';
 import { LearningTimeTab } from '@/pages/parent/tabs/LearningTimeTab';
@@ -30,13 +30,20 @@ function xpPercent(totalXP: number, currentLevel: number): number {
 
 interface Props {
   child: ChildWithTopics;
+  onChildUpdate: (updated: IChild) => void;
+  onChildDelete: (childId: string) => void;
 }
 
-export function ChildSection({ child: initialChild }: Props) {
+export function ChildSection({ child: initialChild, onChildUpdate, onChildDelete }: Props) {
   const [childData, setChildData] = useState<IChild>(initialChild);
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [stats, setStats] = useState<ChildStatistics | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+
+  const handleChildUpdate = (updated: IChild) => {
+    setChildData(updated);
+    onChildUpdate(updated);
+  };
 
   useEffect(() => {
     childService
@@ -46,6 +53,7 @@ export function ChildSection({ child: initialChild }: Props) {
   }, [childData._id]);
 
   const avatar = childData.avatars[childData.activeAvatarIndex];
+  const defaultAvatar = getDefaultAvatar(childData.gender);
   const percent = xpPercent(childData.totalXP, childData.currentLevel);
   const isActive = childData.weeklyLearningMinutes > 0;
   const streak = stats?.currentDayStreak ?? 0;
@@ -170,7 +178,11 @@ export function ChildSection({ child: initialChild }: Props) {
             {activeTab === 'topics' && <TopicsTab stats={stats} />}
             {activeTab === 'time' && <LearningTimeTab stats={stats} />}
             {activeTab === 'settings' && (
-              <SettingsTab child={childData} onChildUpdate={setChildData} />
+              <SettingsTab
+                child={childData}
+                onChildUpdate={handleChildUpdate}
+                onChildDelete={onChildDelete}
+              />
             )}
           </div>
         )}

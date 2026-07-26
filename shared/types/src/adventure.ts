@@ -1,4 +1,4 @@
-import type { IBadge } from './children';
+import type { Gender, IBadge } from './children';
 
 export type StoryMode = 'story_step' | 'math_question' | 'hint' | 'end_story';
 
@@ -10,6 +10,7 @@ export interface ConversationTurn {
 
 export interface AdventureState {
   childName: string;
+  gender: Gender;
   gradeLevel: number;
   mathTopic: string;
   storyWorld: string;

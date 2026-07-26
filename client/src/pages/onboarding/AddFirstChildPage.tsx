@@ -6,22 +6,27 @@ import { GradientRing } from '@/components/loaders';
 import MagicBackground from '@/components/MagicBackground';
 import wizzyImg from '@/assets/wizzy.png';
 import { childService } from '../../services/childService';
-import type { GradeLevel } from '@mathmagic/types';
+import type { GradeLevel, Gender } from '@mathmagic/types';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
+const GENDERS: { value: Gender; label: string }[] = [
+  { value: 'boy', label: 'Boy' },
+  { value: 'girl', label: 'Girl' },
+];
 
 export default function AddFirstChildPage() {
   const navigate = useNavigate();
 
   const [childName, setChildName] = useState('');
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(1);
+  const [gender, setGender] = useState<Gender>('boy');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await childService.create({ name: childName, gradeLevel });
+      await childService.create({ name: childName, gradeLevel, gender });
       toast.success("Child profile created! Let's get started ✨");
       navigate('/profiles');
     } catch (err) {
@@ -94,6 +99,36 @@ export default function AddFirstChildPage() {
                 required
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy transition-shadow focus:shadow-[0_0_0_3px_rgba(139,92,246,0.10)]"
               />
+            </div>
+
+            {/* Gender — two-way toggle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+              <div className="grid grid-cols-2 gap-2">
+                {GENDERS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setGender(value)}
+                    className="py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                    style={
+                      gender === value
+                        ? {
+                            background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                            color: 'white',
+                            boxShadow: '0 4px 12px rgba(139,92,246,0.4)',
+                          }
+                        : {
+                            background: 'rgba(139,92,246,0.06)',
+                            color: '#6b7280',
+                            border: '1px solid rgba(139,92,246,0.1)',
+                          }
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Grade level — button grid */}

@@ -10,6 +10,7 @@ import type { AdventureState, LLMMathQuestionContext } from '@mathmagic/types';
 
 const clockCtx: LLMMathQuestionContext = {
   childName: 'Alex',
+  gender: 'boy',
   gradeLevel: 1,
   mathTopic: 'g1_time_clock',
   storyWorld: 'space',
@@ -19,6 +20,7 @@ const clockCtx: LLMMathQuestionContext = {
 
 const baseState: AdventureState = {
   childName: 'Alex',
+  gender: 'boy',
   gradeLevel: 2,
   mathTopic: 'addition',
   storyWorld: 'space',

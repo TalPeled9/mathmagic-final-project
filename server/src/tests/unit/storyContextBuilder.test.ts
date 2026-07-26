@@ -13,6 +13,7 @@ import type { AdventureState, MathTopicConfig } from '@mathmagic/types';
 
 const baseState: AdventureState = {
   childName: 'Alex',
+  gender: 'boy',
   gradeLevel: 2,
   mathTopic: 'addition',
   storyWorld: 'space',

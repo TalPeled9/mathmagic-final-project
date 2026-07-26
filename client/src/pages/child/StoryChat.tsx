@@ -21,7 +21,7 @@ import { AnalogClock } from '@/components/AnalogClock';
 import MathText from '@/components/MathText';
 import { ParentLoader } from '@/components/loaders';
 import { useAuth } from '@/hooks/useAuth';
-import defaultAvatar from '@/assets/default_avatar.png';
+import { getDefaultAvatar } from '@/lib/avatar';
 import wizzyImg from '@/assets/wizzy.png';
 import mathmagicLogo from '@/assets/mathmagic-logo.png';
 import { adventureService } from '@/services/adventureService';
@@ -724,7 +724,7 @@ export default function StoryChat() {
                       text={msg.text}
                       avatarUrl={
                         activeChild?.avatars[activeChild.activeAvatarIndex]?.imageData ||
-                        defaultAvatar
+                        getDefaultAvatar(activeChild?.gender)
                       }
                     />
                   );

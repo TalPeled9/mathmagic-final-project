@@ -4,6 +4,7 @@ import type { LLMMathQuestionContext } from '@mathmagic/types';
 
 const baseCtx: LLMMathQuestionContext = {
   childName: 'Alice',
+  gender: 'girl',
   gradeLevel: 2,
   mathTopic: 'g1_addition',
   storyWorld: 'fantasy',

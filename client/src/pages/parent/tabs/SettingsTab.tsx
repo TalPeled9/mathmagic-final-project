@@ -1,14 +1,18 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Save, User, Volume2 } from 'lucide-react';
+import { Save, User, Volume2, AlertTriangle, Trash2 } from 'lucide-react';
 import { GradientRing } from '@/components/loaders';
 import { childService } from '../../../services/childService';
 import { api } from '@/lib/api';
-import type { IChild, GradeLevel } from '@mathmagic/types';
-import defaultAvatar from '@/assets/default_avatar.png';
+import type { IChild, GradeLevel, Gender } from '@mathmagic/types';
+import { getDefaultAvatar } from '@/lib/avatar';
 
 const GRADES: GradeLevel[] = [1, 2, 3, 4, 5, 6];
+const GENDERS: { value: Gender; label: string }[] = [
+  { value: 'boy', label: 'Boy' },
+  { value: 'girl', label: 'Girl' },
+];
 
 const NARRATOR_VOICES = [
   {
@@ -28,6 +32,7 @@ const NARRATOR_VOICES = [
 interface Props {
   child: IChild;
   onChildUpdate: (updated: IChild) => void;
+  onChildDelete: (childId: string) => void;
 }
 
 function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
@@ -39,16 +44,20 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
   );
 }
 
-export function SettingsTab({ child, onChildUpdate }: Props) {
+export function SettingsTab({ child, onChildUpdate, onChildDelete }: Props) {
   const [name, setName] = useState(child.name);
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(child.gradeLevel);
+  const [gender, setGender] = useState<Gender>(child.gender ?? 'boy');
   const [narratorVoice, setNarratorVoice] = useState<string>(
     child.narratorVoice ?? 'UQ15q3Vf9AQQ2owcMKQ0'
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const avatar = child.avatars[child.activeAvatarIndex];
+  const defaultAvatar = getDefaultAvatar(child.gender);
 
   const selectNarratorVoice = async (voiceId: string, sampleText: string) => {
     setNarratorVoice(voiceId);
@@ -72,13 +81,30 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const updated = await childService.update(child._id, { name, gradeLevel, narratorVoice });
+      const updated = await childService.update(child._id, {
+        name,
+        gradeLevel,
+        gender,
+        narratorVoice,
+      });
       onChildUpdate(updated);
       toast.success('Profile updated!');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await childService.remove(child._id);
+      toast.success(`${child.name}'s profile was deleted`);
+      onChildDelete(child._id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete profile');
+      setIsDeleting(false);
     }
   };
 
@@ -139,6 +165,20 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
             </select>
           </div>
           <div>
+            <label className="block text-sm text-gray-600 mb-1.5">Gender</label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value as Gender)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-wizzy/30 focus:border-purple-wizzy"
+            >
+              {GENDERS.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label className="block text-sm text-gray-600 mb-1.5 flex items-center gap-1.5">
               <Volume2 size={14} className="text-purple-wizzy" />
               Wizzy's Voice
@@ -170,6 +210,47 @@ export function SettingsTab({ child, onChildUpdate }: Props) {
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
+      </div>
+
+      {/* Danger zone */}
+      <div className="bg-white rounded-2xl shadow-sm p-5 border border-red-100">
+        <SectionHeader icon={AlertTriangle} title="Danger Zone" />
+        {!confirmingDelete ? (
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(true)}
+            className="w-full flex items-center justify-center gap-2 border border-red-200 text-red-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Profile
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete {child.name}'s profile? This will permanently
+              remove their progress, badges, and adventure history. This can't be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60 transition-colors"
+              >
+                {isDeleting && <GradientRing size={16} thickness={2.5} label="" />}
+                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

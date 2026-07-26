@@ -2,11 +2,13 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import { Child } from '../models/Child';
 import { TopicProgress } from '../models/TopicProgress';
+import { Adventure } from '../models/Adventure';
+import { LearningSession } from '../models/LearningSession';
 import { ApiError } from '../utils/ApiError';
 import { generateAvatar } from '../services/avatarService';
 import { getWeekStart } from '../services/adventureService';
 import { resolveBadges } from '../services/gamification/badgeService';
-import type { GradeLevel } from '@mathmagic/types';
+import type { GradeLevel, Gender } from '@mathmagic/types';
 
 interface TopicSummary {
   mathTopic: string;
@@ -38,6 +40,7 @@ function toPublicChild(child: InstanceType<typeof Child>, topTopics: TopicSummar
     parentId: child.parentId,
     name: child.name,
     gradeLevel: child.gradeLevel,
+    gender: child.gender,
     avatars: child.avatars.map((a) => ({
       imageData: a.imageData,
       description: a.description,
@@ -125,7 +128,11 @@ export async function getChildren(req: Request, res: Response): Promise<void> {
 
 export async function createChild(req: Request, res: Response): Promise<void> {
   const parentId = req.user!.userId;
-  const { name, gradeLevel } = req.body as { name: string; gradeLevel: GradeLevel };
+  const { name, gradeLevel, gender } = req.body as {
+    name: string;
+    gradeLevel: GradeLevel;
+    gender: Gender;
+  };
 
   const count = await Child.countDocuments({ parentId });
   if (count >= 10) throw ApiError.badRequest('Maximum of 10 child profiles allowed');
@@ -134,6 +141,7 @@ export async function createChild(req: Request, res: Response): Promise<void> {
     parentId,
     name,
     gradeLevel,
+    gender,
     avatars: [{ imageData: '', description: '', createdAt: new Date() }],
     activeAvatarIndex: 0,
     generationTimestamps: [],
@@ -155,19 +163,37 @@ export async function getChild(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateChild(req: Request, res: Response): Promise<void> {
-  const { name, gradeLevel, narratorVoice } = req.body as {
+  const { name, gradeLevel, gender, narratorVoice } = req.body as {
     name?: string;
     gradeLevel?: GradeLevel;
+    gender?: Gender;
     narratorVoice?: string;
   };
   const child = await Child.findOne({ _id: req.params.childId, parentId: req.user!.userId });
   if (!child) throw ApiError.notFound('Child not found');
   if (name) child.name = name;
   if (gradeLevel) child.gradeLevel = gradeLevel;
+  if (gender) child.gender = gender;
   const ALLOWED_VOICES = new Set(['UQ15q3Vf9AQQ2owcMKQ0', 'O4NKp88bb2JkAnrCbwQt']);
   if (narratorVoice && ALLOWED_VOICES.has(narratorVoice)) child.narratorVoice = narratorVoice;
   await child.save();
   res.json({ child: toPublicChild(child) });
+}
+
+export async function deleteChild(req: Request, res: Response): Promise<void> {
+  const child = await Child.findOneAndDelete({
+    _id: req.params.childId,
+    parentId: req.user!.userId,
+  });
+  if (!child) throw ApiError.notFound('Child not found');
+
+  await Promise.all([
+    Adventure.deleteMany({ childId: child._id }),
+    TopicProgress.deleteMany({ childId: child._id }),
+    LearningSession.deleteMany({ childId: child._id }),
+  ]);
+
+  res.status(204).send();
 }
 
 export async function generateChildAvatar(req: Request, res: Response): Promise<void> {

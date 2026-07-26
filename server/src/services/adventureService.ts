@@ -119,6 +119,7 @@ export function buildAdventureState(
 
   const state: AdventureState = {
     childName: child.name,
+    gender: child.gender,
     gradeLevel: child.gradeLevel,
     mathTopic: adventure.mathTopic,
     storyWorld: adventure.storyWorld,

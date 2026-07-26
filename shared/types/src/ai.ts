@@ -1,7 +1,9 @@
+import type { Gender } from './children';
 import type { StoryMode } from './adventure';
 
 export interface LLMStoryPromptContext {
   childName: string;
+  gender: Gender;
   gradeLevel: number;
   mathTopic: string;
   storyWorld: string;
