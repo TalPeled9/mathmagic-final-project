@@ -9,6 +9,7 @@ import type {
   LLMHintResponse,
   LLMEndStoryResponse,
   IBadge,
+  Gender,
 } from '@mathmagic/types';
 import { Adventure, type IAdventureDocument } from '../models/Adventure';
 import { AdventureImage } from '../models/AdventureImage';
@@ -246,10 +247,11 @@ export function mapHintResponse(llmResponse: LLMHintResponse, hintLevel: number)
 export async function generateSegmentImage(
   imageDescription: string,
   avatarUrl: string,
-  storyWorldId: string
+  storyWorldId: string,
+  gender: Gender
 ): Promise<string | null> {
   try {
-    return await generateStoryImage(imageDescription, avatarUrl, storyWorldId);
+    return await generateStoryImage(imageDescription, avatarUrl, storyWorldId, gender);
   } catch (err) {
     logger.warn({ err }, 'Image generation failed, continuing without image');
     return null;
@@ -448,7 +450,8 @@ async function _doPrefetchForChoices(
         const imageUrl = await generateSegmentImage(
           llmResponse.imageDescription,
           child.avatars[child.activeAvatarIndex]?.imageData ?? '',
-          adventure.storyWorld
+          adventure.storyWorld,
+          child.gender
         );
         if (imageUrl) {
           pregeneratedImageCache.set(
@@ -558,7 +561,8 @@ async function _doPrefetchNextStep(
     const imageUrl = await generateSegmentImage(
       llmResponse.imageDescription,
       child.avatars[child.activeAvatarIndex]?.imageData ?? '',
-      adventure.storyWorld
+      adventure.storyWorld,
+      child.gender
     );
     if (imageUrl) {
       pregeneratedImageCache.set(imageCacheKey(adventure._id.toString(), nextIndex), imageUrl);
