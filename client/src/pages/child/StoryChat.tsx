@@ -804,6 +804,7 @@ export default function StoryChat() {
                   setPanelVisible(false);
                   setTimeout(() => showChallengePillRef.current?.focus(), 50);
                 }}
+                onReplay={() => stopAndSpeak(currentChallenge.problemText)}
                 lastFeedback={lastAnswerFeedback}
                 lastSubmittedAnswer={lastSubmittedAnswer}
               />
@@ -1284,6 +1285,7 @@ interface ChallengePanelProps {
   onAnswer: (answer: string) => void;
   onHint: () => void;
   onHide: () => void;
+  onReplay: () => void;
   lastFeedback: AnswerChallengeResponse | null;
   lastSubmittedAnswer: string | null;
 }
@@ -1293,6 +1295,7 @@ function ChallengePanel({
   onAnswer,
   onHint,
   onHide,
+  onReplay,
   lastFeedback,
   lastSubmittedAnswer,
 }: ChallengePanelProps) {
@@ -1343,11 +1346,26 @@ function ChallengePanel({
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
           <p
             className={`text-xl font-extrabold text-center text-gray-800 tracking-tight ${
-              challenge.mathExpression || challenge.clockTime ? 'mb-3' : 'mb-5'
+              challenge.mathExpression || challenge.clockTime ? 'mb-1' : 'mb-2'
             }`}
           >
             <MathText text={challenge.problemText} />
           </p>
+
+          <div
+            className={`flex justify-center ${
+              challenge.mathExpression || challenge.clockTime ? 'mb-3' : 'mb-5'
+            }`}
+          >
+            <button
+              onClick={onReplay}
+              title="Replay the problem"
+              className="flex items-center gap-1.5 text-xs font-bold text-purple-wizzy bg-purple-wizzy/10 hover:bg-purple-wizzy/20 transition-colors px-3.5 py-2 rounded-full shadow-sm hover:scale-105 active:scale-95"
+            >
+              <Play size={14} className="fill-purple-wizzy" />
+              Replay
+            </button>
+          </div>
 
           {challenge.mathExpression && (
             <div className="flex justify-center mb-4">

@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import type { Gender } from '@mathmagic/types';
 import { config } from '../../config';
 import { logger } from '../../lib/logger';
 import { getStoryWorldById } from '../../config/storyWorlds';
@@ -86,8 +87,9 @@ function isSvgDataUrl(dataUrl: string): boolean {
   return dataUrl.startsWith('data:image/svg+xml');
 }
 
-function getDefaultAvatarDataUrl(): string {
-  const pngPath = join(__dirname, '../../assets/default_avatar.png');
+function getDefaultAvatarDataUrl(gender: Gender): string {
+  const fileName = gender === 'girl' ? 'default_avatar_girl.png' : 'default_avatar.png';
+  const pngPath = join(__dirname, '../../assets', fileName);
   const data = readFileSync(pngPath).toString('base64');
   return `data:image/png;base64,${data}`;
 }
@@ -105,15 +107,19 @@ function describeStoryWorldTheme(storyWorldId: string): string {
  *
  * @param imageDescription  The scene description returned by the LLM (imageDescription field).
  * @param avatarDataUrl     The child's avatar as a base64 data URL. Empty string or SVG
- *                          both fall back to the bundled default_avatar.png reference image.
+ *                          both fall back to the bundled default avatar reference image
+ *                          matching the child's gender.
  * @param storyWorldId      The adventure's story world id (e.g. "space"), used to keep the
  *                          generated background consistent with the story's theme.
+ * @param gender            The child's gender, used to pick the correct default avatar
+ *                          when avatarDataUrl is empty or an SVG placeholder.
  * @returns  A base64 data URL of the generated image, or null if generation fails.
  */
 export async function generateStoryImage(
   imageDescription: string,
   avatarDataUrl: string,
-  storyWorldId: string
+  storyWorldId: string,
+  gender: Gender
 ): Promise<string | null> {
   if (!config.gemini.apiKey) return null;
 
@@ -127,7 +133,7 @@ export async function generateStoryImage(
     const parts: unknown[] = [];
 
     const resolvedAvatarUrl = !avatarDataUrl || isSvgDataUrl(avatarDataUrl)
-      ? getDefaultAvatarDataUrl()
+      ? getDefaultAvatarDataUrl(gender)
       : avatarDataUrl;
 
     const parsed = parseDataUrl(resolvedAvatarUrl);
