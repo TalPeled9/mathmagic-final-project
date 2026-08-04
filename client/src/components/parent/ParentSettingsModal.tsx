@@ -156,18 +156,6 @@ export function ParentSettingsModal({ isOpen, onClose }: Props) {
                     {user?.email ?? '—'}
                   </p>
                 </div>
-                <div className="py-3 border-b border-gray-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Password</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Change your account password</p>
-                  </div>
-                  <button
-                    disabled
-                    className="text-xs text-gray-400 bg-gray-200 px-3 py-1.5 rounded-lg cursor-not-allowed"
-                  >
-                    Coming soon
-                  </button>
-                </div>
                 <div className="py-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Google Account</p>

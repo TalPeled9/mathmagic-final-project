@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import express from 'express';
-import path from 'path';
 import healthRouter from './health';
 import authRouter from './auth';
 import parentRouter from './parent';
@@ -18,6 +16,5 @@ router.use('/adventures', adventuresRouter);
 router.use('/badges', badgesRouter);
 router.use('/tts', ttsRouter);
 router.use('/email-preferences', emailPreferencesRouter);
-router.use('/assets', express.static(path.join(__dirname, '../assets')));
 
 export default router;

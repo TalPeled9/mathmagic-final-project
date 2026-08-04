@@ -23,7 +23,7 @@ export async function previewWeeklyReportHtml(req: Request, res: Response): Prom
     childStats: report.children,
     dashboardUrl: `${config.clientUrl}/parent`,
     unsubscribeUrl: `${config.clientUrl}/api/email-preferences/unsubscribe/preview`,
-    logoUrl: `${config.clientUrl}/api/assets/email/logo.png`,
+    logoUrl: `${config.clientUrl}/images/logo.png`,
   });
 
   res.type('html').send(html);
