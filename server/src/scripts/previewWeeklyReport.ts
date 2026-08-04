@@ -32,7 +32,7 @@ async function main() {
     childStats: report.children,
     dashboardUrl: `${config.clientUrl}/parent`,
     unsubscribeUrl: `${config.clientUrl}/api/email-preferences/unsubscribe/preview`,
-    logoUrl: `${config.clientUrl}/api/assets/email/logo.png`,
+    logoUrl: `${config.clientUrl}/images/logo.png`,
   });
 
   process.stdout.write(html);

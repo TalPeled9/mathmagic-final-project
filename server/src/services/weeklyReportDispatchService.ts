@@ -44,7 +44,7 @@ export async function sendWeeklyReportForParent(
   }
 
   const token = await getOrCreateUnsubscribeToken(userDoc);
-  const logoUrl = `${config.clientUrl}/api/assets/email/logo.png`;
+  const logoUrl = `${config.clientUrl}/images/logo.png`;
   const dashboardUrl = `${config.clientUrl}/parent`;
   const unsubscribeUrl = `${config.clientUrl}/api/email-preferences/unsubscribe/${token}`;
 

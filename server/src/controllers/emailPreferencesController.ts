@@ -9,7 +9,7 @@ export async function unsubscribe(req: Request, res: Response): Promise<void> {
 
   // Always 200, regardless of whether the token matched — don't leak token validity.
   const html = await renderUnsubscribeConfirmationHtml({
-    logoUrl: `${config.clientUrl}/api/assets/email/logo.png`,
+    logoUrl: `${config.clientUrl}/images/logo.png`,
   });
   res.type('html').send(html);
 }
